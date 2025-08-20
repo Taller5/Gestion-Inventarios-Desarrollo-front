@@ -1,0 +1,9 @@
+@import "tailwindcss"; 
+
+@layer utilities{  /* esta clase está hecha para añadir clases personalizadas de css, yo imagino que se puede usar para neumorphismo
+  o para otras herramientas que no usen directamente tailwind, ejemplo: */
+
+  .clase-ejemplo{
+    background-color: red;
+  }
+}
