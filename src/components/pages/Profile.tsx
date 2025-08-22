@@ -42,7 +42,7 @@ export default function Profile(props: ProfileProps) {
 
         <Button
           text="Guardar configuración"
-          style="bg-azul-fuerte hover:bg-azul-oscuro cursor-pointer text-white px-4 py-2 rounded ml-2"
+          style="bg-azul-fuerte hover:bg-azul-oscuro cursortext-white px-4 py-2 rounded ml-2"
         />
       </section>
       {/*End header section*/}
