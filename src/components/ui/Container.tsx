@@ -1,7 +1,9 @@
 import Form from "./Form";
 import InformationCards from "./informationCards";
 import MiniCards from "./MiniCards";
+
 import Nav from "./Nav";
+
 
 interface NavProps {
     logo?: string;
@@ -65,6 +67,7 @@ secondContent = <MiniCards {...props.miniCards} />;
             {nav}
             {pageContent}
             {secondContent} 
+
             <footer className="flex items-center justify-center gap-8 px-7 h-20 bg-black text-white">
                 <a
                     href="mailto:tallermultimedia50@gmail.com"
