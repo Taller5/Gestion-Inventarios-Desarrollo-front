@@ -9,7 +9,7 @@ interface InformationCardsProps {
 export default function InformationCards(props: InformationCardsProps) {
   return (
     
-    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-neutral-900 text-white">
+    <div className="flex flex-col items-center justify-center min-h-[60vh] bg-azul-oscuro text-white">
 
       <h2 className="text-3xl font-bold mb-3 text-center">{props.title}</h2>
       <p className="text-base mb-10 text-center">{props.text}</p>
