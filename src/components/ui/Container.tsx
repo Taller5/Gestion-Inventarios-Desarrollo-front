@@ -39,6 +39,7 @@ interface ContainerProps {
     nav?: NavProps;
     informationCardsProps?: InformationCardsProps;
     miniCards?: MiniCardsProps;
+    page?: any;
 }
 
 export default function Container(props: ContainerProps) {
@@ -47,26 +48,25 @@ export default function Container(props: ContainerProps) {
     let pageContent;
     let secondContent;
 
-if (props.form) {
-    pageContent= <Form {...props.form} />;
-} else if (props.informationCardsProps) {
-    if (props.miniCards){
-secondContent = <MiniCards {...props.miniCards} />;
-
+    if (props.form) {
+        pageContent= <Form {...props.form} />;
+    } else if (props.informationCardsProps) {
+        if (props.miniCards){
+        secondContent = <MiniCards {...props.miniCards} />;
+        }
+        pageContent = <InformationCards {...props.informationCardsProps} />;
+    } else if (props.page) {
+        pageContent = <div>{props.page}</div> //esto es una medida desesperada porque adaptar todo al container se estaba comenzando a poner complicado
+    } else {
+        pageContent = <div className="bg-white">Error</div>
+        // return null
     }
-    pageContent = <InformationCards {...props.informationCardsProps} />;
-} else if (props.miniCards) {
-    pageContent = <MiniCards {...props.miniCards} />;
-} else {
-    pageContent = <div className="bg-white">Error</div>
-    // return null
-}
 
     return (
-        <div className="bg-gray-400">
+        <div>
             {nav}
             {pageContent}
-            {secondContent} 
+            {secondContent}
 
             <footer className="flex items-center justify-center gap-8 px-7 h-20 bg-black text-white">
                 <a

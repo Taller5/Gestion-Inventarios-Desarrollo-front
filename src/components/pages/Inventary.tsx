@@ -2,6 +2,7 @@ import Button from "../ui/Button";
 import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import PerfilNav from "../ui/PerfilNav";
+import Container from "../ui/Container";
 
 const profile = {
   name: "Juan Perez",
@@ -102,15 +103,23 @@ const tableContent = [
 export default function Inventary() {
   //return <SideBar button={sideBarButtons}></SideBar>
   return (
-    <div>
+    <Container page=
+    {
+      <div>
       <div className="flex">
         
         <SideBar button={sideBarButtons}></SideBar>
+
+        <div className="w-full pl-10">
+          <h1 className="text-2xl font-bold h-5 pt-10">Inventario</h1>
+
         <TableInformation
           tableContent={tableContent}
           headers={headers}
         ></TableInformation>
+        </div>
       </div>
     </div>
+    }/>
   );
 }

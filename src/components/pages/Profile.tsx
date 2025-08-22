@@ -1,6 +1,7 @@
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import MiniCards from "../ui/MiniCards";
+import Container from "../ui/Container";
 
 const btn1 = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" ></Button>)
 const btn2 = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" ></Button>)
@@ -11,7 +12,9 @@ const sideBarButtons = [btn1, btn2, btn3, btn4, btn5]
 
 export default function Profile(){
     return (
-        <div>
+        
+        <Container page={
+            <div>
             <div className="flex">
                 <SideBar button={sideBarButtons}></SideBar>
             </div>
@@ -19,6 +22,7 @@ export default function Profile(){
                 <h1 className="text-2xl font-bold ">Perfil</h1>
             </div>
         </div>
+        }/>
         
     );
 }

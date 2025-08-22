@@ -7,7 +7,7 @@ interface TableInformationProps {
 
 export default function TableInformation(props: TableInformationProps) {
   return (
-    <main className="w-5/6 p-6 pt-20" >
+    <main className="w-5/6 p-auto pt-20" >
       <div className="overflow-x-auto mt-4">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">

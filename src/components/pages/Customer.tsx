@@ -1,6 +1,7 @@
 import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
+import Container from "../ui/Container";
 
 const btn1 = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" ></Button>)
 const btn2 = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" ></Button>)
@@ -21,9 +22,17 @@ const tableContent = [
 
 export default function Customer() {
     return (
-        <div className="flex">
+        
+        <Container page={
+            <div className="flex">
             <SideBar button={sideBarButtons}></SideBar>
-            <TableInformation tableContent={tableContent} headers={headers} ></TableInformation>
+
+            <div className="w-full pl-10">
+                <h1 className="text-2xl font-bold h-5 pt-10">Clientes y Fidelización </h1>
+                
+                <TableInformation tableContent={tableContent} headers={headers} ></TableInformation>
+            </div>
         </div>
+        }/>
     );
 }

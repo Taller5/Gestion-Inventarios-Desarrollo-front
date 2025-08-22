@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventaryRouteImport } from './routes/inventary'
@@ -24,25 +23,21 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const InventaryRoute = InventaryRouteImport.update({
   id: '/inventary',
   path: '/inventary',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const HomepageRoute = HomepageRouteImport.update({
   id: '/homepage',
   path: '/homepage',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const FinanceRoute = FinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
@@ -58,7 +53,6 @@ const CustomerRoute = CustomerRouteImport.update({
   path: '/customer',
   getParentRoute: () => rootRouteImport,
 } as any)
-
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,7 +61,6 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -85,12 +78,10 @@ export interface FileRoutesByTo {
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
-
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -130,12 +121,10 @@ export interface FileRouteTypes {
     | '/inventary'
     | '/login'
     | '/profile'
-
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-
   CustomerRoute: typeof CustomerRoute
   EmployeesRoute: typeof EmployeesRoute
   FinanceRoute: typeof FinanceRoute
@@ -143,12 +132,10 @@ export interface RootRouteChildren {
   InventaryRoute: typeof InventaryRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
-
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -156,7 +143,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
-
     '/login': {
       id: '/login'
       path: '/login'
@@ -164,7 +150,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-
     '/inventary': {
       id: '/inventary'
       path: '/inventary'
@@ -172,7 +157,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InventaryRouteImport
       parentRoute: typeof rootRouteImport
     }
-
     '/homepage': {
       id: '/homepage'
       path: '/homepage'
@@ -180,7 +164,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomepageRouteImport
       parentRoute: typeof rootRouteImport
     }
-
     '/finance': {
       id: '/finance'
       path: '/finance'
@@ -202,7 +185,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomerRouteImport
       parentRoute: typeof rootRouteImport
     }
-
     '/': {
       id: '/'
       path: '/'
@@ -215,7 +197,6 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-
   CustomerRoute: CustomerRoute,
   EmployeesRoute: EmployeesRoute,
   FinanceRoute: FinanceRoute,
@@ -223,7 +204,6 @@ const rootRouteChildren: RootRouteChildren = {
   InventaryRoute: InventaryRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
-
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
