@@ -1,7 +1,9 @@
 import Form from "./Form";
 import InformationCards from "./informationCards";
 import MiniCards from "./MiniCards";
-import Nav from "./nav";
+
+import Nav from "./Nav";
+
 
 interface NavProps {
     logo?: string;
@@ -42,12 +44,30 @@ interface ContainerProps {
 export default function Container(props: ContainerProps) {
     const nav = <Nav {...props.nav} />;
 
+    let pageContent;
+    let secondContent;
+
+if (props.form) {
+    pageContent= <Form {...props.form} />;
+} else if (props.informationCardsProps) {
+    if (props.miniCards){
+secondContent = <MiniCards {...props.miniCards} />;
+
+    }
+    pageContent = <InformationCards {...props.informationCardsProps} />;
+} else if (props.miniCards) {
+    pageContent = <MiniCards {...props.miniCards} />;
+} else {
+    pageContent = <div className="bg-white">Error</div>
+    // return null
+}
+
     return (
         <div className="bg-gray-400">
             {nav}
-            {props.form && <Form {...props.form} />}
-            {props.informationCardsProps && <InformationCards {...props.informationCardsProps} />}
-            {props.miniCards && <MiniCards {...props.miniCards} />}
+            {pageContent}
+            {secondContent} 
+
             <footer className="flex items-center justify-center gap-8 px-7 h-20 bg-black text-white">
                 <a
                     href="mailto:tallermultimedia50@gmail.com"
