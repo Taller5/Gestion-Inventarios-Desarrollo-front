@@ -68,7 +68,7 @@ export default function Container(props: ContainerProps) {
             {pageContent}
             {secondContent}
 
-            <footer className="flex items-center justify-center gap-8 px-7 h-20 bg-black text-white">
+            <footer className="flex items-center justify-center gap-8 px-7 h-20 bg-gray-600 text-white">
                 <a
                     href="mailto:tallermultimedia50@gmail.com"
                     className="flex items-center gap-2 hover:underline"
