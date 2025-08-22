@@ -1,13 +1,31 @@
-interface ButtonProps{ //recuerden que siempre se comienza con mayúscula
-    text:string,   //esta clase la estoy haciendo meramente de ejemplo, no hace falta que sea usada
-    style:string,
+import { useRouter } from "@tanstack/react-router";
+
+interface ButtonProps {
+    text?: string;
+    style: string;
+    to?: string;
+    onClick?: () => void;
+    icon?: string;
 }
 
-export default function Button(props: ButtonProps){ //recibe los props desde donde está siendo creado, con la estructura que se le dio en la interfaz
-    return(  //retorna el componente
-        <button className={props.style}>
-            {props.text} 
-        </button>
+export default function Button(props: ButtonProps) {
+    const router = useRouter();
 
-    )
+    const handleClick = () => {
+        if (props.onClick) {
+            props.onClick();
+        }
+        if (props.to) {
+            router.navigate({ to: props.to });
+        }
+    };
+
+    return (
+        <button className={props.style} onClick={handleClick}>
+            {props.icon && (
+                <img src={props.icon} alt="" className="w-15 h-18 m-auto" />
+            )}
+            {props.text}
+        </button>
+    );
 }
