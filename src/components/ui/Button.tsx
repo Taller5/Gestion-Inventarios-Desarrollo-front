@@ -23,7 +23,7 @@ export default function Button(props: ButtonProps) {
     return (
         <button className={props.style} onClick={handleClick}>
             {props.icon && (
-                <img src={props.icon} alt="" className="w-15 h-18 m-auto" />
+                <img src={props.icon} alt="" className="w-13 h-20 m-auto" />
             )}
             {props.text}
         </button>
