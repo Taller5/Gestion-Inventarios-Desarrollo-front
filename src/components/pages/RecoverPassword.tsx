@@ -1,6 +1,6 @@
 import { useState } from 'react';
+import emailjs from '@emailjs/browser';
 import Container from '../ui/Container';
-import { sendPasswordRecoveryEmail } from '../../services/auth.service';
 
 export default function RecoverPassword() {
     const [email, setEmail] = useState('');
@@ -18,11 +18,25 @@ export default function RecoverPassword() {
         setError(undefined);
 
         try {
-            await sendPasswordRecoveryEmail(email);
+            const templateParams = {
+                to_email: email,
+                from_name: 'Soporte del Sistema',
+                message: `Hola, has solicitado recuperar tu contraseña.`,
+                reply_to: email
+            };
+
+            await emailjs.send(
+                'service_vl273ce',
+                'template_x678a3b',
+                templateParams,
+                '1rHCHqTG4NTv_3j6C'
+            );
+            
             setSuccess(true);
+            setEmail('');
         } catch (err) {
             setError('Error al enviar el correo de recuperación. Por favor intenta de nuevo.');
-            console.error('Password recovery error:', err);
+            console.error('Email sending error:', err);
         } finally {
             setLoading(false);
         }
@@ -37,10 +51,10 @@ export default function RecoverPassword() {
         loading: loading,
         error: error,
         title: "Recuperar contraseña",
-        buttonText: "Enviar enlace de recuperación",
+        buttonText: loading ? "Enviando..." : "Recuperar",
         buttonText2: "Volver",
         hidePasswordField: true,
-        successMessage: success ? 'Se ha enviado un enlace de recuperación a tu correo electrónico.' : undefined
+        successMessage: success ? '¡Hola! Te hemos enviado un mensaje a tu correo electrónico.' : undefined
     };
 
     return <Container form={formProps} />;
