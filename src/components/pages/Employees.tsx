@@ -21,6 +21,7 @@ const sideBarButtons = [btn1, btn2, btn3, btn4, btn5];
 
 const headers = ["ID", "Nombre", "Rol", "Contacto", "Estado", "Asistencia", "Acciones"];
 
+
 export default function Employees() {
     const [users, setUsers] = useState<User[]>([]);
 

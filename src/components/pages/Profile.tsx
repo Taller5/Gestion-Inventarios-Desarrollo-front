@@ -1,14 +1,14 @@
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
-import MiniCards from "../ui/MiniCards";
 import Container from "../ui/Container";
 
-const btn1 = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" ></Button>)
-const btn2 = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" ></Button>)
-const btn3 = (<Button text="Clientes y Fidelización " style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left " to="/customer" ></Button>)
-const btn4 = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/employees" ></Button>)
-const btn5 = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/profile" ></Button>)
-const sideBarButtons = [btn1, btn2, btn3, btn4, btn5]
+const btn1 = (<Button text="Cerrar sesión" style="bg-transparent text-red-900 font-bold rounded p-1 cursor-pointer w-full text-left" to="/homepage" ></Button>)
+const btn2 = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" ></Button>)
+const btn3 = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" ></Button>)
+const btn4 = (<Button text="Clientes y Fidelización " style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left " to="/customer" ></Button>)
+const btn5 = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/employees" ></Button>)
+const btn6 = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/profile" ></Button>)
+const sideBarButtons = [btn1, btn2, btn3, btn4, btn5, btn6]
 
 interface ProfileProps {
   titleSection: string;
@@ -42,7 +42,7 @@ export default function Profile(props: ProfileProps) {
 
         <Button
           text="Guardar configuración"
-          style="bg-azul-fuerte hover:bg-azul-oscuro cursortext-white px-4 py-2 rounded ml-2"
+          style="bg-azul-fuerte hover:bg-azul-oscuro cursortext-white px-4 py-2 rounded ml-2 text-white cursor-pointer"
         />
       </section>
       {/*End header section*/}

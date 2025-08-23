@@ -16,7 +16,7 @@ export default function Login() {
     setError(undefined);
     try {
       await LoginService.login({ email, password });
-      router.navigate({ to: '/' });
+      router.navigate({ to: '/inventary' });
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -32,7 +32,8 @@ export default function Login() {
         onSubmit: handleLogin, 
         loading,
         error,
-        title: "Bienvenido",
+        title: "Iniciar sesión",
+        linkText: "Recuperar contraseña",
         buttonText: "Acceder"
       }
   

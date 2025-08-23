@@ -63,7 +63,7 @@ export default function Container(props: ContainerProps) {
     }
 
     return (
-        <div>
+        <div className="flex flex-col min-h-screen">
             {nav}
             {pageContent}
             {secondContent}
@@ -81,8 +81,9 @@ export default function Container(props: ContainerProps) {
                     </svg>
                     tallermultimedia50@gmail.com
                 </a>
+                {/* Pa github */}
                 <a
-                    href="https://github.com/tallermultimedia5"
+                    href="https://github.com/Taller5/Gestion-Inventarios-Desarrollo-front.git"
                     className="flex items-center gap-2 hover:underline"
                     target="_blank"
                     rel="noopener noreferrer"
