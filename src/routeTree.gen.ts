@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RecoverPasswordRouteImport } from './routes/recoverPassword'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventaryRouteImport } from './routes/inventary'
@@ -18,6 +19,11 @@ import { Route as EmployeesRouteImport } from './routes/employees'
 import { Route as CustomerRouteImport } from './routes/customer'
 import { Route as IndexRouteImport } from './routes/index'
 
+const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
+  id: '/recoverPassword',
+  path: '/recoverPassword',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/recoverPassword': typeof RecoverPasswordRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/recoverPassword': typeof RecoverPasswordRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +97,7 @@ export interface FileRoutesById {
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/recoverPassword': typeof RecoverPasswordRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +110,7 @@ export interface FileRouteTypes {
     | '/inventary'
     | '/login'
     | '/profile'
+    | '/recoverPassword'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/inventary'
     | '/login'
     | '/profile'
+    | '/recoverPassword'
   id:
     | '__root__'
     | '/'
@@ -121,6 +132,7 @@ export interface FileRouteTypes {
     | '/inventary'
     | '/login'
     | '/profile'
+    | '/recoverPassword'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,10 +144,18 @@ export interface RootRouteChildren {
   InventaryRoute: typeof InventaryRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  RecoverPasswordRoute: typeof RecoverPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/recoverPassword': {
+      id: '/recoverPassword'
+      path: '/recoverPassword'
+      fullPath: '/recoverPassword'
+      preLoaderRoute: typeof RecoverPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -204,6 +224,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventaryRoute: InventaryRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  RecoverPasswordRoute: RecoverPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
