@@ -5,6 +5,16 @@ interface TableInformationProps {
   //array de strings y hacer for para poner datos
 }
 
+const headerMap: Record<string, string> = {
+  id: "ID",
+  name: "Nombre",
+  rol: "Rol",
+  contact: "Contacto",
+  state: "Estado",
+  phone: "Teléfono",
+  actions: "Acciones"
+};
+
 export default function TableInformation(props: TableInformationProps) {
   return (
     <main className="w-5/6 p-auto pt-20" >
@@ -16,7 +26,7 @@ export default function TableInformation(props: TableInformationProps) {
                 <th
                   key={index}
                   className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  {header}
+                  {headerMap[header] ?? header}
                 </th>
               ))}
             </tr>
@@ -24,16 +34,13 @@ export default function TableInformation(props: TableInformationProps) {
           {/* Cada objeto creado en inventary se va a transformar en una fila */}
           <tbody className="bg-white divide-y divide-gray-200">
             {props.tableContent?.map((row, index) => (
-                <tr key={index}>
-                    {/* Object se usa para que cada dato del objeto se ponga en una celda, hasta terminar con los datos */}
-                    {/* key(row) devuelve un arreglo con las claves del objeto (como ID, Nombre, Stock) */}
-                    {Object.keys(row).map((key) =>(
-                        <td key= {key} className="px-6 py-4 text-left text-xs font-medium text-gray-500">
-                            {/* asocia la propiedad con el valor de la clave */}
-                            {row[key]}
-                        </td>
-                    ))}
-                </tr>
+              <tr key={index}>
+                {props.headers.map((header) => (
+                  <td key={header} className="px-6 py-4 text-left text-xs font-medium text-gray-500">
+                    {row[header] ?? ""}
+                  </td>
+                ))}
+              </tr>
             ))}
             <tr>
 
