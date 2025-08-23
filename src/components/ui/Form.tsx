@@ -10,6 +10,7 @@ interface FormProps {
   linkText?: string;
   buttonText?: string;
   buttonText2?: string;
+  hidePasswordField?: boolean;
 }
 export default function Form(props: FormProps) {
   return (
@@ -36,20 +37,22 @@ export default function Form(props: FormProps) {
           value={props.email}
           onChange={(e) => props.onEmailChange(e.target.value)}
           required
-          className="px-20 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-oscuro"
+          className="w-full p-5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-oscuro"
         />
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label className="font-medium text-gray-700">Contraseña:</label>
-        <input
-          type="password"
-          value={props.password}
-          onChange={(e) => props.onPasswordChange(e.target.value)}
-          required
-          className="px-20 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-oscuro"
-        />
-      </div>
+      {!props.hidePasswordField && (
+        <div className="flex flex-col gap-1">
+          <label className="font-medium text-gray-700">Contraseña:</label>
+          <input
+            type="password"
+            value={props.password}
+            onChange={(e) => props.onPasswordChange(e.target.value)}
+            required
+            className="w-full p-5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-oscuro"
+          />
+        </div>
+      )}
 
       {props.linkText && (
         <p className="text-center">
