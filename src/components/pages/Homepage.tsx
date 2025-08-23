@@ -11,7 +11,7 @@ const navProps = {
     <Button
       text="Iniciar sesión"
       icon='/img/Profile.png'
-      style="flex items-center gap-2 bg-verde-oscuro  text-black px-4 py-2 rounded "
+      style="flex items-center gap-2 bg-verde-oscuro  text-black px-4 py-1 rounded "
       to="/login"
     />
   )
