@@ -1,16 +1,50 @@
 import React from "react";
+import Button from "./Button";
 
 
 interface SideBarProps {
-  button?: React.ReactNode[]; // Array opcional de botones
+  role: string;
 }
 
-export default function SideBar({ button }: SideBarProps) {
+export default function SideBar(props: SideBarProps) {
+
+const btnCerrarSesion = (<Button text="Cerrar sesión" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/homepage" ></Button>)
+const btnInventario = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" ></Button>)
+const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" ></Button>)
+const btnClientes = (<Button text="Clientes y Fidelización " style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left " to="/customer" ></Button>)
+const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/employees" ></Button>)
+const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/profile" ></Button>)
+const sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnPerfil, btnCerrarSesion];
+
+
+switch (props.role) {
+  case "supervisor":
+    // supervisor ya tiene sus botones por defecto, no hacer nada
+    break;
+  case "vendedor":
+    sideBarButtons.splice(3, 1); // Eliminar "Personal y Roles" 3 es el índice de "Personal y Roles"
+    sideBarButtons.splice(1, 1); // Eliminar "Registro de Ingresos" 1 es el índice de "Registro de Ingresos"
+    
+    break;
+
+  case "bodeguero":
+    //se debe de borrar en orden inverso para no alterar los índices
+    sideBarButtons.splice(3, 1); // Eliminar "Personal y Roles" 3 es el índice de "Personal y Roles"
+    sideBarButtons.splice(2, 1); // Eliminar "Clientes y Fidelización" 2 es el índice de "Clientes y Fidelización"
+    sideBarButtons.splice(1, 1); // Eliminar "Registro de Ingresos" 1 es el índice de "Registro de Ingresos"
+    
+    break;
+
+  default:
+    break;
+}
+
+
   return (
     <section className="bg-azul-oscuro h-screen w-1/6 min-w-[200px] flex flex-col">
       <div className="pt-10 flex flex-col gap-3">
-        {Array.isArray(button) &&
-          button.map((btn, index) => (
+        {Array.isArray(sideBarButtons) &&
+          sideBarButtons.map((btn, index) => (
             <div
               key={index}
               className="flex items-center gap-2 mb-3 w-full pl-6 hover:bg-azul-fuerte duration-300 cursor-pointer rounded-lg"
