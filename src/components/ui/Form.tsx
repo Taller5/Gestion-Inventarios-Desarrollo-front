@@ -11,6 +11,7 @@ interface FormProps {
   buttonText?: string;
   buttonText2?: string;
   hidePasswordField?: boolean;
+  successMessage?: string;
 }
 export default function Form(props: FormProps) {
   return (
@@ -27,7 +28,15 @@ export default function Form(props: FormProps) {
       </h2>
 
       {props.error && (
-        <p className="text-red-500 text-center font-medium">{props.error}</p>
+        <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-center">
+          {props.error}
+        </div>
+      )}
+      
+      {props.successMessage && (
+        <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-lg text-center">
+          {props.successMessage}
+        </div>
       )}
 
       <div className="flex flex-col gap-1">
