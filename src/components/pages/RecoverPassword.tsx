@@ -7,7 +7,6 @@ export default function RecoverPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [success, setSuccess] = useState(false);
-  const [temporaryPassword, setTemporaryPassword] = useState<string | null>(null); // nuevo estado
 
   const handleRecover = async () => {
     if (!email) {
@@ -18,7 +17,6 @@ export default function RecoverPassword() {
     setLoading(true);
     setError(undefined);
     setSuccess(false);
-    setTemporaryPassword(null);
 
     try {
       // 1️⃣ Llamar al endpoint de Laravel que genera la contraseña temporal
@@ -41,23 +39,19 @@ export default function RecoverPassword() {
 
       if (!tempPassword) throw new Error("No se recibió la clave temporal");
 
-      setTemporaryPassword(tempPassword);
-
-      // 2️⃣ Enviar correo con EmailJS usando tu plantilla HTML
+      // Enviar correo con EmailJS
       const templateParams = {
         to_email: email,
         user_name: userName,
-        password: tempPassword, // coincide con {{password}} en tu plantilla
+        password: tempPassword,
       };
 
       await emailjs.send(
-        "service_vl273ce",   // tu service ID
-        "template_x678a3b",  // tu template ID
+        "service_vl273ce",   // service ID
+        "template_x678a3b",  // template ID
         templateParams,
-        "1rHCHqTG4NTv_3j6C"  // tu public key
+        "1rHCHqTG4NTv_3j6C"  // public key
       );
-
-      
 
       setSuccess(true);
       setEmail("");
