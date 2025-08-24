@@ -1,3 +1,4 @@
+import ProtectedRoute from "../services/ProtectedRoute";
 import { useState } from "react";
 import SideBar from "../ui/SideBar";
 import Container from "../ui/Container";
@@ -184,8 +185,12 @@ export default function Profile(props: ProfileProps) {
     setSaving(false);
   };
 
+  
+
   return (
-    <Container
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}>
+
+      <Container
       page={
         <div className="flex flex-1">
           <SideBar role={userFromStorage.role}></SideBar>
@@ -313,5 +318,7 @@ export default function Profile(props: ProfileProps) {
         </div>
       }
     />
+    </ProtectedRoute>
+
   );
 }
