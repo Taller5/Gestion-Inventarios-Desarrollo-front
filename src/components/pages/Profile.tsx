@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SideBar from "../ui/SideBar";
 import Container from "../ui/Container";
 import { LoginService } from "../services/LoginService";
@@ -17,12 +17,9 @@ interface ProfileProps {
 
 export default function Profile(props: ProfileProps) {
   const userFromStorage = LoginService.getUser() || {};
-  const userRole = userFromStorage.role || "";
 
   const [name, setName] = useState(userFromStorage.name || "");
   const [email, setEmail] = useState(userFromStorage.email || "");
-  const [role, setRole] = useState(userFromStorage.role || "");
-  const [status, setStatus] = useState(userFromStorage.status || "");
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(
     userFromStorage.profile_photo
       ? `http://localhost:8000/${userFromStorage.profile_photo}`
@@ -78,36 +75,67 @@ export default function Profile(props: ProfileProps) {
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setProfilePhotoUrl(URL.createObjectURL(file));
+      
+      // Validar tamaño del archivo (máximo 2MB)
+      const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB en bytes
+      if (file.size > MAX_FILE_SIZE) {
+        alert("La imagen es demasiado grande. El tamaño máximo permitido es de 2MB.");
+        return;
+      }
 
-      const token = localStorage.getItem("authToken");
-      const user = LoginService.getUser();
-      if (!token || !user) return;
+      // Validar tipo de archivo
+      const validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+      if (!validImageTypes.includes(file.type)) {
+        alert("Por favor, sube una imagen en formato JPG, PNG o GIF.");
+        return;
+      }
 
-      const formData = new FormData();
-      formData.append("profile_photo", file);
+      try {
+        setSaving(true);
+        setProfilePhotoUrl(URL.createObjectURL(file));
 
-      const response = await fetch(
-        `http://localhost:8000/api/v1/employees/${user.id}/profile-photo`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            Accept: "application/json",
-          },
-          body: formData,
+        const token = localStorage.getItem("authToken");
+        const user = LoginService.getUser();
+        if (!token || !user) {
+          throw new Error("No se pudo verificar la autenticación");
         }
-      );
 
-      const data = await response.json();
-      if (response.ok) {
-        const updatedUser = { ...user, profile_photo: data.profile_photo };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        window.dispatchEvent(new Event("userUpdated"));
-        setProfilePhotoUrl(`http://localhost:8000/${data.profile_photo}`);
-        alert(data.message);
-      } else {
-        alert(data.message || "Error al subir la foto");
+        const formData = new FormData();
+        formData.append("profile_photo", file);
+
+        const response = await fetch(
+          `http://localhost:8000/api/v1/employees/${user.id}/profile-photo`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              Accept: "application/json",
+            },
+            body: formData,
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok) {
+          const updatedUser = { ...user, profile_photo: data.profile_photo };
+          localStorage.setItem("user", JSON.stringify(updatedUser));
+          window.dispatchEvent(new Event("userUpdated"));
+          setProfilePhotoUrl(`http://localhost:8000/${data.profile_photo}`);
+          alert("Foto de perfil actualizada correctamente");
+        } else {
+          throw new Error(data.message || "Error al subir la foto");
+        }
+      } catch (error: any) {
+        console.error("Error al actualizar la foto:", error);
+        alert(error.message || "Ocurrió un error al actualizar la foto de perfil");
+        // Restaurar la foto anterior en caso de error
+        setProfilePhotoUrl(
+          userFromStorage.profile_photo
+            ? `http://localhost:8000/${userFromStorage.profile_photo}`
+            : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+        );
+      } finally {
+        setSaving(false);
       }
     }
   };
@@ -132,8 +160,8 @@ export default function Profile(props: ProfileProps) {
       body: JSON.stringify({
         name,
         email,
-        role,
-        status,
+        role: userFromStorage.role,
+        status: userFromStorage.status,
       }),
     });
 
@@ -160,7 +188,7 @@ export default function Profile(props: ProfileProps) {
     <Container
       page={
         <div className="flex flex-1">
-          <SideBar role={userRole}></SideBar>
+          <SideBar role={userFromStorage.role}></SideBar>
           <div className="w-full flex-1 ">
             <section className="m-10">
               <section className="flex justify-between items-center mb-10">
@@ -253,7 +281,7 @@ export default function Profile(props: ProfileProps) {
                       </label>
                     </div>
                     <ul className="text-sm text-red-700 list-disc pl-5">
-                      <li>Al menos 8 caracteres</li>
+                      <li>Al menos 6 caracteres</li>
                       <li>Al menos una letra mayúscula</li>
                       <li>Al menos una letra minúscula</li>
                       <li>Al menos un número</li>
