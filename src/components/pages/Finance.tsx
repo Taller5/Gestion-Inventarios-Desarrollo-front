@@ -1,3 +1,4 @@
+import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
@@ -13,7 +14,8 @@ export default function Finance() {
 
     return (
 
-        <Container page=
+        <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+            <Container page=
         {
             <div className="flex">
 
@@ -25,6 +27,7 @@ export default function Finance() {
             
         </div>
         }/>
+        </ProtectedRoute>
         
     );
 }

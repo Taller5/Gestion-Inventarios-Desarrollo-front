@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
@@ -89,10 +90,15 @@ export default function Employees() {
                 return user.id === updatedUser.id ? userWithPhoto : user;
             })
         );
+        if (updatedUser.id === user.id) {
+            localStorage.setItem("user", JSON.stringify(updatedUser));
+            window.dispatchEvent(new Event("userUpdated"));
+        }
     };
 
     return (
-        <Container page={
+        <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+            <Container page={
             <div className="flex">
                 <SideBar role={userRole}></SideBar>
                 <div className="w-full pl-10">
@@ -144,5 +150,7 @@ export default function Employees() {
                 </div>
             </div>
         }/>
+        </ProtectedRoute>
+        
     );
 }

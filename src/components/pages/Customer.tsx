@@ -1,3 +1,4 @@
+import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
@@ -21,8 +22,8 @@ export default function Customer() {
   const userRole = user.role || "";
 
     return (
-        
-        <Container page={
+        <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
+            <Container page={
             <div className="flex">
                 <SideBar role={userRole}></SideBar>
             <div className="w-full pl-10">
@@ -32,5 +33,6 @@ export default function Customer() {
             </div>
         </div>
         }/>
+        </ProtectedRoute>
     );
 }

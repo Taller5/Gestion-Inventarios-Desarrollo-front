@@ -1,3 +1,4 @@
+import ProtectedRoute from "../services/ProtectedRoute";
 import Button from "../ui/Button";
 import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
@@ -63,7 +64,8 @@ export default function Inventary() {
   const userRole = user.role || "";
 
   return (
-    <Container page=
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}>
+      <Container page=
     {
       <div>
       <div className="flex">
@@ -81,5 +83,6 @@ export default function Inventary() {
       </div>
     </div>
     }/>
+    </ProtectedRoute>
   );
 }
