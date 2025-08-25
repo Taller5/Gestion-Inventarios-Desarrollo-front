@@ -14,7 +14,8 @@ const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-trans
 const btnClientes = (<Button text="Clientes y Fidelización " style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left " to="/customer" ></Button>)
 const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/employees" ></Button>)
 const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/profile" ></Button>)
-const sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnPerfil];
+const btnHomepage = (<Button text="Home page" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/homepage" ></Button>)
+const sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnPerfil,btnHomepage];
 
 
 switch (props.role) {

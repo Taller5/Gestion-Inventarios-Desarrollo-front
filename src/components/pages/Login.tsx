@@ -34,7 +34,8 @@ export default function Login() {
         error,
         title: "Iniciar sesión",
         linkText: "Recuperar contraseña",
-        buttonText: "Acceder"
+        buttonText: "Acceder",
+        buttonText2: "Volver",
       }
   
   return (

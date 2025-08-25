@@ -18,8 +18,8 @@ const navProps = {
 };
 
   const informationCardsProps = {
-    title: "Gestor brinda",
-    text: "Control total de tu negocio en una sola plataforma",
+    title: "Bienvenido a Gestor",
+    text: "Control total de tu negocio en una sola plataforma, registrate ahora y disfruta de todas las funciones que tenemos para ti.",
 
   };
   const miniCardProps={
