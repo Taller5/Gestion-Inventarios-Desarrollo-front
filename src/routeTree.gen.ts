@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WarehousesRouteImport } from './routes/warehouses'
 import { Route as RecoverPasswordRouteImport } from './routes/recoverPassword'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,8 +18,15 @@ import { Route as HomepageRouteImport } from './routes/homepage'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as EmployeesRouteImport } from './routes/employees'
 import { Route as CustomerRouteImport } from './routes/customer'
+import { Route as BusinessesRouteImport } from './routes/businesses'
+import { Route as BranchesRouteImport } from './routes/branches'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WarehousesRoute = WarehousesRouteImport.update({
+  id: '/warehouses',
+  path: '/warehouses',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
   id: '/recoverPassword',
   path: '/recoverPassword',
@@ -59,6 +67,16 @@ const CustomerRoute = CustomerRouteImport.update({
   path: '/customer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BusinessesRoute = BusinessesRouteImport.update({
+  id: '/businesses',
+  path: '/businesses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BranchesRoute = BranchesRouteImport.update({
+  id: '/branches',
+  path: '/branches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,6 +85,8 @@ const IndexRoute = IndexRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/branches': typeof BranchesRoute
+  '/businesses': typeof BusinessesRoute
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -75,9 +95,12 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/warehouses': typeof WarehousesRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/branches': typeof BranchesRoute
+  '/businesses': typeof BusinessesRoute
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -86,10 +109,13 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/warehouses': typeof WarehousesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/branches': typeof BranchesRoute
+  '/businesses': typeof BusinessesRoute
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -98,11 +124,14 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/warehouses': typeof WarehousesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/branches'
+    | '/businesses'
     | '/customer'
     | '/employees'
     | '/finance'
@@ -111,9 +140,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/recoverPassword'
+    | '/warehouses'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/branches'
+    | '/businesses'
     | '/customer'
     | '/employees'
     | '/finance'
@@ -122,9 +154,12 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/recoverPassword'
+    | '/warehouses'
   id:
     | '__root__'
     | '/'
+    | '/branches'
+    | '/businesses'
     | '/customer'
     | '/employees'
     | '/finance'
@@ -133,10 +168,13 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/recoverPassword'
+    | '/warehouses'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BranchesRoute: typeof BranchesRoute
+  BusinessesRoute: typeof BusinessesRoute
   CustomerRoute: typeof CustomerRoute
   EmployeesRoute: typeof EmployeesRoute
   FinanceRoute: typeof FinanceRoute
@@ -145,10 +183,18 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
+  WarehousesRoute: typeof WarehousesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/warehouses': {
+      id: '/warehouses'
+      path: '/warehouses'
+      fullPath: '/warehouses'
+      preLoaderRoute: typeof WarehousesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/recoverPassword': {
       id: '/recoverPassword'
       path: '/recoverPassword'
@@ -205,6 +251,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/businesses': {
+      id: '/businesses'
+      path: '/businesses'
+      fullPath: '/businesses'
+      preLoaderRoute: typeof BusinessesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/branches': {
+      id: '/branches'
+      path: '/branches'
+      fullPath: '/branches'
+      preLoaderRoute: typeof BranchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -217,6 +277,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BranchesRoute: BranchesRoute,
+  BusinessesRoute: BusinessesRoute,
   CustomerRoute: CustomerRoute,
   EmployeesRoute: EmployeesRoute,
   FinanceRoute: FinanceRoute,
@@ -225,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
+  WarehousesRoute: WarehousesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

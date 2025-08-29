@@ -11,29 +11,45 @@ export default function SideBar(props: SideBarProps) {
 
 const btnInventario = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" ></Button>)
 const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" ></Button>)
-const btnClientes = (<Button text="Clientes y Fidelización " style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left " to="/customer" ></Button>)
-const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/employees" ></Button>)
-const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/profile" ></Button>)
-const btnHomepage = (<Button text="Home page" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer  w-full text-left" to="/homepage" ></Button>)
-const sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnPerfil,btnHomepage];
+const btnClientes = (<Button text="Clientes y Fidelización" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/customer" ></Button>)
+const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/employees" ></Button>)
+const btnNegocios = (<Button text="Negocios" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/businesses" ></Button>)
+const btnSucursales = (<Button text="Sucursales" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/branches" ></Button>)
+const btnBodegas = (<Button text="Bodegas" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" ></Button>)
+const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" ></Button>)
+const btnHomepage = (<Button text="Home page" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/homepage" ></Button>)
+
+// Botones base para todos los usuarios
+let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnPerfil, btnHomepage];
+
+// Agregar botones adicionales para administradores y supervisores
+if (props.role === 'administrador' || props.role === 'supervisor') {
+    sideBarButtons.splice(4, 0, btnNegocios, btnSucursales, btnBodegas);
+}
 
 
 switch (props.role) {
   case "supervisor":
-    // supervisor ya tiene sus botones por defecto, no hacer nada
+    // supervisor ya tiene sus botones por defecto, incluyendo los nuevos módulos
     break;
   case "vendedor":
-    sideBarButtons.splice(3, 1); // Eliminar "Personal y Roles" 3 es el índice de "Personal y Roles"
-    sideBarButtons.splice(1, 1); // Eliminar "Registro de Ingresos" 1 es el índice de "Registro de Ingresos"
-    
+    // Eliminar módulos que no debe ver el vendedor
+    sideBarButtons = sideBarButtons.filter(btn => 
+      btn.props.text !== 'Personal y Roles' && 
+      btn.props.text !== 'Registro de Ingresos' &&
+      btn.props.text !== 'Negocios' &&
+      btn.props.text !== 'Sucursales' &&
+      btn.props.text !== 'Bodegas'
+    );
     break;
 
   case "bodeguero":
-    //se debe de borrar en orden inverso para no alterar los índices
-    sideBarButtons.splice(3, 1); // Eliminar "Personal y Roles" 3 es el índice de "Personal y Roles"
-    sideBarButtons.splice(2, 1); // Eliminar "Clientes y Fidelización" 2 es el índice de "Clientes y Fidelización"
-    sideBarButtons.splice(1, 1); // Eliminar "Registro de Ingresos" 1 es el índice de "Registro de Ingresos"
-    
+    // Filtrar solo los módulos que debe ver el bodeguero
+    sideBarButtons = sideBarButtons.filter(btn => 
+      btn.props.text === 'Inventario' || 
+      btn.props.text === 'Perfil' || 
+      btn.props.text === 'Home page'
+    );
     break;
 
   default:
