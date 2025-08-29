@@ -5,284 +5,316 @@ import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
 
-type Location = {
-    id: number;
-    name: string;
-    address: string;
-};
-
 type Business = {
-    id: number;
-    name: string;
-    description: string;
-    phone: string;
-    locationId: number;  // Reference to the selected location ID
+  negocio_id: number;
+  nombre: string;
+  descripcion?: string | null;
+  telefono: string;
+  email: string;
 };
 
-const headers = ["id", "name", "description", "phone", "address", "actions"];
+const headers = ["ID", "Nombre", "Descripción", "Teléfono", "Email", "Acciones"];
 
 export default function Businesses() {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const userRole = user.role || "";
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userRole = user.role || "";
 
-    const [businesses, setBusinesses] = useState<Business[]>([]);
-    const [showModal, setShowModal] = useState(false);
-    const [selectedBusinessId, setSelectedBusinessId] = useState<number | null>(null);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
-    const [locations, setLocations] = useState<Location[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
 
-    // Datos de ejemplo para visualización
-    useEffect(() => {
-        // Simular carga de ubicaciones desde la base de datos
-        const mockLocations: Location[] = [
-            { id: 1, name: "Local Central", address: "Calle Principal #123" },
-            { id: 2, name: "Oficinas Corporativas", address: "Avenida Empresarial #202" },
-            { id: 3, name: "Planta de Producción", address: "Zona Industrial #456" }
-        ];
-        setLocations(mockLocations);
+  const [form, setForm] = useState({
+    nombre: "",
+    descripcion: "",
+    telefono: "",
+    email: "",
+  });
+  const [loadingForm, setLoadingForm] = useState(false);
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-        // Simular carga de negocios
-        const mockBusinesses: Business[] = [
-            {
-                id: 1,
-                name: "Negocio Ejemplo 1",
-                description: "Descripción del negocio 1",
-                phone: "12345678",
-                locationId: 1
-            },
-            {
-                id: 2,
-                name: "Negocio Ejemplo 2",
-                description: "Descripción del negocio 2",
-                phone: "87654321",
-                locationId: 2
-            }
-        ];
-        setBusinesses(mockBusinesses);
-    }, []);
-
-    const handleDelete = async () => {
-        if (selectedBusinessId === null) return;
-        // Aquí iría la llamada al backend
-        setBusinesses(businesses.filter(business => business.id !== selectedBusinessId));
-        setShowModal(false);
-        setSelectedBusinessId(null);
+  // Cargar negocios desde backend
+  useEffect(() => {
+    const fetchBusinesses = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch("http://127.0.0.1:8000/api/v1/businesses", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error('Error al cargar negocios');
+        }
+        
+        const data = await response.json();
+        setBusinesses(data);
+      } catch (error) {
+        console.error("Error al cargar negocios:", error);
+        setAlert({ type: "error", message: "Error al cargar los negocios" });
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const getActions = (business: Business) => [
+    fetchBusinesses();
+  }, []);
+
+  // Inicializar formulario al abrir modal
+  useEffect(() => {
+    if (modalOpen) {
+      if (businessToEdit) {
+        setForm({
+          nombre: businessToEdit.nombre,
+          descripcion: businessToEdit.descripcion || "",
+          telefono: businessToEdit.telefono,
+          email: businessToEdit.email,
+        });
+      } else {
+        setForm({
+          nombre: "",
+          descripcion: "",
+          telefono: "",
+          email: "",
+        });
+      }
+      setAlert(null);
+    }
+  }, [modalOpen, businessToEdit]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este negocio?")) {
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/businesses/${id}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al eliminar el negocio');
+      }
+
+      setBusinesses(businesses.filter((b) => b.negocio_id !== id));
+      setAlert({ type: "success", message: "Negocio eliminado correctamente" });
+    } catch (error) {
+      console.error("Error al eliminar negocio:", error);
+      setAlert({ type: "error", message: "No se pudo eliminar el negocio" });
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingForm(true);
+    setAlert(null);
+
+    const token = localStorage.getItem('token');
+    const url = businessToEdit 
+      ? `http://127.0.0.1:8000/api/v1/businesses/${businessToEdit.negocio_id}`
+      : "http://127.0.0.1:8000/api/v1/businesses";
+
+    try {
+      const method = businessToEdit ? "PUT" : "POST";
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Error al procesar la solicitud');
+      }
+
+      if (businessToEdit) {
+        setBusinesses(businesses.map(b => 
+          b.negocio_id === businessToEdit.negocio_id ? data : b
+        ));
+        setAlert({ type: "success", message: "Negocio actualizado correctamente" });
+      } else {
+        setBusinesses([...businesses, data]);
+        setAlert({ type: "success", message: "Negocio creado correctamente" });
+      }
+
+      setTimeout(() => {
+        setModalOpen(false);
+        setBusinessToEdit(null);
+      }, 1200);
+    } catch (error: any) {
+      console.error("Error al guardar negocio:", error);
+      setAlert({ 
+        type: "error", 
+        message: error.message || "Error al procesar la solicitud" 
+      });
+    } finally {
+      setLoadingForm(false);
+    }
+  };
+
+  const tableContent = businesses.map((b) => ({
+    ID: b.negocio_id,
+    Nombre: b.nombre,
+    Descripción: b.descripcion || "-",
+    Teléfono: b.telefono,
+    Email: b.email,
+    Acciones: (
+      <div className="flex gap-2">
         <Button
-            text="Editar"
-            style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
-            onClick={() => {
-                setBusinessToEdit(business);
-                setShowEditModal(true);
-            }}
-        />,
-        <Button
-            text="Eliminar"
-            style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
-            onClick={() => {
-                setSelectedBusinessId(business.id);
-                setShowModal(true);
-            }}
+          text="Editar"
+          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+          onClick={() => {
+            setBusinessToEdit(b);
+            setModalOpen(true);
+          }}
         />
-    ];
+        <Button
+          text="Eliminar"
+          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+          onClick={() => handleDelete(b.negocio_id)}
+        />
+      </div>
+    ),
+  }));
 
-    const tableContent = businesses.map(business => {
-        const businessLocation = locations.find(loc => loc.id === business.locationId);
-        return {
-            id: business.id,
-            name: business.name,
-            description: business.description,
-            phone: business.phone,
-            address: businessLocation ? `${businessLocation.name} - ${businessLocation.address}` : 'No asignada',
-            actions: getActions(business)
-        };
-    });
+  return (
+    <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+      <Container
+        page={
+          <div className="flex">
+            <SideBar role={userRole} />
+            <div className="w-full pl-10 pt-10">
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-2xl font-bold">Administrar Negocios</h1>
+                <Button
+                  text="Añadir Negocio"
+                  style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-4 m-10 rounded"
+                  onClick={() => {
+                    setBusinessToEdit(null);
+                    setModalOpen(true);
+                  }}
+                />
+              </div>
 
-    const handleBusinessAdded = (business: Business) => {
-        setBusinesses(prev => [...prev, business]);
-    };
+              {loading ? (
+                <p>Cargando negocios...</p>
+              ) : (
+                <TableInformation headers={headers} tableContent={tableContent} />
+              )}
 
-    const handleBusinessEdited = (updatedBusiness: Business) => {
-        setBusinesses(prev =>
-            prev.map(business => 
-                business.id === updatedBusiness.id ? updatedBusiness : business
-            )
-        );
-    };
-
-    return (
-        <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
-            <Container page={
-                <div className="flex">
-                    <SideBar role={userRole}></SideBar>
-                    <div className="w-full pl-10">
-                        <div className="flex items-center justify-between pt-10">
-                            <h1 className="text-2xl font-bold h-5">Administrar Negocios</h1>
-                            <Button
-                                text="Añadir Negocio"
-                                style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-4 mr-10 rounded m-1 cursor-pointer"
-                                onClick={() => {
-                                    setBusinessToEdit(null);
-                                    setShowEditModal(true);
-                                }}
-                            />
+              {/* Modal de negocios - Diseño original preservado */}
+              {modalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div
+                    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto
+                    animate-modalShow transition-all duration-300"
+                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem", maxHeight: "90vh" }}
+                  >
+                    <div className="p-6">
+                      <h2 className="text-xl font-bold mb-6">
+                        {businessToEdit ? "Editar Negocio" : "Nuevo Negocio"}
+                      </h2>
+                      {alert && (
+                        <div
+                          className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
+                            alert.type === "success"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {alert.message}
                         </div>
-                        <TableInformation tableContent={tableContent} headers={headers} />
-                        
-                        {/* Modal de confirmación de eliminación */}
-                        {showModal && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center">
-                                <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
-                                <div 
-                                    className="relative bg-white p-6 rounded-lg shadow-lg pointer-events-auto
-                                    animate-modalShow transition-all duration-300"
-                                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem" }}
-                                >
-                                    <h2 className="text-xl font-bold mb-4">Confirmar eliminación</h2>
-                                    <p className="mb-6">¿Está seguro que desea eliminar este negocio?</p>
-                                    <div className="flex justify-end gap-4">
-                                        <button
-                                            type="button"
-                                            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                            onClick={() => setShowModal(false)}
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                            onClick={handleDelete}
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {/* Modal de edición/creación */}
-                        {showEditModal && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center">
-                                <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
-                                <div 
-                                    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto
-                                    animate-modalShow transition-all duration-300"
-                                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem", maxHeight: "90vh" }}
-                                >
-                                    <div className="p-6">
-                                        <h2 className="text-xl font-bold mb-6">
-                                            {businessToEdit ? 'Editar Negocio' : 'Nuevo Negocio'}
-                                        </h2>
-                                        <form onSubmit={(e) => {
-                                            e.preventDefault();
-                                            const formData = new FormData(e.currentTarget);
-                                            const locationId = parseInt(formData.get('locationId') as string);
-                                            const selectedLocation = locations.find(loc => loc.id === locationId);
-                                            
-                                            if (!selectedLocation) {
-                                                alert("Por favor seleccione una ubicación válida");
-                                                return;
-                                            }
-
-                                            const newBusiness = {
-                                                id: businessToEdit?.id || Date.now(),
-                                                name: formData.get('name') as string,
-                                                description: formData.get('description') as string,
-                                                phone: formData.get('phone') as string,
-                                                locationId: selectedLocation.id
-                                            };
-                                            
-                                            if (businessToEdit) {
-                                                handleBusinessEdited(newBusiness);
-                                            } else {
-                                                handleBusinessAdded(newBusiness);
-                                            }
-                                            setShowEditModal(false);
-                                        }}>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="name">
-                                                    Nombre del Negocio
-                                                </label>
-                                                <input
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="name"
-                                                    name="name"
-                                                    type="text"
-                                                    defaultValue={businessToEdit?.name || ''}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="description">
-                                                    Descripción
-                                                </label>
-                                                <textarea
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="description"
-                                                    name="description"
-                                                    rows={3}
-                                                    defaultValue={businessToEdit?.description || ''}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="locationId">
-                                                    Ubicación
-                                                </label>
-                                                <select
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="locationId"
-                                                    name="locationId"
-                                                    required
-                                                    defaultValue={businessToEdit?.locationId || ''}
-                                                >
-                                                    <option value="">Seleccione una ubicación</option>
-                                                    {locations.map(location => (
-                                                        <option key={location.id} value={location.id}>
-                                                            {location.name} - {location.address}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="phone">
-                                                    Teléfono
-                                                </label>
-                                                <input
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="phone"
-                                                    name="phone"
-                                                    type="text"
-                                                    defaultValue={businessToEdit?.phone || ''}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="flex justify-end gap-4 mt-6">
-                                                <button
-                                                    type="button"
-                                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                    onClick={() => setShowEditModal(false)}
-                                                >
-                                                    Cancelar
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                >
-                                                    {businessToEdit ? 'Guardar Cambios' : 'Crear Negocio'}
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                      )}
+                      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre</label>
+                          <input
+                            name="nombre"
+                            value={form.nombre}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+                          <textarea
+                            name="descripcion"
+                            value={form.descripcion}
+                            onChange={handleChange}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                          <input
+                            name="telefono"
+                            value={form.telefono}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                          <input
+                            name="email"
+                            type="email"
+                            value={form.email}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+                        <div className="flex justify-end gap-4 mt-6">
+                          <button
+                            type="button"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            onClick={() => setModalOpen(false)}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={loadingForm}
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                          >
+                            {loadingForm
+                              ? "Guardando..."
+                              : businessToEdit
+                              ? "Guardar Cambios"
+                              : "Crear Negocio"}
+                          </button>
+                        </div>
+                      </form>
                     </div>
+                  </div>
                 </div>
-            }/>
-        </ProtectedRoute>
-    );
+              )}
+            </div>
+          </div>
+        }
+      />
+    </ProtectedRoute>
+  );
 }
