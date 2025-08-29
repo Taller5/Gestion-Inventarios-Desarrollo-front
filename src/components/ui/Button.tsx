@@ -6,6 +6,7 @@ interface ButtonProps {
     to?: string;
     onClick?: () => void;
     icon?: string;
+    disabled?: boolean;
 }
 
 export default function Button(props: ButtonProps) {
@@ -21,7 +22,11 @@ export default function Button(props: ButtonProps) {
     };
 
     return (
-        <button className={props.style} onClick={handleClick}>
+        <button 
+            className={`${props.style} ${props.disabled ? 'opacity-50 cursor-not-allowed' : ''}`} 
+            onClick={handleClick}
+            disabled={props.disabled}
+        >
             {props.icon && (
                 <img src={props.icon} alt="" className="w-13 h-20 m-auto" />
             )}
