@@ -5,332 +5,504 @@ import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
 
+// Types
 type Branch = {
-    id: number;
-    businessId: number;
-    businessName: string;
-    name: string;
-    phone: string;
-    locationId: number;  // Reference to the selected location ID
+  sucursal_id: number;
+  negocio_id: number;
+  nombre: string;
+  provincia: string;
+  canton: string;
+  telefono: string;
+  negocio?: {
+    nombre: string;
+  };
 };
 
 type Business = {
-    id: number;
-    name: string;
+  negocio_id: number;
+  nombre: string;
 };
 
-type Location = {
-    id: number;
-    name: string;
-    address: string;
+type Province = {
+  id: string;
+  name: string;
+  cantones: string[];
 };
 
-const headers = ["id", "business", "name", "phone", "address", "actions"];
+// Costa Rica provinces and cantons data
+const COSTA_RICA_PROVINCES: Province[] = [
+  {
+    id: "SJ",
+    name: "San José",
+    cantones: [
+      "San José", "Escazú", "Desamparados", "Puriscal", "Tarrazú", "Aserrí",
+      "Mora", "Goicoechea", "Santa Ana", "Alajuelita", "Vásquez de Coronado",
+      "Acosta", "Tibás", "Moravia", "Montes de Oca", "Turrubares", "Dota",
+      "Curridabat", "Pérez Zeledón", "León Cortés Castro"
+    ]
+  },
+  {
+    id: "AL",
+    name: "Alajuela",
+    cantones: [
+      "Alajuela", "San Ramón", "Grecia", "San Mateo", "Atenas", "Naranjo",
+      "Palmares", "Poás", "Orotina", "San Carlos", "Zarcero", "Valverde Vega",
+      "Upala", "Los Chiles", "Guatuso", "Río Cuarto"
+    ]
+  },
+  {
+    id: "CA",
+    name: "Cartago",
+    cantones: [
+      "Cartago", "Paraíso", "La Unión", "Jiménez", "Turrialba",
+      "Alvarado", "Oreamuno", "El Guarco"
+    ]
+  },
+  {
+    id: "HE",
+    name: "Heredia",
+    cantones: [
+      "Heredia", "Barva", "Santo Domingo", "Santa Bárbara", "San Rafael",
+      "San Isidro", "Belén", "Flores", "San Pablo", "Sarapiquí"
+    ]
+  },
+  {
+    id: "GU",
+    name: "Guanacaste",
+    cantones: [
+      "Liberia", "Nicoya", "Santa Cruz", "Bagaces", "Carrillo", "Cañas",
+      "Abangares", "Tilarán", "Nandayure", "La Cruz", "Hojancha"
+    ]
+  },
+  {
+    id: "PU",
+    name: "Puntarenas",
+    cantones: [
+      "Puntarenas", "Esparza", "Buenos Aires", "Montes de Oro", "Osa",
+      "Quepos", "Golfito", "Coto Brus", "Parrita", "Corredores", "Garabito",
+      "Monteverde"
+    ]
+  },
+  {
+    id: "LI",
+    name: "Limón",
+    cantones: [
+      "Limón", "Pococí", "Siquirres", "Talamanca", "Matina", "Guácimo"
+    ]
+  }
+];
+
+
+const headers = ["ID", "Negocio", "Nombre", "Provincia", "Cantón", "Teléfono", "Acciones"];
 
 export default function Branches() {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    const userRole = user.role || "";
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userRole = user.role || "";
+  const token = localStorage.getItem("token");
 
-    const [branches, setBranches] = useState<Branch[]>([]);
-    const [businesses, setBusinesses] = useState<Business[]>([]);
-    const [showModal, setShowModal] = useState(false);
-    const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
-    const [locations, setLocations] = useState<Location[]>([]);
+  // State
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [form, setForm] = useState({
+    negocio_id: "",
+    nombre: "",
+    provincia: "",
+    canton: "",
+    telefono: "",
+  });
 
-    // Datos de ejemplo para visualización
-    useEffect(() => {
-        // Simular carga de negocios
-        const mockBusinesses: Business[] = [
-            { id: 1, name: "Negocio Ejemplo 1" },
-            { id: 2, name: "Negocio Ejemplo 2" }
-        ];
-        setBusinesses(mockBusinesses);
+  // Load data from backend
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch businesses
+        const businessesRes = await fetch("http://127.0.0.1:8000/api/v1/businesses", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!businessesRes.ok) throw new Error('Error loading businesses');
+        const businessesData = await businessesRes.json();
+        setBusinesses(businessesData);
 
-        // Simular carga de ubicaciones desde la base de datos
-        const mockLocations: Location[] = [
-            { id: 1, name: "Local Central", address: "Calle Principal #123" },
-            { id: 2, name: "Sucursal Norte", address: "Avenida Norte #456" },
-            { id: 3, name: "Sucursal Sur", address: "Carrera Sur #789" },
-            { id: 4, name: "Bodega Principal", address: "Calle Bodegas #101" },
-            { id: 5, name: "Oficinas Corporativas", address: "Avenida Empresarial #202" }
-        ];
-        setLocations(mockLocations);
+        // Fetch branches
+        const branchesRes = await fetch("http://127.0.0.1:8000/api/v1/branches", {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!branchesRes.ok) throw new Error('Error loading branches');
+        const branchesData = await branchesRes.json();
+        setBranches(branchesData);
 
-        // Simular carga de sucursales
-        const mockBranches: Branch[] = [
-            {
-                id: 1,
-                businessId: 1,
-                businessName: "Negocio Ejemplo 1",
-                name: "Sucursal Norte",
-                phone: "12345678",
-                locationId: 2  // Reference to the location ID
-            },
-            {
-                id: 2,
-                businessId: 1,
-                businessName: "Negocio Ejemplo 1",
-                name: "Sucursal Sur",
-                phone: "87654321",
-                locationId: 3
-            }
-        ];
-        setBranches(mockBranches);
-    }, []);
-
-    const handleDelete = async () => {
-        if (selectedBranchId === null) return;
-        // Aquí iría la llamada al backend
-        setBranches(branches.filter(branch => branch.id !== selectedBranchId));
-        setShowModal(false);
-        setSelectedBranchId(null);
+      } catch (error) {
+        console.error("Error loading data:", error);
+        setAlert({ type: "error", message: "Error al cargar los datos" });
+      } finally {
+        setLoading(false);
+      }
     };
 
-    const getActions = (branch: Branch) => [
+    fetchData();
+  }, [token]);
+
+  // Form handlers
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: value,
+      // Reset canton when province changes
+      ...(name === 'provincia' ? { canton: '' } : {})
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const url = branchToEdit 
+        ? `http://127.0.0.1:8000/api/v1/branches/${branchToEdit.sucursal_id}`
+        : "http://127.0.0.1:8000/api/v1/branches";
+
+      const method = branchToEdit ? "PUT" : "POST";
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(form)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al guardar la sucursal');
+      }
+
+      const data = await response.json();
+      
+      if (branchToEdit) {
+        setBranches(branches.map(b => 
+          b.sucursal_id === branchToEdit.sucursal_id ? data : b
+        ));
+        setAlert({ type: "success", message: "Sucursal actualizada correctamente" });
+      } else {
+        setBranches([...branches, data]);
+        setAlert({ type: "success", message: "Sucursal creada correctamente" });
+      }
+
+      setShowEditModal(false);
+      setBranchToEdit(null);
+    } catch (error: any) {
+      console.error("Error saving branch:", error);
+      setAlert({ 
+        type: "error", 
+        message: error.message || "Error al procesar la solicitud" 
+      });
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async () => {
+    if (!selectedBranchId) return;
+    
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/branches/${selectedBranchId}`, {
+        method: "DELETE",
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+
+      if (!response.ok) throw new Error('Error al eliminar la sucursal');
+
+      setBranches(branches.filter(b => b.sucursal_id !== selectedBranchId));
+      setShowModal(false);
+      setSelectedBranchId(null);
+      setAlert({ type: "success", message: "Sucursal eliminada correctamente" });
+    } catch (error) {
+      console.error("Error deleting branch:", error);
+      setAlert({ type: "error", message: "No se pudo eliminar la sucursal" });
+    }
+  };
+
+  // Get available cantons based on selected province
+  const getAvailableCantons = () => {
+    const province = COSTA_RICA_PROVINCES.find(p => p.name === form.provincia);
+    return province ? province.cantones : [];
+  };
+
+  // Initialize form when editing
+  useEffect(() => {
+    if (showEditModal && branchToEdit) {
+      setForm({
+        negocio_id: branchToEdit.negocio_id.toString(),
+        nombre: branchToEdit.nombre,
+        provincia: branchToEdit.provincia,
+        canton: branchToEdit.canton,
+        telefono: branchToEdit.telefono,
+      });
+    } else if (showEditModal) {
+      setForm({
+        negocio_id: "",
+        nombre: "",
+        provincia: "",
+        canton: "",
+        telefono: "",
+      });
+    }
+  }, [showEditModal, branchToEdit]);
+
+  // Table content
+  const tableContent = branches.map(branch => ({
+    ID: branch.sucursal_id,
+    Negocio: branch.negocio?.nombre || 'Sin negocio',
+    Nombre: branch.nombre,
+    Provincia: branch.provincia,
+    Cantón: branch.canton,
+    Teléfono: branch.telefono,
+    Acciones: (
+      <div className="flex gap-2">
         <Button
-            key={`edit-${branch.id}`}
-            text="Editar"
-            style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
-            onClick={() => {
-                setBranchToEdit(branch);
-                setShowEditModal(true);
-            }}
-        />,
-        <Button
-            key={`delete-${branch.id}`}
-            text="Eliminar"
-            style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
-            onClick={() => {
-                setSelectedBranchId(branch.id);
-                setShowModal(true);
-            }}
+          text="Editar"
+          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+          onClick={() => {
+            setBranchToEdit(branch);
+            setShowEditModal(true);
+          }}
         />
-    ];
+        <Button
+          text="Eliminar"
+          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+          onClick={() => {
+            setSelectedBranchId(branch.sucursal_id);
+            setShowModal(true);
+          }}
+        />
+      </div>
+    ),
+  }));
 
-    const tableContent = branches.map(branch => {
-        const branchLocation = locations.find(loc => loc.id === branch.locationId);
-        return {
-            id: branch.id,
-            business: branch.businessName,
-            name: branch.name,
-            phone: branch.phone,
-            address: branchLocation ? `${branchLocation.name} - ${branchLocation.address}` : 'No asignada',
-            actions: getActions(branch)
-        };
-    });
+  return (
+    <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+      <Container
+        page={
+          <div className="flex">
+            <SideBar role={userRole} />
+            <div className="w-full pl-10 pt-10">
+              <div className="flex items-center justify-between mb-4">
+                <h1 className="text-2xl font-bold">Administrar Sucursales</h1>
+                <Button
+                  text="Añadir Sucursal"
+                  style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-4 m-10 rounded"
+                  onClick={() => {
+                    setBranchToEdit(null);
+                    setShowEditModal(true);
+                  }}
+                />
+              </div>
 
-    const handleBranchAdded = (branch: Branch) => {
-        setBranches(prev => [...prev, branch]);
-    };
-
-    const handleBranchEdited = (updatedBranch: Branch) => {
-        setBranches(prev =>
-            prev.map(branch => 
-                branch.id === updatedBranch.id ? updatedBranch : branch
-            )
-        );
-    };
-
-    return (
-        <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
-            <Container page={
-                <div className="flex">
-                    <SideBar role={userRole}></SideBar>
-                    <div className="w-full pl-10">
-                        <div className="flex items-center justify-between pt-10">
-                            <h1 className="text-2xl font-bold h-5">Administrar Sucursales</h1>
-                            <div className="relative group">
-                                <Button
-                                    text="Añadir Sucursal"
-                                    style={`bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-4 mr-10 rounded m-1 cursor-pointer ${businesses.length === 0 ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    onClick={() => {
-                                        if (businesses.length === 0) {
-                                            alert("No hay negocios disponibles. Por favor, cree un negocio primero.");
-                                            return;
-                                        }
-                                        setBranchToEdit(null);
-                                        setShowEditModal(true);
-                                    }}
-                                />
-                                {businesses.length === 0 && (
-                                    <div className="absolute bottom-full left-0 mb-1 w-64 bg-gray-800 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
-                                        Primero debe crear un negocio
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                        <TableInformation tableContent={tableContent} headers={headers} />
-                        
-                        {/* Modal de confirmación de eliminación */}
-                        {showModal && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center">
-                                <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
-                                <div 
-                                    className="relative bg-white p-6 rounded-lg shadow-lg pointer-events-auto
-                                    animate-modalShow transition-all duration-300"
-                                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem" }}
-                                >
-                                    <h2 className="text-xl font-bold mb-4">Confirmar eliminación</h2>
-                                    <p className="mb-6">¿Está seguro que desea eliminar esta sucursal?</p>
-                                    <div className="flex justify-end gap-4">
-                                        <button
-                                            type="button"
-                                            className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                            onClick={() => setShowModal(false)}
-                                        >
-                                            Cancelar
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                                            onClick={handleDelete}
-                                        >
-                                            Eliminar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                        
-                        {/* Modal de edición/creación */}
-                        {showEditModal && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center">
-                                <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
-                                <div 
-                                    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto
-                                    animate-modalShow transition-all duration-300"
-                                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem", maxHeight: "90vh" }}
-                                >
-                                    <div className="p-6">
-                                        <h2 className="text-xl font-bold mb-6">
-                                            {branchToEdit ? 'Editar Sucursal' : 'Nueva Sucursal'}
-                                        </h2>
-                                        <form onSubmit={(e) => {
-                                            e.preventDefault();
-                                            const formData = new FormData(e.currentTarget);
-                                            const selectedBusiness = businesses.find(
-                                                b => b.id === parseInt(formData.get('businessId') as string)
-                                            );
-                                            
-                                            if (!selectedBusiness) {
-                                                alert("Por favor seleccione un negocio válido");
-                                                return;
-                                            }
-
-                                            const locationId = parseInt(formData.get('locationId') as string);
-                                            const selectedLocation = locations.find(loc => loc.id === locationId);
-                                            
-                                            if (!selectedLocation) {
-                                                alert("Por favor seleccione una ubicación válida");
-                                                return;
-                                            }
-
-                                            const newBranch = {
-                                                id: branchToEdit?.id || Date.now(),
-                                                businessId: selectedBusiness.id,
-                                                businessName: selectedBusiness.name,
-                                                name: formData.get('name') as string,
-                                                phone: formData.get('phone') as string,
-                                                locationId: selectedLocation.id
-                                            };
-                                            
-                                            if (branchToEdit) {
-                                                handleBranchEdited(newBranch);
-                                            } else {
-                                                handleBranchAdded(newBranch);
-                                            }
-                                            setShowEditModal(false);
-                                        }}>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="businessId">
-                                                    Negocio
-                                                </label>
-                                                <select
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="businessId"
-                                                    name="businessId"
-                                                    defaultValue={branchToEdit?.businessId || ''}
-                                                    required
-                                                    disabled={!!branchToEdit}
-                                                >
-                                                    <option value="">Seleccione un negocio</option>
-                                                    {businesses.map(business => (
-                                                        <option key={business.id} value={business.id}>
-                                                            {business.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="name">
-                                                    Nombre de la Sucursal
-                                                </label>
-                                                <input
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="name"
-                                                    name="name"
-                                                    type="text"
-                                                    defaultValue={branchToEdit?.name || ''}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="locationId">
-                                                    Ubicación
-                                                </label>
-                                                <select
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="locationId"
-                                                    name="locationId"
-                                                    required
-                                                    defaultValue={branchToEdit?.locationId || ''}
-                                                >
-                                                    <option value="">Seleccione una ubicación</option>
-                                                    {locations.map(location => (
-                                                        <option key={location.id} value={location.id}>
-                                                            {location.name} - {location.address}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div className="mb-4">
-                                                <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="phone">
-                                                    Teléfono
-                                                </label>
-                                                <input
-                                                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                                                    id="phone"
-                                                    name="phone"
-                                                    type="tel"
-                                                    defaultValue={branchToEdit?.phone || ''}
-                                                    required
-                                                />
-                                            </div>
-                                            <div className="flex justify-end gap-4 mt-6">
-                                                <button
-                                                    type="button"
-                                                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
-                                                    onClick={() => setShowEditModal(false)}
-                                                >
-                                                    Cancelar
-                                                </button>
-                                                <button
-                                                    type="submit"
-                                                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                                                >
-                                                    {branchToEdit ? 'Guardar Cambios' : 'Crear Sucursal'}
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+              {alert && !showEditModal && (
+                <div
+                  className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
+                    alert.type === "success"
+                      ? "bg-green-100 text-green-700"
+                      : "bg-red-100 text-red-700"
+                  }`}
+                >
+                  {alert.message}
                 </div>
-            } />
-        </ProtectedRoute>
-    );
+              )}
+
+              {loading ? (
+                <p>Cargando sucursales...</p>
+              ) : (
+                <TableInformation headers={headers} tableContent={tableContent} />
+              )}
+
+              {/* Delete Confirmation Modal */}
+              {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div
+                    className="relative bg-white p-6 rounded-lg shadow-lg pointer-events-auto
+                    animate-modalShow transition-all duration-300"
+                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem" }}
+                  >
+                    <h2 className="text-xl font-bold mb-4">Confirmar eliminación</h2>
+                    <p className="mb-6">¿Está seguro que desea eliminar esta sucursal?</p>
+                    <div className="flex justify-end gap-4">
+                      <button
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                        onClick={() => setShowModal(false)}
+                      >
+                        Cancelar
+                      </button>
+                      <button
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                        onClick={handleDelete}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Add/Edit Branch Modal */}
+              {showEditModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div
+                    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto
+                    animate-modalShow transition-all duration-300"
+                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem", maxHeight: "90vh" }}
+                  >
+                    <div className="p-6">
+                      <h2 className="text-xl font-bold mb-6">
+                        {branchToEdit ? "Editar Sucursal" : "Nueva Sucursal"}
+                      </h2>
+                      
+                      {alert && (
+                        <div
+                          className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
+                            alert.type === "success"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-red-100 text-red-700"
+                          }`}
+                        >
+                          {alert.message}
+                        </div>
+                      )}
+                      
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Negocio</label>
+                          <select
+                            name="negocio_id"
+                            value={form.negocio_id}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                            disabled={!!branchToEdit}
+                          >
+                            <option value="">Seleccione un negocio</option>
+                            {businesses.map(business => (
+                              <option key={business.negocio_id} value={business.negocio_id}>
+                                {business.nombre}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Sucursal</label>
+                          <input
+                            name="nombre"
+                            value={form.nombre}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
+                            <select
+                              name="provincia"
+                              value={form.provincia}
+                              onChange={handleChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              required
+                            >
+                              <option value="">Seleccione una provincia</option>
+                              {COSTA_RICA_PROVINCES.map(province => (
+                                <option key={province.id} value={province.name}>
+                                  {province.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Cantón</label>
+                            <select
+                              name="canton"
+                              value={form.canton}
+                              onChange={handleChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              required
+                              disabled={!form.provincia}
+                            >
+                              <option value="">{form.provincia ? "Seleccione un cantón" : "Seleccione una provincia primero"}</option>
+                              {getAvailableCantons().map((canton, index) => (
+                                <option key={index} value={canton}>
+                                  {canton}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
+                          <input
+                            name="telefono"
+                            type="tel"
+                            value={form.telefono}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+
+                        <div className="flex justify-end gap-4 pt-4">
+                          <button
+                            type="button"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            onClick={() => {
+                              setShowEditModal(false);
+                              setBranchToEdit(null);
+                              setAlert(null);
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                          >
+                            {branchToEdit ? "Guardar Cambios" : "Crear Sucursal"}
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        }
+      />
+    </ProtectedRoute>
+  );
 }
