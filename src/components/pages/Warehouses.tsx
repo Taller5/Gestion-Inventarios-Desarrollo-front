@@ -164,7 +164,6 @@ export default function Warehouses() {
     )
   }));
 
-  if (loading) return <div>Cargando...</div>;
   if (error) return <div className="text-red-500 p-4">{error}</div>;
 
   // Get user role for protected route
@@ -199,11 +198,11 @@ export default function Warehouses() {
               </div>
 
               {loading ? (
-                <p>Cargando bodegas...</p>
-              ) : error ? (
-                <p className="text-red-500">{error}</p>
+                <div>
+                  <p>Cargando bodegas...</p>
+                </div>
               ) : (
-                <TableInformation tableContent={tableContent} headers={headers} />
+                <TableInformation headers={headers} tableContent={tableContent} />
               )}
 
               {/* Delete Confirmation Modal */}
