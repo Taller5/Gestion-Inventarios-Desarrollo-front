@@ -4,6 +4,7 @@ import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
+import { SearchBar } from "../ui/searchbar"; // asegúrate que la ruta sea correcta
 
 type Customer = {
   customer_id: number;
@@ -20,6 +21,7 @@ export default function CustomersPage() {
   const userRole = user.role || "";
 
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modal
@@ -35,18 +37,25 @@ export default function CustomersPage() {
   const [loadingForm, setLoadingForm] = useState(false);
   const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  // Función para cargar clientes
+  const fetchClients = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("http://localhost:8000/api/v1/customers");
+      const data = await res.json();
+      setCustomers(data);
+      setFilteredCustomers(data);
+    } catch (err) {
+      console.error("Error al cargar clientes:", err);
+      setCustomers([]);
+      setFilteredCustomers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/customers")
-      .then((res) => res.json())
-      .then((data) => {
-        setCustomers(data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error al cargar clientes:", err);
-        setCustomers([]);
-        setLoading(false);
-      });
+    fetchClients();
   }, []);
 
   // Inicializar formulario cuando se abre modal
@@ -72,62 +81,71 @@ export default function CustomersPage() {
   }, [modalOpen, customerToEdit]);
 
   const handleDelete = async (id: number) => {
-    await fetch(`http://localhost:8000/api/v1/customers/${id}`, {
-      method: "DELETE",
-    });
+    await fetch(`http://localhost:8000/api/v1/customers/${id}`, { method: "DELETE" });
     setCustomers(customers.filter((c) => c.customer_id !== id));
+    setFilteredCustomers(filteredCustomers.filter((c) => c.customer_id !== id));
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoadingForm(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoadingForm(true);
 
-    try {
-      if (customerToEdit) {
-        // Editar cliente
-        const res = await fetch(`http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setAlert({ type: "success", message: "Cliente editado correctamente." });
-          setCustomers((prev) =>
-            prev.map((c) => (c.customer_id === data.customer_id ? data : c))
-          );
-          setTimeout(() => setModalOpen(false), 1200);
-        } else {
-          setAlert({ type: "error", message: "No se pudo editar el cliente." });
-        }
+  try {
+    if (customerToEdit) {
+      const res = await fetch(`http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setAlert({ type: "success", message: "Cliente editado correctamente." });
+        setCustomers(prev => prev.map(c => c.customer_id === data.customer_id ? data : c));
+        setFilteredCustomers(prev => prev.map(c => c.customer_id === data.customer_id ? data : c));
+        setTimeout(() => setModalOpen(false), 1200);
+      } else if (res.status === 409) {
+        setAlert({ type: "error", message: "Ya existe un cliente con la misma cédula o correo." });
+      } else if (data?.message) {
+        setAlert({ type: "error", message: data.message });
       } else {
-        // Añadir cliente
-        const res = await fetch("http://localhost:8000/api/v1/customers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setAlert({ type: "success", message: "Cliente agregado correctamente." });
-          setCustomers((prev) => [...prev, data]);
-          setTimeout(() => setModalOpen(false), 1200);
-        } else {
-          setAlert({ type: "error", message: "No se pudo agregar el cliente." });
-        }
+        setAlert({ type: "error", message: "No se pudo editar el cliente." });
       }
-    } catch {
-      setAlert({ type: "error", message: "Error de conexión con el servidor." });
-    } finally {
-      setLoadingForm(false);
-    }
-  };
 
-  const tableContent = customers.map((c) => ({
+    } else {
+      const res = await fetch("http://localhost:8000/api/v1/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setAlert({ type: "success", message: "Cliente agregado correctamente." });
+        setCustomers(prev => [...prev, data]);
+        setFilteredCustomers(prev => [...prev, data]);
+        setTimeout(() => setModalOpen(false), 1200);
+      } else if (res.status === 409) {
+        setAlert({ type: "error", message: "Ya existe un cliente con la misma cédula o correo." });
+      } else if (data?.message) {
+        setAlert({ type: "error", message: data.message });
+      } else {
+        setAlert({ type: "error", message: "No se pudo agregar el cliente." });
+      }
+    }
+  } catch (err: any) {
+    setAlert({ type: "error", message: `Error de conexión: ${err.message || "Servidor no responde"}` });
+  } finally {
+    setLoadingForm(false);
+  }
+};
+
+
+  const tableContent = filteredCustomers.map((c) => ({
     ID: c.customer_id,
     Nombre: c.name,
     Cédula: c.identity_number,
@@ -153,112 +171,151 @@ export default function CustomersPage() {
   }));
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
-      <Container
-        page={
-          <div className="flex">
-            <SideBar role={userRole} />
-            <div className="w-full pl-10 pt-10">
-              <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">Clientes y Fidelización</h1>
-                <Button
-                  text="Añadir cliente"
-                  style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-4 m-10 rounded"
-                  onClick={() => {
-                    setCustomerToEdit(null); // modo añadir
-                    setModalOpen(true);
-                  }}
-                />
-              </div>
-              {loading ? (
-                <p>Cargando clientes...</p>
-              ) : (
-                <TableInformation headers={headers} tableContent={tableContent} />
-              )}
+<ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
+  <Container
+    page={
+      <div className="flex">
+        <SideBar role={userRole} />
+        <div className="w-full pl-10 pt-10">
+          
+          {/* Título a la izquierda */}
+          <h1 className="text-2xl font-bold mb-6 text-left">Clientes y Fidelización</h1>
 
-              {/* Modal de clientes */}
-              {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black opacity-30"></div>
-                  <form
-                    onSubmit={handleSubmit}
-                    className="relative bg-white p-8 rounded shadow-lg flex flex-col w-1/2 max-w-lg"
-                  >
-                    <h2 className="text-xl font-bold mb-4">
-                      {customerToEdit ? "Editar Cliente" : "Añadir Cliente"}
-                    </h2>
-                    {alert && (
-                      <div
-                        className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
-                          alert.type === "success"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {alert.message}
-                      </div>
-                    )}
-                    <div className="flex flex-col gap-4">
-                      <input
-                        name="name"
-                        value={form.name}
-                        onChange={handleChange}
-                        placeholder="Nombre"
-                        className="border rounded px-3 py-2"
-                        required
-                      />
-                      <input
-                        name="identity_number"
-                        value={form.identity_number}
-                        onChange={handleChange}
-                        placeholder="Cédula"
-                        className="border rounded px-3 py-2"
-                        required
-                      />
-                      <input
-                        name="phone"
-                        value={form.phone}
-                        onChange={handleChange}
-                        placeholder="Teléfono"
-                        className="border rounded px-3 py-2"
-                      />
-                      <input
-                        name="email"
-                        type="email"
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="Correo"
-                        className="border rounded px-3 py-2"
-                        required
-                      />
-                    </div>
-                    <div className="flex gap-4 justify-center mt-6">
-                      <button
-                        type="submit"
-                        disabled={loadingForm}
-                        className="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                      >
-                        {loadingForm
-                          ? "Guardando..."
-                          : customerToEdit
-                          ? "Guardar cambios"
-                          : "Guardar"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setModalOpen(false)}
-                        className="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded"
-                      >
-                        Cerrar
-                      </button>
-                    </div>
-                  </form>
-                </div>
-              )}
+          {/* Barra de búsqueda y botones centrados debajo del título */}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-6">
+            <div className="w-full h-10">
+              <SearchBar<Customer>
+                url="http://localhost:8000/api/v1/customers"
+                displayField="identity_number"
+                placeholder="Buscar por cédula..."
+                onSelect={(item) => setFilteredCustomers([item])}
+              />
             </div>
+
+            <div className="flex gap-2">
+            <Button
+                text="Refrescar"
+                style="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded"
+                onClick={() => setFilteredCustomers(customers)}
+              />
+          
+           
+            </div>
+    
+                <Button
+                text="Añadir Cliente"
+                style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-8 m-10 rounded"
+                onClick={() => {
+                  setCustomerToEdit(null);
+                  setModalOpen(true);
+                }}
+              />
+           
           </div>
-        }
-      />
-    </ProtectedRoute>
+
+          {/* Tabla de clientes */}
+          {loading ? (
+            <p>Cargando clientes...</p>
+          ) : (
+            <TableInformation headers={headers} tableContent={tableContent} />
+          )}
+
+          {/* Modal de clientes */}
+          {modalOpen && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+              <form
+                onSubmit={handleSubmit}
+                className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto"
+              >
+                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                  {customerToEdit ? "Editar Cliente" : "Añadir Cliente"}
+                </h2>
+
+                {alert && (
+                  <div
+                    className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                      alert.type === "success"
+                        ? "bg-green-100 text-green-700 border border-green-300"
+                        : "bg-red-100 text-red-700 border border-red-300"
+                    }`}
+                  >
+                    {alert.message}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre</label>
+                    <input
+                      name="name"
+                      value={form.name}
+                      onChange={handleChange}
+                      placeholder="Nombre"
+                      className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-fuerte"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Cédula</label>
+                    <input
+                      name="identity_number"
+                      value={form.identity_number}
+                      onChange={handleChange}
+                      placeholder="Cédula"
+                      className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-fuerte"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
+                    <input
+                      name="phone"
+                      value={form.phone}
+                      onChange={handleChange}
+                      placeholder="Teléfono"
+                      className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-fuerte"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1">Correo</label>
+                    <input
+                      name="email"
+                      type="email"
+                      value={form.email}
+                      onChange={handleChange}
+                      placeholder="Correo"
+                      className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-fuerte"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex gap-4 justify-end mt-6">
+                  <button
+                    type="submit"
+                    disabled={loadingForm}
+                    className="bg-azul-fuerte hover:bg-azul-claro text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+                  >
+                    {loadingForm ? "Guardando..." : customerToEdit ? "Guardar cambios" : "Guardar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModalOpen(false)}
+                    className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+                  >
+                    Cerrar
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+        </div>
+      </div>
+    }
+  />
+</ProtectedRoute>
+
   );
 }

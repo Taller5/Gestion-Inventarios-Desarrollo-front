@@ -4,7 +4,6 @@ import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
-import axios from "axios";
 
 type Warehouse = {
   bodega_id: number;
@@ -45,22 +44,22 @@ export default function Warehouses() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const token = localStorage.getItem('token');
-        
+        const token = localStorage.getItem("token");
+
         const [warehousesRes, branchesRes] = await Promise.all([
-          axios.get(`${API_URL}/warehouses`, {
+          fetch(`${API_URL}/warehouses`, {
             headers: { Authorization: `Bearer ${token}` }
-          }),
-          axios.get(`${API_URL}/branches`, {
+          }).then(res => res.json()),
+          fetch(`${API_URL}/branches`, {
             headers: { Authorization: `Bearer ${token}` }
-          })
+          }).then(res => res.json())
         ]);
 
-        setWarehouses(warehousesRes.data);
-        setBranches(branchesRes.data);
+        setWarehouses(warehousesRes);
+        setBranches(branchesRes);
       } catch (err) {
-        setError('Error al cargar los datos. Por favor, intente de nuevo.');
-        console.error('Error fetching data:', err);
+        setError("Error al cargar los datos. Por favor, intente de nuevo.");
+        console.error("Error fetching data:", err);
       } finally {
         setLoading(false);
       }
@@ -71,18 +70,19 @@ export default function Warehouses() {
 
   const handleDelete = async () => {
     if (selectedWarehouseId === null) return;
-    
+
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete<{ message: string }>(`${API_URL}/warehouses/${selectedWarehouseId}`, {
+      const token = localStorage.getItem("token");
+      await fetch(`${API_URL}/warehouses/${selectedWarehouseId}`, {
+        method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setWarehouses(warehouses.filter(w => w.bodega_id !== selectedWarehouseId));
       setShowModal(false);
     } catch (err) {
-      setError('Error al eliminar la bodega. Por favor, intente de nuevo.');
-      console.error('Error deleting warehouse:', err);
+      setError("Error al eliminar la bodega. Por favor, intente de nuevo.");
+      console.error("Error deleting warehouse:", err);
     }
   };
 
@@ -90,60 +90,58 @@ export default function Warehouses() {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const warehouseData = {
-      sucursal_id: parseInt(formData.get('sucursal_id') as string),
-      codigo: formData.get('codigo') as string,
+      sucursal_id: parseInt(formData.get("sucursal_id") as string),
+      codigo: formData.get("codigo") as string
     };
 
     try {
-      const token = localStorage.getItem('token');
-      let response: { data: Warehouse };
+      const token = localStorage.getItem("token");
+      let response: Warehouse;
 
       if (warehouseToEdit?.bodega_id) {
         // Update existing warehouse
-        response = await axios.put(
-          `${API_URL}/warehouses/${warehouseToEdit.bodega_id}`,
-          warehouseData,
-          { 
-            headers: { 
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            } 
-          }
-        );
-        setWarehouses(warehouses.map(w => 
-          w.bodega_id === warehouseToEdit.bodega_id ? response.data : w
+        response = await fetch(`${API_URL}/warehouses/${warehouseToEdit.bodega_id}`, {
+          method: "PUT",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(warehouseData)
+        }).then(res => res.json());
+
+        setWarehouses(warehouses.map(w =>
+          w.bodega_id === warehouseToEdit.bodega_id ? response : w
         ));
       } else {
         // Create new warehouse
-        response = await axios.post(
-          `${API_URL}/warehouses`,
-          warehouseData,
-          { 
-            headers: { 
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            } 
-          }
-        );
-        setWarehouses([...warehouses, response.data]);
+        response = await fetch(`${API_URL}/warehouses`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+          },
+          body: JSON.stringify(warehouseData)
+        }).then(res => res.json());
+
+        setWarehouses([...warehouses, response]);
       }
 
       setShowEditModal(false);
       setWarehouseToEdit(null);
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Error al guardar la bodega. Por favor, intente de nuevo.';
+      const errorMessage = "Error al guardar la bodega. Por favor, intente de nuevo.";
       setError(errorMessage);
-      console.error('Error saving warehouse:', err);
+      console.error("Error saving warehouse:", err);
     }
   };
 
   const tableContent = warehouses.map(warehouse => ({
     ID: warehouse.bodega_id,
     Código: warehouse.codigo,
-    Sucursal: warehouse.branch?.nombre || 'N/A',
-    Negocio: warehouse.branch?.business?.nombre || 'N/A',
+    Sucursal: warehouse.branch?.nombre || "N/A",
+    Negocio: warehouse.branch?.business?.nombre || "N/A",
     Acciones: (
       <div className="flex">
         <Button
@@ -170,8 +168,8 @@ export default function Warehouses() {
   if (error) return <div className="text-red-500 p-4">{error}</div>;
 
   // Get user role for protected route
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const userRole = user.role || '';
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const userRole = user.role || "";
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
@@ -199,7 +197,7 @@ export default function Warehouses() {
                   )}
                 </div>
               </div>
-              
+
               {loading ? (
                 <p>Cargando bodegas...</p>
               ) : error ? (
@@ -207,7 +205,7 @@ export default function Warehouses() {
               ) : (
                 <TableInformation tableContent={tableContent} headers={headers} />
               )}
-              
+
               {/* Delete Confirmation Modal */}
               {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -239,7 +237,7 @@ export default function Warehouses() {
                   </div>
                 </div>
               )}
-              
+
               {/* Add/Edit Warehouse Modal */}
               {showEditModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -250,7 +248,7 @@ export default function Warehouses() {
                   >
                     <div className="p-6">
                       <h2 className="text-xl font-bold mb-6">
-                        {warehouseToEdit ? 'Editar Bodega' : 'Nueva Bodega'}
+                        {warehouseToEdit ? "Editar Bodega" : "Nueva Bodega"}
                       </h2>
                       {error && (
                         <div className="mb-4 px-4 py-2 rounded text-center font-semibold bg-red-100 text-red-700">
@@ -262,7 +260,7 @@ export default function Warehouses() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Código</label>
                           <input
                             name="codigo"
-                            defaultValue={warehouseToEdit?.codigo || ''}
+                            defaultValue={warehouseToEdit?.codigo || ""}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             required
                           />
@@ -271,12 +269,12 @@ export default function Warehouses() {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Sucursal</label>
                           <select
                             name="sucursal_id"
-                            defaultValue={warehouseToEdit?.sucursal_id || ''}
+                            defaultValue={warehouseToEdit?.sucursal_id || ""}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             required
                           >
                             <option value="">Seleccione una sucursal</option>
-                            {branches.map((branch) => (
+                            {branches.map(branch => (
                               <option key={branch.sucursal_id} value={branch.sucursal_id}>
                                 {branch.nombre}
                               </option>
@@ -299,7 +297,7 @@ export default function Warehouses() {
                             type="submit"
                             className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
                           >
-                            {warehouseToEdit ? 'Guardar Cambios' : 'Crear Bodega'}
+                            {warehouseToEdit ? "Guardar Cambios" : "Crear Bodega"}
                           </button>
                         </div>
                       </form>
