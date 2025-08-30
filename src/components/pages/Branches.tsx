@@ -118,9 +118,6 @@ export default function Branches() {
   });
 
   // Load data from backend
-  // Cargar warehouses junto con branches y businesses
-const [warehouses, setWarehouses] = useState<{ bodega_id: number; sucursal_id: number }[]>([]);
-
 useEffect(() => {
   const fetchData = async () => {
     try {
@@ -246,33 +243,69 @@ const handleSubmit = async (e: React.FormEvent) => {
   }
 };
 
-  // Modificar handleDelete para verificar si hay bodegas asignadas
-const handleDelete = async () => {
-  if (!selectedBranchId) return;
+  // Verificar y eliminar sucursal
+  const handleDelete = async () => {
+    if (!selectedBranchId) return;
 
-  // Verificar si la sucursal tiene bodegas asociadas
-  const assignedWarehouse = warehouses.find(w => w.sucursal_id === selectedBranchId);
-  if (assignedWarehouse) {
-    setAlert({ type: "error", message: "No se puede eliminar esta sucursal porque tiene bodegas asignadas." });
-    setShowModal(false);
-    return;
-  }
+    try {
+      // Primero verificar si la sucursal tiene bodegas asociadas
+      let warehousesResponse;
+      try {
+        warehousesResponse = await fetch(`http://127.0.0.1:8000/api/v1/warehouses?branch_id=${selectedBranchId}`, {
+          headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+        
+        if (!warehousesResponse.ok) {
+          throw new Error('Error al verificar bodegas asociadas');
+        }
+        
+        const warehousesData = await warehousesResponse.json();
+        if (Array.isArray(warehousesData) && warehousesData.length > 0) {
+          // Obtener los códigos de las bodegas para mostrarlos en el mensaje
+          const warehouseCodes = warehousesData.map((w: any) => `"${w.codigo}"`).join(', ');
+          throw new Error(
+            `No se puede eliminar la sucursal porque tiene ${warehousesData.length} bodega(s) asociada(s): ${warehouseCodes}. ` +
+            'Por favor, elimine primero las bodegas asociadas antes de eliminar la sucursal.'
+          );
+        }
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('No se puede eliminar')) {
+          throw error; // Re-lanzar el error de bodegas asociadas
+        }
+        console.error('Error al verificar bodegas:', error);
+        throw new Error('Error al verificar bodegas asociadas. Por favor, intente nuevamente.');
+      }
 
-  try {
+    // Si no hay bodegas asociadas, proceder con la eliminación
     const response = await fetch(`http://127.0.0.1:8000/api/v1/branches/${selectedBranchId}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      }
     });
 
-    if (!response.ok) throw new Error("Error al eliminar la sucursal");
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || "Error al procesar la solicitud de eliminación");
+    }
 
     setBranches(branches.filter(b => b.sucursal_id !== selectedBranchId));
     setShowModal(false);
     setSelectedBranchId(null);
     setAlert({ type: "success", message: "Sucursal eliminada correctamente" });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error deleting branch:", error);
-    setAlert({ type: "error", message: "No se pudo eliminar la sucursal" });
+    setAlert({ 
+      type: "error", 
+      message: error.message || "No se pudo eliminar la sucursal. Por favor, intente nuevamente." 
+    });
+  } finally {
+    setShowModal(false);
   }
 };
 

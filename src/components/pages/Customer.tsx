@@ -4,7 +4,7 @@ import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/searchbar"; // asegúrate que la ruta sea correcta
+import { SearchBar } from "../ui/SearchBar";
 
 type Customer = {
   customer_id: number;
@@ -93,8 +93,43 @@ export default function CustomersPage() {
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoadingForm(true);
+  setAlert(null);
 
   try {
+    // Client-side validation for duplicates
+    const isDuplicateEmail = customers.some(
+      c => c.email.toLowerCase() === form.email.toLowerCase() && 
+      (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
+    );
+
+    const isDuplicateId = customers.some(
+      c => c.identity_number === form.identity_number && 
+      (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
+    );
+
+    const isDuplicatePhone = form.phone && customers.some(
+      c => c.phone && c.phone === form.phone &&
+      (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
+    );
+
+    if (isDuplicateEmail) {
+      setAlert({ type: "error", message: "Ya existe un cliente con este correo electrónico." });
+      setLoadingForm(false);
+      return;
+    }
+
+    if (isDuplicateId) {
+      setAlert({ type: "error", message: "Ya existe un cliente con esta cédula." });
+      setLoadingForm(false);
+      return;
+    }
+
+    if (isDuplicatePhone) {
+      setAlert({ type: "error", message: "Ya existe un cliente con este número de teléfono." });
+      setLoadingForm(false);
+      return;
+    }
+
     if (customerToEdit) {
       const res = await fetch(`http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`, {
         method: "PUT",
@@ -109,13 +144,12 @@ const handleSubmit = async (e: React.FormEvent) => {
         setFilteredCustomers(prev => prev.map(c => c.customer_id === data.customer_id ? data : c));
         setTimeout(() => setModalOpen(false), 1200);
       } else if (res.status === 409) {
-        setAlert({ type: "error", message: "Ya existe un cliente con la misma cédula o correo." });
+        setAlert({ type: "error", message: "Error: Ya existe un cliente con la misma cédula o correo." });
       } else if (data?.message) {
         setAlert({ type: "error", message: data.message });
       } else {
         setAlert({ type: "error", message: "No se pudo editar el cliente." });
       }
-
     } else {
       const res = await fetch("http://localhost:8000/api/v1/customers", {
         method: "POST",
@@ -130,7 +164,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         setFilteredCustomers(prev => [...prev, data]);
         setTimeout(() => setModalOpen(false), 1200);
       } else if (res.status === 409) {
-        setAlert({ type: "error", message: "Ya existe un cliente con la misma cédula o correo." });
+        setAlert({ type: "error", message: "Error: Ya existe un cliente con la misma cédula o correo." });
       } else if (data?.message) {
         setAlert({ type: "error", message: data.message });
       } else {
@@ -195,22 +229,22 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div className="flex gap-2">
             <Button
                 text="Refrescar"
-                style="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-6 rounded"
+                style="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-10 rounded cursor-pointer"
                 onClick={() => setFilteredCustomers(customers)}
               />
           
            
-            </div>
+           
     
                 <Button
                 text="Añadir Cliente"
-                style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-8 m-10 rounded"
+                style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-10 cursor-pointer mr-20  rounded"
                 onClick={() => {
                   setCustomerToEdit(null);
                   setModalOpen(true);
                 }}
               />
-           
+            </div>
           </div>
 
           {/* Tabla de clientes */}
