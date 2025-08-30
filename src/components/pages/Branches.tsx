@@ -118,46 +118,69 @@ export default function Branches() {
   });
 
   // Load data from backend
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch businesses
-        const businessesRes = await fetch("http://127.0.0.1:8000/api/v1/businesses", {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+  // Cargar warehouses junto con branches y businesses
+const [warehouses, setWarehouses] = useState<{ bodega_id: number; sucursal_id: number }[]>([]);
+
+useEffect(() => {
+  const fetchData = async () => {
+    try {
+      // Fetch businesses
+      const businessesRes = await fetch("http://127.0.0.1:8000/api/v1/businesses", {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!businessesRes.ok) throw new Error('Error loading businesses');
+      const businessesData: Business[] = await businessesRes.json();
+      setBusinesses(businessesData);
+
+      // Fetch branches
+      const branchesRes = await fetch("http://127.0.0.1:8000/api/v1/branches", {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
+      });
+      
+      if (!branchesRes.ok) throw new Error('Error loading branches');
+      const branchesData: Branch[] = await branchesRes.json();
+
+      // Enriquecer cada sucursal con el nombre del negocio usando show
+      const enrichedBranches = await Promise.all(
+        branchesData.map(async (branch) => {
+          if (branch.negocio_id) {
+            const res = await fetch(`http://127.0.0.1:8000/api/v1/businesses/${branch.negocio_id}`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              }
+            });
+            if (res.ok) {
+              const negocio = await res.json();
+              branch.negocio = { nombre: negocio.nombre };
+            }
           }
-        });
-        
-        if (!businessesRes.ok) throw new Error('Error loading businesses');
-        const businessesData = await businessesRes.json();
-        setBusinesses(businessesData);
+          return branch;
+        })
+      );
 
-        // Fetch branches
-        const branchesRes = await fetch("http://127.0.0.1:8000/api/v1/branches", {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (!branchesRes.ok) throw new Error('Error loading branches');
-        const branchesData = await branchesRes.json();
-        setBranches(branchesData);
+      setBranches(enrichedBranches);
 
-      } catch (error) {
-        console.error("Error loading data:", error);
-        setAlert({ type: "error", message: "Error al cargar los datos" });
-      } finally {
-        setLoading(false);
-      }
-    };
+    } catch (error) {
+      console.error("Error loading data:", error);
+      setAlert({ type: "error", message: "Error al cargar los datos" });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    fetchData();
-  }, [token]);
-
+  fetchData();
+}, [token]);
   // Form handlers
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -170,77 +193,88 @@ export default function Branches() {
   };
 
   // Handle form submission
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const url = branchToEdit 
-        ? `http://127.0.0.1:8000/api/v1/branches/${branchToEdit.sucursal_id}`
-        : "http://127.0.0.1:8000/api/v1/branches";
+  // Handle form submission
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const url = branchToEdit 
+      ? `http://127.0.0.1:8000/api/v1/branches/${branchToEdit.sucursal_id}`
+      : "http://127.0.0.1:8000/api/v1/branches";
 
-      const method = branchToEdit ? "PUT" : "POST";
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        },
-        body: JSON.stringify(form)
-      });
+    const method = branchToEdit ? "PUT" : "POST";
+    const response = await fetch(url, {
+      method,
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(form)
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Error al guardar la sucursal');
-      }
-
-      const data = await response.json();
-      
-      if (branchToEdit) {
-        setBranches(branches.map(b => 
-          b.sucursal_id === branchToEdit.sucursal_id ? data : b
-        ));
-        setAlert({ type: "success", message: "Sucursal actualizada correctamente" });
-      } else {
-        setBranches([...branches, data]);
-        setAlert({ type: "success", message: "Sucursal creada correctamente" });
-      }
-
-      setShowEditModal(false);
-      setBranchToEdit(null);
-    } catch (error: any) {
-      console.error("Error saving branch:", error);
-      setAlert({ 
-        type: "error", 
-        message: error.message || "Error al procesar la solicitud" 
-      });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Error al guardar la sucursal');
     }
-  };
 
-  // Handle delete
-  const handleDelete = async () => {
-    if (!selectedBranchId) return;
-    
-    try {
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/branches/${selectedBranchId}`, {
-        method: "DELETE",
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
-      });
+    const data: Branch = await response.json();
 
-      if (!response.ok) throw new Error('Error al eliminar la sucursal');
-
-      setBranches(branches.filter(b => b.sucursal_id !== selectedBranchId));
-      setShowModal(false);
-      setSelectedBranchId(null);
-      setAlert({ type: "success", message: "Sucursal eliminada correctamente" });
-    } catch (error) {
-      console.error("Error deleting branch:", error);
-      setAlert({ type: "error", message: "No se pudo eliminar la sucursal" });
+    // Enriquecer con el nombre del negocio usando la lista de businesses en el estado
+    const negocio = businesses.find(b => b.negocio_id === Number(data.negocio_id));
+    if (negocio) {
+      data.negocio = { nombre: negocio.nombre };
     }
-  };
+
+    if (branchToEdit) {
+      setBranches(branches.map(b => 
+        b.sucursal_id === branchToEdit.sucursal_id ? data : b
+      ));
+      setAlert({ type: "success", message: "Sucursal actualizada correctamente" });
+    } else {
+      setBranches([...branches, data]);
+      setAlert({ type: "success", message: "Sucursal creada correctamente" });
+    }
+
+    setShowEditModal(false);
+    setBranchToEdit(null);
+  } catch (error: any) {
+    console.error("Error saving branch:", error);
+    setAlert({ 
+      type: "error", 
+      message: error.message || "Error al procesar la solicitud" 
+    });
+  }
+};
+
+  // Modificar handleDelete para verificar si hay bodegas asignadas
+const handleDelete = async () => {
+  if (!selectedBranchId) return;
+
+  // Verificar si la sucursal tiene bodegas asociadas
+  const assignedWarehouse = warehouses.find(w => w.sucursal_id === selectedBranchId);
+  if (assignedWarehouse) {
+    setAlert({ type: "error", message: "No se puede eliminar esta sucursal porque tiene bodegas asignadas." });
+    setShowModal(false);
+    return;
+  }
+
+  try {
+    const response = await fetch(`http://127.0.0.1:8000/api/v1/branches/${selectedBranchId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!response.ok) throw new Error("Error al eliminar la sucursal");
+
+    setBranches(branches.filter(b => b.sucursal_id !== selectedBranchId));
+    setShowModal(false);
+    setSelectedBranchId(null);
+    setAlert({ type: "success", message: "Sucursal eliminada correctamente" });
+  } catch (error) {
+    console.error("Error deleting branch:", error);
+    setAlert({ type: "error", message: "No se pudo eliminar la sucursal" });
+  }
+};
 
   // Get available cantons based on selected province
   const getAvailableCantons = () => {
