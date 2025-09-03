@@ -64,7 +64,7 @@ export default function Inventary() {
   const userRole = user.role || "";
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}>
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor", "bodeguero"]}>
       <Container page=
     {
       <div>
