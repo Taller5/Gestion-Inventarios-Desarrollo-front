@@ -171,7 +171,7 @@ export default function Warehouses() {
   const userRole = user.role || "";
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "bodeguero"]}>
       <Container
         page={
           <div className="flex">

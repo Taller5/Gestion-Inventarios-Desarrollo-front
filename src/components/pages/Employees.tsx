@@ -46,7 +46,8 @@ export default function Employees() {
     };
 
     const getActions = (user: User) => [
-        <Button
+        <div className="flex flex-row">
+            <Button
             text="Editar"
             style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
             onClick={() => {
@@ -54,7 +55,7 @@ export default function Employees() {
                 setShowEditModal(true);
             }}
         />,
-        <Button
+            <Button
             text="Eliminar"
             style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
             onClick={() => {
@@ -62,6 +63,8 @@ export default function Employees() {
                 setShowModal(true);
             }}
         />
+
+        </div>
     ];
 
     const tableContent = users.map(user => ({

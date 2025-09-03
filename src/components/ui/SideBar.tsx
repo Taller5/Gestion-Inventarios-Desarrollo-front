@@ -17,14 +17,13 @@ const btnNegocios = (<Button text="Negocios" style="bg-transparent text-white fo
 const btnSucursales = (<Button text="Sucursales" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/branches" ></Button>)
 const btnBodegas = (<Button text="Bodegas" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" ></Button>)
 const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" ></Button>)
-const btnHomepage = (<Button text="Home page" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/homepage" ></Button>)
 
 // Botones base para todos los usuarios
-let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnPerfil, btnHomepage];
+let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnBodegas, btnPerfil];
 
 // Agregar botones adicionales para administradores y supervisores
 if (props.role === 'administrador' || props.role === 'supervisor') {
-    sideBarButtons.splice(4, 0, btnNegocios, btnSucursales, btnBodegas);
+    sideBarButtons.splice(4, 0, btnNegocios, btnSucursales);
 }
 
 
@@ -47,8 +46,8 @@ switch (props.role) {
     // Filtrar solo los módulos que debe ver el bodeguero
     sideBarButtons = sideBarButtons.filter(btn => 
       btn.props.text === 'Inventario' || 
-      btn.props.text === 'Perfil' || 
-      btn.props.text === 'Home page'
+      btn.props.text === 'Perfil' ||
+      btn.props.text === 'Bodegas'
     );
     break;
 
