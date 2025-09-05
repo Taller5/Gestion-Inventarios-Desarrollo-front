@@ -47,7 +47,7 @@ const handleLogout = () => {
             {user.name && <span className="font-medium">{user.name}</span>}
             <button
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded ml-2"
+              className="bg-red-500 hover:bg-red-600 cursor-pointer text-white px-3 py-1 rounded ml-2"
             >
               Cerrar sesión
             </button>
@@ -55,7 +55,7 @@ const handleLogout = () => {
         ) : (
           <button
             onClick={() => (window.location.href = "/login")}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded"
+            className="bg-blue-500 hover:bg-blue-600  cursor-pointer text-white px-3 py-1 rounded"
           >
             Iniciar sesión
           </button>

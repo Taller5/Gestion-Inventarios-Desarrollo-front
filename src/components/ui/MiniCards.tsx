@@ -8,15 +8,15 @@ interface MiniCardsProps {
 export default function MiniCards(props: MiniCardsProps) {
   return (
     <div className="flex flex-col md:flex-row min-h-[60vh] bg-white text-black">
-      {/* Columna izquierda: contenido centrado y compacto */}
+      {/* Columna izquierda: contenido centrado */}
       <div className="flex flex-col flex-1 items-center justify-center px-6 md:px-10 py-8">
         {props.title && (
-          <h2 className="text-2xl md:text-3xl font-bold mb-2 text-center leading-snug">
+          <h2 className="text-2xl md:text-4xl font-bold mb-4 text-center leading-snug">
             {props.title}
           </h2>
         )}
         {props.text && (
-          <p className="text-sm md:text-base text-center max-w-md leading-tight mb-6">
+          <p className="text-base md:text-xl text-center max-w-md leading-relaxed mb-6">
             {props.text.split('\n').map((line, idx) => (
               <span key={idx}>
                 {line}
@@ -34,7 +34,7 @@ export default function MiniCards(props: MiniCardsProps) {
         </div>
       </div>
 
-      {/* Columna derecha: imagen responsiva sin cambios */}
+      {/* Columna derecha: imagen responsiva */}
       {props.image && (
         <div className="flex-1 flex items-stretch">
           <img

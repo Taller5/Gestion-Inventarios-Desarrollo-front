@@ -4,8 +4,9 @@ import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/SearchBar";
+import { SearchBar } from "../ui/searchBar";
 import SimpleModal from "../ui/SimpleModal";
+import { IoAddCircle } from "react-icons/io5";
 
 type Customer = {
   customer_id: number;
@@ -225,29 +226,67 @@ const handleSubmit = async (e: React.FormEvent) => {
               {/* Barra de búsqueda y botones centrados debajo del título */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-6">
                 <div className="w-full h-10">
-                  <SearchBar<Customer>
-                    url="http://localhost:8000/api/v1/customers"
-                    displayField="identity_number"
-                    placeholder="Buscar por cédula..."
-                    onSelect={(item) => setFilteredCustomers([item])}
-                  />
+                               <SearchBar<Customer>
+                            data={customers}
+                            displayField="identity_number"
+                            placeholder="Buscar por cédula..."
+                            onResultsChange={(results) => {
+                              setFilteredCustomers(results);
+                              if (results.length > 0 || !results) setAlert(null); // limpia alert si hay resultados o vacío
+                            }}
+                            onSelect={(item) => setFilteredCustomers([item])}
+                            onNotFound={(q) => {
+                              if (q === "") {
+                                setAlert(null); // si borraste todo, quitar alerta
+                              } else {
+                                setFilteredCustomers([]);
+                                setAlert({ type: "error", message: `No existe ningún cliente con la cédula "${q}".` });
+                              }
+                            }}
+                          />
+
+
+                                      {/* Mostrar alert de búsqueda */}
+                                      {alert && (
+                                        <div
+                                          className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                                            alert.type === "success"
+                                              ? "bg-green-100 text-green-700 border border-green-300"
+                                              : "bg-red-100 text-red-700 border border-red-300"
+                                          }`}
+                                        >
+                                          {alert.message}
+                            </div>
+                          )}
+
+
+
+
                 </div>
 
                 <div className="flex gap-2">
-                <Button
-                    text="Refrescar"
-                    style="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-10 rounded cursor-pointer"
-                    onClick={() => setFilteredCustomers(customers)}
-                  />
-                
-                  <Button
-                    text="Añadir Cliente"
-                    style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-10 cursor-pointer mr-20  rounded"
-                    onClick={() => {
-                      setCustomerToEdit(null);
-                      setModalOpen(true);
-                    }}
-                  />
+<Button
+  style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+  onClick={() => {
+    setCustomerToEdit(null);
+    setModalOpen(true);
+  }}
+>
+  {/* Ícono de usuario con "+" usando IoAddCircle */}
+  <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+  <span className="whitespace-nowrap text-base">Añadir Cliente</span>
+</Button>
+
+
+
+
+
+
+
+
+         
+
+                 
                 </div>
               </div>
 

@@ -4,6 +4,7 @@ import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
+import { IoAddCircle } from "react-icons/io5";
 
 type Warehouse = {
   bodega_id: number;
@@ -181,8 +182,17 @@ export default function Warehouses() {
                 <h1 className="text-2xl font-bold">Administrar Bodegas</h1>
                 <div className="relative group">
                   <Button
-                    text="Añadir Bodega"
-                    style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-4 m-10 rounded"
+                    text={
+                    <span className="flex items-center gap-2">
+                                                                         
+                    {/* Ícono de usuario con "+" usando IoAddCircle */}
+                    <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                    Añadir Bodega
+                    </span>   
+
+
+                    }
+                    style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                     onClick={() => {
                       setWarehouseToEdit(null);
                       setShowEditModal(true);
