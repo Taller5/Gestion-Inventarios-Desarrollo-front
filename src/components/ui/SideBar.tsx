@@ -57,13 +57,13 @@ switch (props.role) {
 
 
   return (
-    <section className="bg-azul-oscuro h-screen w-1/6 min-w-[200px] flex flex-col">
+    <section className="bg-sky-700 h-screen w-1/6 min-w-[200px] flex flex-col">
       <div className="pt-10 flex flex-col gap-3">
         {Array.isArray(sideBarButtons) &&
           sideBarButtons.map((btn, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 mb-3 w-full pl-6 hover:bg-azul-fuerte duration-300 cursor-pointer rounded-lg"
+              className="flex items-center gap-2 mb-3 w-full pl-6 hover:bg-sky-600 duration-300 cursor-pointer rounded-lg"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"

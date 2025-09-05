@@ -5,6 +5,7 @@ import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
 import Modal from "../ui/Modal";
+import { IoAddCircle } from "react-icons/io5";
 
 type User = {
     id: number;
@@ -107,11 +108,20 @@ export default function Employees() {
                 <div className="w-full pl-10">
                     <div className="flex items-center justify-between pt-10">
                         <h1 className="text-2xl font-bold h-5">Personal y Roles</h1>
+                        
                         <Button
-                            text="Añadir empleado"
-                            style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-4 mr-10 rounded m-1 cursor-pointer"
+                            text={
+                                <span className="flex items-center gap-2">
+                                   
+                                    {/* Ícono de usuario con "+" usando IoAddCircle */}
+                                    <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                                     Añadir empleado
+                                </span>
+                            }
+                            style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                             onClick={() => setShowEditModal(true)}
                         />
+                            
                     </div>
                     <TableInformation tableContent={tableContent} headers={headers} />
                     <Modal
