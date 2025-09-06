@@ -217,7 +217,7 @@ export default function Profile(props: ProfileProps) {
         page={
           <div className="flex">
             <SideBar role={userFromStorage.role}></SideBar>
-            <div className="w-full">
+            <div className="w-full  max-h-[100vh] overflow-y-auto">
               <section className="m-10">
                 {/* Alerta visual */}
                 {alert && (
