@@ -2,7 +2,6 @@ interface TableInformationProps {
   headers: string[];
   tableContent?: any[];
   button?: React.ReactNode[];
-  //array de strings y hacer for para poner datos
 }
 
 const headerMap: Record<string, string> = {
@@ -12,40 +11,42 @@ const headerMap: Record<string, string> = {
   contact: "Contacto",
   state: "Estado",
   phone: "Teléfono",
-  actions: "Acciones"
+  actions: "Acciones",
 };
 
 export default function TableInformation(props: TableInformationProps) {
   return (
-    <main className="w-5/6 p-auto pt-20" >
-      <div className="overflow-x-auto mt-4">
+    <main className="w-full pl-1 md:pl-4 pt-8">
+      <div className="overflow-x-auto shadow-md rounded-lg max-w-[95%] ml-0">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-100">
             <tr>
               {props.headers.map((header, index) => (
                 <th
                   key={index}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
+                >
                   {headerMap[header] ?? header}
                 </th>
               ))}
             </tr>
           </thead>
-          {/* Cada objeto creado en inventary se va a transformar en una fila */}
           <tbody className="bg-white divide-y divide-gray-200">
-            {props.tableContent?.map((row, index) => (
-              <tr key={index}>
-                {props.headers.map((header) => (
-                  <td key={header} className="px-6 py-4 text-left text-xs font-medium text-gray-500">
+            {props.tableContent?.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                className="hover:bg-gray-50 transition-colors duration-200"
+              >
+                {props.headers.map((header, colIndex) => (
+                  <td
+                    key={colIndex}
+                    className="px-3 py-3 text-sm text-gray-600"
+                  >
                     {row[header] ?? ""}
                   </td>
                 ))}
               </tr>
             ))}
-            <tr>
-
-            </tr>
-                
           </tbody>
         </table>
       </div>

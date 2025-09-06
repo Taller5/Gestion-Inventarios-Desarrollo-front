@@ -5,6 +5,8 @@ import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
 import { IoAddCircle } from "react-icons/io5";
+import { RiEdit2Fill } from "react-icons/ri";
+import { FaTrash } from "react-icons/fa";
 
 type Business = {
   negocio_id: number;
@@ -171,30 +173,35 @@ export default function Businesses() {
     }
   };
 
-  const tableContent = businesses.map((b) => ({
-    ID: b.negocio_id,
-    Nombre: b.nombre,
-    Descripción: b.descripcion || "-",
-    Teléfono: b.telefono,
-    Email: b.email,
-    Acciones: (
-      <div className="flex gap-2">
-        <Button
-          text="Editar"
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-          onClick={() => {
-            setBusinessToEdit(b);
-            setModalOpen(true);
-          }}
-        />
-        <Button
-          text="Eliminar"
-          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-          onClick={() => handleDelete(b.negocio_id)}
-        />
-      </div>
-    ),
-  }));
+const tableContent = businesses.map((b) => ({
+  ID: b.negocio_id,
+  Nombre: b.nombre,
+  Descripción: b.descripcion || "-",
+  Teléfono: b.telefono,
+  Email: b.email,
+  Acciones: (
+    <div className="flex gap-2">
+      <Button
+        style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+        onClick={() => {
+          setBusinessToEdit(b);
+          setModalOpen(true);
+        }}
+      >
+        <RiEdit2Fill/>
+        Editar
+      </Button>
+
+      <Button
+        style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+        onClick={() => handleDelete(b.negocio_id)}
+      >
+        <FaTrash/>
+        Eliminar
+      </Button>
+    </div>
+  ),
+}));
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
@@ -298,7 +305,7 @@ export default function Businesses() {
                         <div className="flex justify-end gap-4 mt-6">
                           <button
                             type="button"
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
                             onClick={() => setModalOpen(false)}
                           >
                             Cancelar
@@ -306,7 +313,7 @@ export default function Businesses() {
                           <button
                             type="submit"
                             disabled={loadingForm}
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer"
                           >
                             {loadingForm
                               ? "Guardando..."
