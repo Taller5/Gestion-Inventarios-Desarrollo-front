@@ -5,6 +5,10 @@ import Button from "../ui/Button";
 import Container from "../ui/Container";
 import { SearchBar } from "../ui/SearchBar";
 
+import { FaTrash } from "react-icons/fa";
+import { IoAddCircle } from "react-icons/io5";
+import { CgDetailsMore } from "react-icons/cg";
+
 
 //type bodega
 type Warehouse = {
@@ -40,6 +44,7 @@ const headers = ["Código", "Nombre", "Stock", "Precio", "Bodega", "Acciones"];
 
 export default function Inventary() {
 
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
    const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
   // Cargar bodegas al inicio
@@ -95,7 +100,7 @@ export default function Inventary() {
         setLotes(lotesData);
       })
       .catch(() => {
-        // Datos quemados si la API falla
+        console.error("Error al obtener productos y lotes");
         setProductos([]);
         setLotes([]);
       })
@@ -126,20 +131,6 @@ export default function Inventary() {
     setProductosFiltrados(agruparProductos(productos, lotes));
   }, [productos, lotes]);
 
-  // Filtro de búsqueda para productos
-  // Búsqueda parcial por código o nombre
-  const handleSearch = (item: Producto) => {
-    if (!item) return;
-    const query = item.codigo || item.nombre;
-    if (!query) return;
-    const lowerQuery = query.toLowerCase();
-    const filtrados = productos.filter(p =>
-      p.codigo.toLowerCase().includes(lowerQuery) ||
-      p.nombre.toLowerCase().includes(lowerQuery)
-    );
-    setProductosFiltrados(agruparProductos(filtrados, lotes));
-  };
-  const handleRefresh = () => setProductosFiltrados(agruparProductos(productos, lotes));
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}>
@@ -152,43 +143,63 @@ export default function Inventary() {
               {/* Barra de búsqueda y botones principales */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-                  {/* Barra de búsqueda
-                   <SearchBar<Producto>
-                    url="http://localhost:8000/api/v1/products"
-                    displayField="codigo"
-                    placeholder="Buscar por código o nombre..."
-                    filterFn={(item, query) =>
-                      item.codigo.toLowerCase().includes(query.toLowerCase()) ||
-                      item.nombre.toLowerCase().includes(query.toLowerCase())
-                    }
-                    onSelect={handleSearch}
-                  /> */}
-                 
+               <SearchBar<Producto>
+                      data={productos}
+                      displayField="codigo"
+                      placeholder="Buscar por código o nombre..."
+                      onResultsChange={results => {
+                        setProductosFiltrados(results);
+                        if (results.length > 0 || !results) setAlert(null); 
+                      }}
+                      onSelect={item => setProductosFiltrados([item])}
+                      onNotFound={q => {
+                        if (q === "") {
+                          setAlert(null); 
+                        } else {
+                          setProductosFiltrados([]);
+                          setAlert({
+                            type: "error",
+                            message: `No existe ningún producto con el código o nombre "${q}".`,
+                          });
+                        }
+                      }}
+                    />
+                  {/* Mostrar alert de búsqueda */}
+                  {alert && (
+                    <div
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                        alert.type === "success"
+                          ? "bg-green-100 text-green-700 border border-green-300"
+                          : "bg-red-100 text-red-700 border border-red-300"
+                      }`}
+                    >
+                      {alert.message}
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    text="Refrescar"
-                    style="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-10 rounded cursor-pointer"
-                    onClick={handleRefresh}
-                  />
-                  <Button
-                    text="Agregar Producto"
-                    style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold py-2 px-10 cursor-pointer mr-20  rounded"
+                   <div className="flex gap-2">
+                 <Button
+                    style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-3 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                     onClick={() => {
                       setEditMode(false);
                       setFormProducto({ codigo: "", nombre: "", stock: 0, precio: 0, bodega: "" });
                       setModalOpen('add-product');
                     }}
-                  />
-                </div>
+                    ><IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                    <span className="whitespace-nowrap text-base">
+                      Agregar Producto
+                    </span>
+                    
+                    </Button>
+                    </div>
               </div>
               {/* Tabla de productos agrupados */}
-              <div className="bg-gray-50 rounded-xl p-4 max-h-[63vh] overflow-y-auto mb-10 mr-10">
-  <table className="min-w-full divide-y divide-gray-200 ">
+              <div className="shadow-md rounded-lg max-h-[63vh] overflow-y-auto mb-10 mr-10">
+               <table className="min-w-full divide-y divide-gray-200 ">
                   <thead className="bg-gray-100">
                     <tr>
                       {headers.map((header, idx) => (
-                        <th key={idx} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th key={idx} className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide">
                           {header}
                         </th>
                       ))}
@@ -203,14 +214,16 @@ export default function Inventary() {
                       // Renderiza una fila por producto agrupado
                       productosFiltrados.map((producto: any) => (
                         <React.Fragment key={producto.codigo}>
-                          <tr className="hover:bg-gray-100 cursor-pointer" onClick={() => setExpanded(expanded === producto.codigo ? null : producto.codigo)}>
-                            <td className="px-6 py-4 text-left text-xs font-medium text-gray-500">{producto.codigo}</td>
-                            <td className="px-6 py-4 text-left text-xs font-medium text-gray-500">{producto.nombre}</td>
-                            <td className="px-6 py-4 text-left text-xs font-medium text-gray-500">{producto.stock}</td>
-                            <td className="px-6 py-4 text-left text-xs font-medium text-gray-500">${producto.precio}</td>
-                            <td className="px-6 py-4 text-left text-xs font-medium text-gray-500">{producto.bodega?.codigo || producto.bodega || ''}</td>
-                            <td className=" flex flex-row py-4 text-left text-xs font-medium text-gray-500">
-                              <Button text="Agregar lote" style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded mr-2 cursor-pointer" onClick={() => {
+                          <tr className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer" onClick={() => setExpanded(expanded === producto.codigo ? null : producto.codigo)}>
+                            <td className="px-3 py-3 text-sm text-gray-600">{producto.codigo}</td>
+                            <td className="px-3 py-3 text-sm text-gray-600">{producto.nombre}</td>
+                            <td className="px-3 py-3 text-sm text-gray-600">{producto.stock}</td>
+                            <td className="px-3 py-3 text-sm text-gray-600">₡{producto.precio}</td>
+                            <td className="px-3 py-3 text-sm text-gray-600">{producto.bodega?.codigo || producto.bodega || ''}</td>
+                            <td className=" flex flex-row py-3 px-3  text-sm gap-2">
+                              <Button 
+                              style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                              onClick={() => {
                                 setEditMode(true);
                                 setFormLote({
                                   codigo: producto.codigo,
@@ -225,8 +238,17 @@ export default function Inventary() {
                                   lote_id: undefined
                                 });
                                 setModalOpen('add-lote');
-                              }} />
-                              <Button text="Eliminar" style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded cursor-pointer" onClick={() => setProductoAEliminar(producto)} />
+                              }}
+                              ><IoAddCircle />
+                                Agregar lote 
+                              </Button>
+                              <Button 
+                              style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer" 
+                              onClick={() => setProductoAEliminar(producto)} 
+                              ><FaTrash />
+                              Eliminar
+                              </Button>
+                              
               {/* Modal de confirmación para eliminar producto */}
               {productoAEliminar && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -261,18 +283,23 @@ export default function Inventary() {
                           </tr>
                           {/* Fila colapsable con los lotes de ese producto */}
                           {expanded === producto.codigo && (
-                            <tr className="bg-blue-50">
-                              <td colSpan={headers.length} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <tr className="bg-gray-100">
+                              <td colSpan={headers.length} className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wide">
                                 <div className="flex flex-col gap-2">
                                   {/* Renderiza cada lote de ese producto con info resumida y botón de detalles */}
                                   {producto.lotes.map((lote: Lote) => (
-                                    <div key={lote.lote_id} className="mb p-2 border-b border-blue-200 flex flex-row items-center gap-5">
+                                    <div key={lote.lote_id} className="mb p-2 flex flex-row items-center gap-5">
                                       <span><b>Número de lote:</b> {lote.numero_lote}</span>
                                       <span><b>Fecha de vencimiento:</b> {lote.fecha_salida}</span>
                                       <span><b>Cantidad actual:</b> {lote.cantidad}</span>
                                       {/* Botón para ver detalles completos del lote en el modal */}
                                       <div className="ml-auto">
-                                        <Button text="Detalles" style=" cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded " onClick={() => { setEditMode(false); setFormLote(lote); setModalOpen(lote); }} />
+                                        <Button 
+                                        style="text-sm  cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold  py-1 px-2 rounded " 
+                                        onClick={() => { setEditMode(false); setFormLote(lote); setModalOpen(lote); }} 
+                                        ><CgDetailsMore />
+                                        Detalles
+                                        </Button>
                                         </div>
                                     </div>
                                   ))}
@@ -326,13 +353,13 @@ export default function Inventary() {
                         <label className="font-semibold">Stock
                           <input
                             name="stock"
-                            type="number"
                             value={(() => {
                               // Siempre 0 al crear
                               return 0;
                             })()}
+                            disabled
                             readOnly
-                            className="w-full border rounded-lg px-3 py-2 bg-gray-100"
+                            className="w-full border rounded-lg px-3 py-2 bg-gray-300"
                           />
                         </label>
                       </div>
@@ -416,18 +443,18 @@ export default function Inventary() {
                           <input name="numero_lote" value={formLote.numero_lote} onChange={e => setFormLote(f => ({ ...f, numero_lote: e.target.value }))} placeholder="Número de lote" className="w-full border rounded-lg px-3 py-2" required />
                         </label>
                         <label className="font-semibold">Código de lote
-                          <input name="codigo" value={formLote.codigo} readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-100" />
+                          <input name="codigo" value={formLote.codigo} disabled readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-300" />
                         </label>
                         <label className="font-semibold">Nombre
-                          <input name="nombre" value={formLote.nombre} readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-100" />
+                          <input name="nombre" value={formLote.nombre} disabled readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-300" />
                         </label>
                         <label className="font-semibold">Cantidad
                           <input name="cantidad" type="number" value={formLote.cantidad} onChange={e => setFormLote(f => ({ ...f, cantidad: Number(e.target.value) }))} placeholder="Cantidad" className="w-full border rounded-lg px-3 py-2" required />
                         </label>
-                        <label className="font-semibold">Fecha de entrada
+                        <label className="font-semibold">Fecha de entrada de bodega
                           <input name="fecha_entrada" type="date" value={formLote.fecha_entrada} onChange={e => setFormLote(f => ({ ...f, fecha_entrada: e.target.value }))} placeholder="Fecha de entrada" className="w-full border rounded-lg px-3 py-2" required />
                         </label>
-                        <label className="font-semibold">Fecha de salida
+                        <label className="font-semibold">Fecha de salida de bodega
                           <input name="fecha_salida_lote" type="date" value={formLote.fecha_salida_lote || ''} onChange={e => setFormLote(f => ({ ...f, fecha_salida_lote: e.target.value }))} placeholder="Fecha de salida" className="w-full border rounded-lg px-3 py-2" />
                         </label>
                       </div>
@@ -506,18 +533,18 @@ export default function Inventary() {
                           <input name="numero_lote" value={formLote.numero_lote} onChange={e => setFormLote(f => ({ ...f, numero_lote: e.target.value }))} placeholder="Número de lote" className="w-full border rounded-lg px-3 py-2" required readOnly={!editMode} />
                         </label>
                         <label className="font-semibold">Código de lote
-                          <input name="codigo" value={formLote.codigo} readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-100" />
+                          <input name="codigo" value={formLote.codigo} disabled readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-300" />
                         </label>
                         <label className="font-semibold">Nombre
-                          <input name="nombre" value={formLote.nombre} readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-100" />
+                          <input name="nombre" value={formLote.nombre} disabled readOnly className="w-full border rounded-lg px-3 py-2 bg-gray-300" />
                         </label>
                         <label className="font-semibold">Cantidad
                           <input name="cantidad" type="number" value={formLote.cantidad} onChange={e => setFormLote(f => ({ ...f, cantidad: Number(e.target.value) }))} placeholder="Cantidad" className="w-full border rounded-lg px-3 py-2" required readOnly={!editMode} />
                         </label>
-                        <label className="font-semibold">Fecha de entrada
+                        <label className="font-semibold">Fecha de entrada de bodega
                           <input name="fecha_entrada" type="date" value={formLote.fecha_entrada} onChange={e => setFormLote(f => ({ ...f, fecha_entrada: e.target.value }))} placeholder="Fecha de entrada" className="w-full border rounded-lg px-3 py-2" required readOnly={!editMode} />
                         </label>
-                        <label className="font-semibold">Fecha de salida
+                        <label className="font-semibold">Fecha de salida de bodega
                           <input name="fecha_salida_lote" type="date" value={formLote.fecha_salida_lote || ''} onChange={e => setFormLote(f => ({ ...f, fecha_salida_lote: e.target.value }))} placeholder="Fecha de salida" className="w-full border rounded-lg px-3 py-2" readOnly={!editMode} />
                         </label>
                       </div>
@@ -537,21 +564,22 @@ export default function Inventary() {
                       </div>
                     </div>
                     <div className="flex gap-4 justify-end mt-6">
-                      <Button
-                        text={loadingForm ? "Guardando..." : (editMode ? "Guardar cambios" : "OK")}
-                        style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                        type="submit"
-                        disabled={loadingForm || !editMode}
-                      />
-                      {!editMode && (
-                      <Button
-                        text="Editar"
-                        style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                        type="button"
-                        onClick={() => setEditMode(true)}
-                      />
+                      {(editMode || loadingForm) && (
+                        <Button
+                          text={loadingForm ? "Guardando..." : "Guardar cambios"}
+                          style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          type="submit"
+                          disabled={loadingForm}
+                        />
                       )}
-                     
+                      {!editMode && !loadingForm && (
+                        <Button
+                          text="Editar"
+                          style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          type="button"
+                          onClick={() => setEditMode(true)}
+                        />
+                      )}
                       <Button
                         text="Cerrar"
                         type="button"
