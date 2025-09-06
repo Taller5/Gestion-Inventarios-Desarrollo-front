@@ -8,6 +8,7 @@ interface ButtonProps {
   icon?: string;
   disabled?: boolean;
   children?: React.ReactNode; // permite pasar contenido personalizado (como SVG)
+  type?: "button" | "submit" | "reset"; // permite especificar el tipo de botón
 }
 
 export default function Button(props: ButtonProps) {
