@@ -5,7 +5,8 @@ import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
 import { IoAddCircle } from "react-icons/io5";
-
+import { RiEdit2Fill } from "react-icons/ri";
+import { FaTrash } from "react-icons/fa";
 // Types
 type Branch = {
   sucursal_id: number;
@@ -338,34 +339,41 @@ const handleSubmit = async (e: React.FormEvent) => {
   }, [showEditModal, branchToEdit]);
 
   // Table content
-  const tableContent = branches.map(branch => ({
-    ID: branch.sucursal_id,
-    Negocio: branch.negocio?.nombre || 'Sin negocio',
-    Nombre: branch.nombre,
-    Provincia: branch.provincia,
-    Cantón: branch.canton,
-    Teléfono: branch.telefono,
-    Acciones: (
-      <div className="flex gap-2">
-        <Button
-          text="Editar"
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
-          onClick={() => {
-            setBranchToEdit(branch);
-            setShowEditModal(true);
-          }}
-        />
-        <Button
-          text="Eliminar"
-          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
-          onClick={() => {
-            setSelectedBranchId(branch.sucursal_id);
-            setShowModal(true);
-          }}
-        />
-      </div>
-    ),
-  }));
+
+
+const tableContent = branches.map(branch => ({
+  ID: branch.sucursal_id,
+  Negocio: branch.negocio?.nombre || 'Sin negocio',
+  Nombre: branch.nombre,
+  Provincia: branch.provincia,
+  Cantón: branch.canton,
+  Teléfono: branch.telefono,
+  Acciones: (
+    <div className="flex gap-2">
+      <Button
+        style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+        onClick={() => {
+          setBranchToEdit(branch);
+          setShowEditModal(true);
+        }}
+      >
+        <RiEdit2Fill/>
+        Editar
+      </Button>
+
+      <Button
+        style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+        onClick={() => {
+          setSelectedBranchId(branch.sucursal_id);
+          setShowModal(true);
+        }}
+      >
+        <FaTrash/>
+        Eliminar
+      </Button>
+    </div>
+  ),
+}));
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
@@ -476,7 +484,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                             name="negocio_id"
                             value={form.negocio_id}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                             required
                             disabled={!!branchToEdit}
                           >
@@ -507,7 +515,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                               name="provincia"
                               value={form.provincia}
                               onChange={handleChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                               required
                             >
                               <option value="">Seleccione una provincia</option>
@@ -525,7 +533,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                               name="canton"
                               value={form.canton}
                               onChange={handleChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                               required
                               disabled={!form.provincia}
                             >
@@ -554,7 +562,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         <div className="flex justify-end gap-4 pt-4">
                           <button
                             type="button"
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
                             onClick={() => {
                               setShowEditModal(false);
                               setBranchToEdit(null);
@@ -565,7 +573,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                           </button>
                           <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer"
                           >
                             {branchToEdit ? "Guardar Cambios" : "Crear Sucursal"}
                           </button>

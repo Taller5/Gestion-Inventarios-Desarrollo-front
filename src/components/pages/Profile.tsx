@@ -237,7 +237,7 @@ export default function Profile(props: ProfileProps) {
                     <p>{props.textSection}</p>
                   </div>
                   <button
-                    className="bg-azul-fuerte hover:bg-azul-oscuro text-white px-4 py-2 rounded ml-2 cursor-pointer"
+                    className="bg-sky-500 hover:bg-sky-800 text-white px-4 py-2 rounded ml-2 cursor-pointer"
                     onClick={handleSave}
                     disabled={saving}
                   >
@@ -246,7 +246,7 @@ export default function Profile(props: ProfileProps) {
                 </section>
 
                 <section className="grid grid-cols-2 gap-4">
-                  <article className="bg-gris-claro p-4">
+                  <article className="bg-sky-50 p-4">
                     <h2 className="text-lg font-bold ml-4 mb-10 mt-2">{props.labelPersonalInfo}</h2>
                     <div className="flex flex-col items-center mb-2">
                       <div className="mb-4 flex flex-col items-center">
@@ -255,7 +255,7 @@ export default function Profile(props: ProfileProps) {
                           src={profilePhotoUrl}
                           alt="Profile"
                         />
-                        <label className="bg-azul-fuerte hover:bg-azul-oscuro text-white py-2 px-4 rounded cursor-pointer">
+                        <label className="bg-sky-500 hover:bg-sky-800 text-white py-2 px-4 rounded cursor-pointer">
                           <input
                             type="file"
                             className="hidden"
@@ -272,7 +272,7 @@ export default function Profile(props: ProfileProps) {
                         <label className="flex flex-col text-lg font-bold">
                           {props.labelName}
                           <input
-                            className="bg-gris-oscuro pl-2 py-1 mt-2 font-normal text-base"
+                            className="bg-white pl-2 py-1 mt-2 font-normal text-base"
                             type="text"
                             required
                             value={name}
@@ -284,7 +284,7 @@ export default function Profile(props: ProfileProps) {
                         <label className="flex flex-col text-lg font-bold">
                           {props.labelEmail}
                           <input
-                            className="bg-gris-oscuro pl-2 py-1 mt-2 font-normal text-base"
+                            className="bg-white pl-2 py-1 mt-2 font-normal text-base"
                             type="email"
                             required
                             value={email}
@@ -295,13 +295,13 @@ export default function Profile(props: ProfileProps) {
                     </form>
                   </article>
 
-                  <article className="bg-gris-claro p-4">
+                  <article className="bg-sky-50 p-4">
                     <h2 className="text-lg font-bold ml-4 mb-10 mt-2">{props.labelChangePassword}</h2>
                     <form className="flex flex-col gap-4 px-8 mb-6" onSubmit={handleChangePassword}>
                       <div>
                         <label className="flex flex-col text-lg font-bold">{props.labelCurrentPassword}
                           <input 
-                            className="bg-gris-oscuro pl-2 py-1 mt-2 font-normal text-base"
+                            className="bg-white pl-2 py-1 mt-2 font-normal text-base"
                             type="password" 
                             required
                             value={currentPassword}
@@ -312,7 +312,7 @@ export default function Profile(props: ProfileProps) {
                       <div>
                         <label className="flex flex-col text-lg font-bold">{props.labelNewPassword}
                           <input 
-                            className="bg-gris-oscuro pl-2 py-1 mt-2 font-normal text-base"
+                            className="bg-white pl-2 py-1 mt-2 font-normal text-base"
                             type="password"
                             required 
                             value={newPassword}
@@ -340,7 +340,7 @@ export default function Profile(props: ProfileProps) {
                       <div>
                         <label className="flex flex-col text-lg font-bold">{props.labelConfirmPassword}
                           <input 
-                            className="bg-gris-oscuro pl-2 py-1 mt-2 font-normal text-base"
+                            className="bg-white pl-2 py-1 mt-2 font-normal text-base"
                             type="password"
                             required 
                             value={confirmPassword}
@@ -352,7 +352,7 @@ export default function Profile(props: ProfileProps) {
                       </div>
                       <button
                         type="submit"
-                        className="bg-azul-fuerte hover:bg-azul-oscuro text-white px-4 py-2 rounded ml-2 cursor-pointer"
+                        className="bg-sky-500 hover:bg-sky-800 text-white px-4 py-2 rounded ml-2 cursor-pointer"
                         disabled={changing}
                       >
                         {changing ? "Cambiando..." : "Cambiar contraseña"}

@@ -4,9 +4,11 @@ import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/searchBar";
+import { SearchBar } from "../ui/SearchBar";
 import SimpleModal from "../ui/SimpleModal";
 import { IoAddCircle } from "react-icons/io5";
+import { RiEdit2Fill} from "react-icons/ri";
+import { FaTrash } from "react-icons/fa";
 
 type Customer = {
   customer_id: number;
@@ -30,7 +32,9 @@ export default function CustomersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [customerIdToDelete, setCustomerIdToDelete] = useState<number | null>(null);
+  const [customerIdToDelete, setCustomerIdToDelete] = useState<number | null>(
+    null
+  );
 
   const [form, setForm] = useState({
     name: "",
@@ -39,7 +43,10 @@ export default function CustomersPage() {
     identity_number: "",
   });
   const [loadingForm, setLoadingForm] = useState(false);
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   // Función para cargar clientes
   const fetchClients = async () => {
@@ -85,7 +92,9 @@ export default function CustomersPage() {
   }, [modalOpen, customerToEdit]);
 
   const handleDelete = async (id: number) => {
-    await fetch(`http://localhost:8000/api/v1/customers/${id}`, { method: "DELETE" });
+    await fetch(`http://localhost:8000/api/v1/customers/${id}`, {
+      method: "DELETE",
+    });
     setCustomers(customers.filter((c) => c.customer_id !== id));
     setFilteredCustomers(filteredCustomers.filter((c) => c.customer_id !== id));
     setDeleteModalOpen(false);
@@ -96,61 +105,90 @@ export default function CustomersPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoadingForm(true);
-  setAlert(null);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingForm(true);
+    setAlert(null);
 
     try {
       // Client-side validation for duplicates
       const isDuplicateEmail = customers.some(
-        c => c.email.toLowerCase() === form.email.toLowerCase() && 
-        (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
+        (c) =>
+          c.email.toLowerCase() === form.email.toLowerCase() &&
+          (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
       );
 
       const isDuplicateId = customers.some(
-        c => c.identity_number === form.identity_number && 
-        (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
+        (c) =>
+          c.identity_number === form.identity_number &&
+          (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
       );
 
-      const isDuplicatePhone = form.phone && customers.some(
-        c => c.phone && c.phone === form.phone &&
-        (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
-      );
+      const isDuplicatePhone =
+        form.phone &&
+        customers.some(
+          (c) =>
+            c.phone &&
+            c.phone === form.phone &&
+            (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
+        );
 
       if (isDuplicateEmail) {
-        setAlert({ type: "error", message: "Ya existe un cliente con este correo electrónico." });
+        setAlert({
+          type: "error",
+          message: "Ya existe un cliente con este correo electrónico.",
+        });
         setLoadingForm(false);
         return;
       }
 
       if (isDuplicateId) {
-        setAlert({ type: "error", message: "Ya existe un cliente con esta cédula." });
+        setAlert({
+          type: "error",
+          message: "Ya existe un cliente con esta cédula.",
+        });
         setLoadingForm(false);
         return;
       }
 
       if (isDuplicatePhone) {
-        setAlert({ type: "error", message: "Ya existe un cliente con este número de teléfono." });
+        setAlert({
+          type: "error",
+          message: "Ya existe un cliente con este número de teléfono.",
+        });
         setLoadingForm(false);
         return;
       }
 
       if (customerToEdit) {
-        const res = await fetch(`http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
+        const res = await fetch(
+          `http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+          }
+        );
         const data = await res.json();
 
         if (res.ok) {
-          setAlert({ type: "success", message: "Cliente editado correctamente." });
-          setCustomers(prev => prev.map(c => c.customer_id === data.customer_id ? data : c));
-          setFilteredCustomers(prev => prev.map(c => c.customer_id === data.customer_id ? data : c));
+          setAlert({
+            type: "success",
+            message: "Cliente editado correctamente.",
+          });
+          setCustomers((prev) =>
+            prev.map((c) => (c.customer_id === data.customer_id ? data : c))
+          );
+          setFilteredCustomers((prev) =>
+            prev.map((c) => (c.customer_id === data.customer_id ? data : c))
+          );
           setTimeout(() => setModalOpen(false), 1200);
         } else if (res.status === 409) {
-          setAlert({ type: "error", message: "Error: Ya existe un cliente con la misma cédula o correo." });
+          setAlert({
+            type: "error",
+            message:
+              "Error: Ya existe un cliente con la misma cédula o correo.",
+          });
         } else if (data?.message) {
           setAlert({ type: "error", message: data.message });
         } else {
@@ -165,20 +203,33 @@ const handleSubmit = async (e: React.FormEvent) => {
         const data = await res.json();
 
         if (res.ok) {
-          setAlert({ type: "success", message: "Cliente agregado correctamente." });
-          setCustomers(prev => [...prev, data]);
-          setFilteredCustomers(prev => [...prev, data]);
+          setAlert({
+            type: "success",
+            message: "Cliente agregado correctamente.",
+          });
+          setCustomers((prev) => [...prev, data]);
+          setFilteredCustomers((prev) => [...prev, data]);
           setTimeout(() => setModalOpen(false), 1200);
         } else if (res.status === 409) {
-          setAlert({ type: "error", message: "Error: Ya existe un cliente con la misma cédula o correo." });
+          setAlert({
+            type: "error",
+            message:
+              "Error: Ya existe un cliente con la misma cédula o correo.",
+          });
         } else if (data?.message) {
           setAlert({ type: "error", message: data.message });
         } else {
-          setAlert({ type: "error", message: "No se pudo agregar el cliente." });
+          setAlert({
+            type: "error",
+            message: "No se pudo agregar el cliente.",
+          });
         }
       }
     } catch (err: any) {
-      setAlert({ type: "error", message: `Error de conexión: ${err.message || "Servidor no responde"}` });
+      setAlert({
+        type: "error",
+        message: `Error de conexión: ${err.message || "Servidor no responde"}`,
+      });
     } finally {
       setLoadingForm(false);
     }
@@ -193,21 +244,25 @@ const handleSubmit = async (e: React.FormEvent) => {
     Acciones: (
       <div className="flex gap-2">
         <Button
-          text="Editar"
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
           onClick={() => {
             setCustomerToEdit(c);
             setModalOpen(true);
           }}
-        />
+        >
+          <RiEdit2Fill/>
+          Editar
+        </Button>
         <Button
-          text="Eliminar"
-          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
           onClick={() => {
             setCustomerIdToDelete(c.customer_id);
             setDeleteModalOpen(true);
           }}
-        />
+        >
+          <FaTrash/>
+          Eliminar
+        </Button>
       </div>
     ),
   }));
@@ -219,74 +274,64 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-              
               {/* Título a la izquierda */}
-              <h1 className="text-2xl font-bold mb-6 text-left">Clientes y Fidelización</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Clientes y Fidelización
+              </h1>
 
               {/* Barra de búsqueda y botones centrados debajo del título */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-6">
                 <div className="w-full h-10">
-                               <SearchBar<Customer>
-                            data={customers}
-                            displayField="identity_number"
-                            placeholder="Buscar por cédula..."
-                            onResultsChange={(results) => {
-                              setFilteredCustomers(results);
-                              if (results.length > 0 || !results) setAlert(null); // limpia alert si hay resultados o vacío
-                            }}
-                            onSelect={(item) => setFilteredCustomers([item])}
-                            onNotFound={(q) => {
-                              if (q === "") {
-                                setAlert(null); // si borraste todo, quitar alerta
-                              } else {
-                                setFilteredCustomers([]);
-                                setAlert({ type: "error", message: `No existe ningún cliente con la cédula "${q}".` });
-                              }
-                            }}
-                          />
+                  <SearchBar<Customer>
+                    data={customers}
+                    displayField="identity_number"
+                    placeholder="Buscar por cédula..."
+                    onResultsChange={(results) => {
+                      setFilteredCustomers(results);
+                      if (results.length > 0 || !results) setAlert(null); // limpia alert si hay resultados o vacío
+                    }}
+                    onSelect={(item) => setFilteredCustomers([item])}
+                    onNotFound={(q) => {
+                      if (q === "") {
+                        setAlert(null); // si borraste todo, quitar alerta
+                      } else {
+                        setFilteredCustomers([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ningún cliente con la cédula "${q}".`,
+                        });
+                      }
+                    }}
+                  />
 
-
-                                      {/* Mostrar alert de búsqueda */}
-                                      {alert && (
-                                        <div
-                                          className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
-                                            alert.type === "success"
-                                              ? "bg-green-100 text-green-700 border border-green-300"
-                                              : "bg-red-100 text-red-700 border border-red-300"
-                                          }`}
-                                        >
-                                          {alert.message}
-                            </div>
-                          )}
-
-
-
-
+                  {/* Mostrar alert de búsqueda */}
+                  {alert && (
+                    <div
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                        alert.type === "success"
+                          ? "bg-green-100 text-green-700 border border-green-300"
+                          : "bg-red-100 text-red-700 border border-red-300"
+                      }`}
+                    >
+                      {alert.message}
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-2">
-<Button
-  style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
-  onClick={() => {
-    setCustomerToEdit(null);
-    setModalOpen(true);
-  }}
->
-  {/* Ícono de usuario con "+" usando IoAddCircle */}
-  <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-  <span className="whitespace-nowrap text-base">Añadir Cliente</span>
-</Button>
-
-
-
-
-
-
-
-
-         
-
-                 
+                  <Button
+                    style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                    onClick={() => {
+                      setCustomerToEdit(null);
+                      setModalOpen(true);
+                    }}
+                  >
+                    {/* Ícono de usuario con "+" usando IoAddCircle */}
+                    <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                    <span className="whitespace-nowrap text-base">
+                      Añadir Cliente
+                    </span>
+                  </Button>
                 </div>
               </div>
 
@@ -294,7 +339,10 @@ const handleSubmit = async (e: React.FormEvent) => {
               {loading ? (
                 <p>Cargando clientes...</p>
               ) : (
-                <TableInformation headers={headers} tableContent={tableContent} />
+                <TableInformation
+                  headers={headers}
+                  tableContent={tableContent}
+                />
               )}
 
               {/* Modal de clientes */}
@@ -324,7 +372,9 @@ const handleSubmit = async (e: React.FormEvent) => {
 
                     <div className="flex flex-col gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Nombre</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Nombre
+                        </label>
                         <input
                           name="name"
                           value={form.name}
@@ -335,7 +385,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Cédula</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Cédula
+                        </label>
                         <input
                           name="identity_number"
                           value={form.identity_number}
@@ -346,7 +398,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Teléfono</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Teléfono
+                        </label>
                         <input
                           name="phone"
                           value={form.phone}
@@ -356,7 +410,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">Correo</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Correo
+                        </label>
                         <input
                           name="email"
                           type="email"
@@ -373,14 +429,18 @@ const handleSubmit = async (e: React.FormEvent) => {
                       <button
                         type="submit"
                         disabled={loadingForm}
-                        className="bg-azul-fuerte hover:bg-azul-claro text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+                        className="bg-azul-fuerte hover:bg-azul-claro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       >
-                        {loadingForm ? "Guardando..." : customerToEdit ? "Guardar cambios" : "Guardar"}
+                        {loadingForm
+                          ? "Guardando..."
+                          : customerToEdit
+                            ? "Guardar cambios"
+                            : "Guardar"}
                       </button>
                       <button
                         type="button"
                         onClick={() => setModalOpen(false)}
-                        className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+                        className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       >
                         Cerrar
                       </button>
@@ -396,11 +456,15 @@ const handleSubmit = async (e: React.FormEvent) => {
                 title="Confirmar eliminación"
                 className="shadow-2xl"
               >
-                <p className="mb-4">¿Seguro que deseas eliminar este cliente?</p>
+                <p className="mb-4">
+                  ¿Seguro que deseas eliminar este cliente?
+                </p>
                 <div className="flex gap-4 justify-center">
                   <button
                     className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => customerIdToDelete && handleDelete(customerIdToDelete)}
+                    onClick={() =>
+                      customerIdToDelete && handleDelete(customerIdToDelete)
+                    }
                   >
                     Eliminar
                   </button>

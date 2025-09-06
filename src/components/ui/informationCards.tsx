@@ -1,4 +1,4 @@
-import { CiLogin } from "react-icons/ci";
+
 import { IoAddCircle } from "react-icons/io5";
 
 // Define el tipo de tarjeta
@@ -16,6 +16,7 @@ interface InformationCardsProps {
   text?: string;
   cards?: CardItem[];
   buttonText?: string;
+  buttonIcon?: React.ReactNode | null; // Ahora es opcional y puede ser null
   onButtonClick?: () => void;
   containerClassName?: string;
   buttonClassName?: string;
@@ -35,6 +36,7 @@ export default function InformationCards({
   alignment = "center",
   direction = "row",
   containerBg = "bg-azul-oscuro",
+  buttonIcon = null,
 }: InformationCardsProps) {
   const user = localStorage.getItem("user");
 
@@ -49,6 +51,7 @@ export default function InformationCards({
     { imgSrc: "/img/branch.png", title: "Manejo de sucursales" },
     { imgSrc: "/img/inventory.png", title: "Control de inventario eficiente" },
   ];
+ 
 
   const displayedCards = cards.length > 0 ? cards : defaultCards;
 
@@ -89,13 +92,18 @@ export default function InformationCards({
       </div>
 
       {/* Botón principal */}
-      <button
-        onClick={handleAccessApp}
-        className={`bg-sky-500 cursor-pointer hover:bg-cyan-950 text-white font-bold py-4 px-10 rounded-xl text-lg md:text-xl transition-colors duration-300 flex items-center gap-3 hover:shadow-cyan ${buttonClassName}`}
-      >
-        <CiLogin className="w-7 h-7" />
-        {buttonText}
-      </button>
+{/* Botón principal */}
+{buttonText && (
+  <button
+    onClick={handleAccessApp}
+    className={`bg-sky-500 cursor-pointer hover:bg-cyan-950 text-white font-bold py-4 px-10 rounded-xl text-lg md:text-xl transition-colors duration-300 flex items-center gap-3 hover:shadow-cyan ${buttonClassName}`}
+  >
+    {buttonIcon && buttonIcon /* Se muestra solo si se pasa */}
+    {buttonText}
+  </button>
+)}
+
+
     </div>
   );
 }

@@ -5,7 +5,8 @@ import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
 import { IoAddCircle } from "react-icons/io5";
-
+import { RiEdit2Fill } from "react-icons/ri";
+import { FaTrash } from "react-icons/fa";
 type Warehouse = {
   bodega_id: number;
   codigo: string;
@@ -34,11 +35,15 @@ export default function Warehouses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(null);
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
+    null
+  );
   const [showEditModal, setShowEditModal] = useState(false);
-  const [warehouseToEdit, setWarehouseToEdit] = useState<Partial<Warehouse> | null>(null);
+  const [warehouseToEdit, setWarehouseToEdit] =
+    useState<Partial<Warehouse> | null>(null);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+  const API_URL =
+    import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
 
   // Fetch warehouses and branches on component mount
   useEffect(() => {
@@ -49,11 +54,11 @@ export default function Warehouses() {
 
         const [warehousesRes, branchesRes] = await Promise.all([
           fetch(`${API_URL}/warehouses`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }).then(res => res.json()),
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((res) => res.json()),
           fetch(`${API_URL}/branches`, {
-            headers: { Authorization: `Bearer ${token}` }
-          }).then(res => res.json())
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((res) => res.json()),
         ]);
 
         setWarehouses(warehousesRes);
@@ -76,10 +81,12 @@ export default function Warehouses() {
       const token = localStorage.getItem("token");
       await fetch(`${API_URL}/warehouses/${selectedWarehouseId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      setWarehouses(warehouses.filter(w => w.bodega_id !== selectedWarehouseId));
+      setWarehouses(
+        warehouses.filter((w) => w.bodega_id !== selectedWarehouseId)
+      );
       setShowModal(false);
     } catch (err) {
       setError("Error al eliminar la bodega. Por favor, intente de nuevo.");
@@ -92,7 +99,7 @@ export default function Warehouses() {
     const formData = new FormData(e.target as HTMLFormElement);
     const warehouseData = {
       sucursal_id: parseInt(formData.get("sucursal_id") as string),
-      codigo: formData.get("codigo") as string
+      codigo: formData.get("codigo") as string,
     };
 
     try {
@@ -101,30 +108,35 @@ export default function Warehouses() {
 
       if (warehouseToEdit?.bodega_id) {
         // Update existing warehouse
-        response = await fetch(`${API_URL}/warehouses/${warehouseToEdit.bodega_id}`, {
-          method: "PUT",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-          },
-          body: JSON.stringify(warehouseData)
-        }).then(res => res.json());
+        response = await fetch(
+          `${API_URL}/warehouses/${warehouseToEdit.bodega_id}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify(warehouseData),
+          }
+        ).then((res) => res.json());
 
-        setWarehouses(warehouses.map(w =>
-          w.bodega_id === warehouseToEdit.bodega_id ? response : w
-        ));
+        setWarehouses(
+          warehouses.map((w) =>
+            w.bodega_id === warehouseToEdit.bodega_id ? response : w
+          )
+        );
       } else {
         // Create new warehouse
         response = await fetch(`${API_URL}/warehouses`, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json",
           },
-          body: JSON.stringify(warehouseData)
-        }).then(res => res.json());
+          body: JSON.stringify(warehouseData),
+        }).then((res) => res.json());
 
         setWarehouses([...warehouses, response]);
       }
@@ -132,13 +144,14 @@ export default function Warehouses() {
       setShowEditModal(false);
       setWarehouseToEdit(null);
     } catch (err: any) {
-      const errorMessage = "Error al guardar la bodega. Por favor, intente de nuevo.";
+      const errorMessage =
+        "Error al guardar la bodega. Por favor, intente de nuevo.";
       setError(errorMessage);
       console.error("Error saving warehouse:", err);
     }
   };
 
-  const tableContent = warehouses.map(warehouse => ({
+  const tableContent = warehouses.map((warehouse) => ({
     ID: warehouse.bodega_id,
     Código: warehouse.codigo,
     Sucursal: warehouse.branch?.nombre || "N/A",
@@ -146,23 +159,28 @@ export default function Warehouses() {
     Acciones: (
       <div className="flex">
         <Button
-          text="Editar"
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
+          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
           onClick={() => {
             setWarehouseToEdit(warehouse);
             setShowEditModal(true);
           }}
-        />
+        >
+          <RiEdit2Fill/>
+          Editar
+        </Button>
+
         <Button
-          text="Eliminar"
-          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
+          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
           onClick={() => {
             setSelectedWarehouseId(warehouse.bodega_id);
             setShowModal(true);
           }}
-        />
+        >
+          <FaTrash/>
+          Eliminar
+        </Button>
       </div>
-    )
+    ),
   }));
 
   if (error) return <div className="text-red-500 p-4">{error}</div>;
@@ -183,14 +201,11 @@ export default function Warehouses() {
                 <div className="relative group">
                   <Button
                     text={
-                    <span className="flex items-center gap-2">
-                                                                         
-                    {/* Ícono de usuario con "+" usando IoAddCircle */}
-                    <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                    Añadir Bodega
-                    </span>   
-
-
+                      <span className="flex items-center gap-2">
+                        {/* Ícono de usuario con "+" usando IoAddCircle */}
+                        <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                        Añadir Bodega
+                      </span>
                     }
                     style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                     onClick={() => {
@@ -212,7 +227,10 @@ export default function Warehouses() {
                   <p>Cargando bodegas...</p>
                 </div>
               ) : (
-                <TableInformation headers={headers} tableContent={tableContent} />
+                <TableInformation
+                  headers={headers}
+                  tableContent={tableContent}
+                />
               )}
 
               {/* Delete Confirmation Modal */}
@@ -221,11 +239,19 @@ export default function Warehouses() {
                   <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
                   <div
                     className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto"
-                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem", maxHeight: "90vh" }}
+                    style={{
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                      width: "32rem",
+                      maxHeight: "90vh",
+                    }}
                   >
                     <div className="p-6">
-                      <h2 className="text-xl font-bold mb-6">Confirmar eliminación</h2>
-                      <p className="mb-6">¿Está seguro que desea eliminar esta bodega?</p>
+                      <h2 className="text-xl font-bold mb-6">
+                        Confirmar eliminación
+                      </h2>
+                      <p className="mb-6">
+                        ¿Está seguro que desea eliminar esta bodega?
+                      </p>
                       <div className="flex justify-end gap-4">
                         <button
                           type="button"
@@ -253,7 +279,11 @@ export default function Warehouses() {
                   <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
                   <div
                     className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto"
-                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem", maxHeight: "90vh" }}
+                    style={{
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                      width: "32rem",
+                      maxHeight: "90vh",
+                    }}
                   >
                     <div className="p-6">
                       <h2 className="text-xl font-bold mb-6">
@@ -264,27 +294,37 @@ export default function Warehouses() {
                           {error}
                         </div>
                       )}
-                      <form onSubmit={handleWarehouseSubmit} className="flex flex-col gap-4">
+                      <form
+                        onSubmit={handleWarehouseSubmit}
+                        className="flex flex-col gap-4"
+                      >
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Código</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Código
+                          </label>
                           <input
                             name="codigo"
                             defaultValue={warehouseToEdit?.codigo || ""}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 "
                             required
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Sucursal</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Sucursal
+                          </label>
                           <select
                             name="sucursal_id"
                             defaultValue={warehouseToEdit?.sucursal_id || ""}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                             required
                           >
                             <option value="">Seleccione una sucursal</option>
-                            {branches.map(branch => (
-                              <option key={branch.sucursal_id} value={branch.sucursal_id}>
+                            {branches.map((branch) => (
+                              <option
+                                key={branch.sucursal_id}
+                                value={branch.sucursal_id}
+                              >
                                 {branch.nombre}
                               </option>
                             ))}
@@ -293,7 +333,7 @@ export default function Warehouses() {
                         <div className="flex justify-end gap-4 mt-6">
                           <button
                             type="button"
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
                             onClick={() => {
                               setShowEditModal(false);
                               setWarehouseToEdit(null);
@@ -304,9 +344,11 @@ export default function Warehouses() {
                           </button>
                           <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer"
                           >
-                            {warehouseToEdit ? "Guardar Cambios" : "Crear Bodega"}
+                            {warehouseToEdit
+                              ? "Guardar Cambios"
+                              : "Crear Bodega"}
                           </button>
                         </div>
                       </form>
