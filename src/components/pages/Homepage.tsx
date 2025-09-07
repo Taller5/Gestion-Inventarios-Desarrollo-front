@@ -30,18 +30,18 @@ export default function Homepage() {
   // Secciones InformationCards
   const informationCardsProps = [
     {
-  title: "Bienvenido a Gestior",
-  text: "Control total de tu negocio en una sola plataforma...",
-  containerClassName: "bg-sky-700 text-white py-20 px-8 md:px-20",
-  alignment: "center",
-  buttonText: "Acceder a la app",
-  buttonIcon: <MdLogin className="w-10 h-10 text-white" />, // icono dinámico
-  onButtonClick: () => {
-    const user = localStorage.getItem("user");
-    if (user) window.location.href = "/Inventary";
-    else window.location.href = "/login";
-  },
-},
+      title: "Bienvenido a Gestior",
+      text: "Control total de tu negocio en una sola plataforma...",
+      containerClassName: "bg-sky-700 text-white py-20 px-8 md:px-20",
+      alignment: "center",
+      buttonText: "Acceder a la app",
+      buttonIcon: <MdLogin className="w-10 h-10 text-white" />, // icono dinámico
+      onButtonClick: () => {
+        const user = localStorage.getItem("user");
+        if (user) window.location.href = "/Inventary";
+        else window.location.href = "/login";
+      },
+    },
     {
       title: "¿Qué es Gestior?",
       text: "Gestior es un sistema intuitivo para manejar ventas, inventario y reportes de tu negocio desde cualquier lugar.",
@@ -51,15 +51,45 @@ export default function Homepage() {
       isMiniCard: true,
     },
 
-    //informacion de los planes aquí, son datos de prueba
-{
+    {
       title: "Planes Disponibles",
       text: "Elige el plan que mejor se adapte a tu negocio",
       cards: [
-        { id: "basico", title: "Básico", description: "Hasta 50 ventas\n1 usuario\nSoporte básico", price: "$10/mes", bgColor: "bg-sky-400", icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white"  />},
-        { id: "pro", title: "Profesional", description: "Ventas ilimitadas\nUsuarios ilimitados\nSoporte premium", price: "$25/mes", bgColor: "bg-sky-600", icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />  },
-        { id: "enterprise", title: "Enterprise", description: "Todo incluido\nCapacitación personalizada\nSoporte 24/7", price: "$50/mes", bgColor: "bg-sky-800" , icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" /> },
+        {
+          id: "basico",
+          title: "Básico",
+          description: "Hasta 5GB de almacenamiento\n5 usuarios\nSoporte básico",
+          price: "$20/mes",
+          bgColor: "bg-sky-300",
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
+        },
+        {
+          id: "estandar",
+          title: "Estándar",
+          description: "Hasta 50GB de almacenamiento\n15 usuarios\nManejo de sucursales",
+          price: "$45/mes",
+          bgColor: "bg-sky-600",
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
+        },
+        {
+          id: "avanzado",
+          title: "Avanzado",
+          description: "Hasta 500GB de almacenamiento\n200 usuarios\nAsistente IA",
+          price: "$60/mes",
+          bgColor: "bg-sky-800",
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
+        },
+        {
+          id: "corporativo",
+          title: "Corporativo",
+          description: "Hasta 1TB de almacenamiento\nAnálisis de datos de mercado\nSoporte 24/7",
+          price: "$80/mes",
+          bgColor: "bg-sky-900",
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
+        }
       ],
+    
+
       buttonText: "Contáctanos",
       onButtonClick: handleOpenModal,
       buttonIcon: <FaWhatsapp className="w-10 h-10 text-white" />, // Icono en el botón
@@ -71,7 +101,6 @@ export default function Homepage() {
     }
   ];
 
-  // Minicards de redes sociales
   const miniCardsProps = [
     {
       title: "Contáctanos y Síguenos",
@@ -158,9 +187,10 @@ export default function Homepage() {
               className="mb-4 w-full px-3 py-2 border rounded"
             >
               <option value="">Selecciona un plan</option>
-              <option value="Básico">$10/mes - Básico</option>
-              <option value="Profesional">$25/mes - Profesional</option>
-              <option value="Enterprise">$50/mes - Enterprise</option>
+              <option value="Básico">$20/mes - Básico</option>
+              <option value="Estándar">$45/mes - Estándar</option>
+              <option value="Avanzado">$60/mes - Avanzado</option>
+              <option value="Corporativo">$80/mes - Corporativo</option>
             </select>
 
             {/* Botón WhatsApp con mensaje prellenado */}

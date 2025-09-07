@@ -51,7 +51,7 @@ export default function InformationCards({
     { imgSrc: "/img/branch.png", title: "Manejo de sucursales" },
     { imgSrc: "/img/inventory.png", title: "Control de inventario eficiente" },
   ];
- 
+
 
   const displayedCards = cards.length > 0 ? cards : defaultCards;
 
@@ -70,38 +70,53 @@ export default function InformationCards({
       {text && <p className="text-lg md:text-xl max-w-2xl mb-12 leading-relaxed">{text}</p>}
 
       {/* Tarjetas  de contenido como el de planes o servicios */}
-      <div className={`flex flex-${direction} flex-wrap gap-8 mb-12 w-full ${justifyClass}`}>
+
+      <div className={`flex flex-${direction} flex-wrap justify-center gap-8 mb-12 w-full ${justifyClass}`}>
         {displayedCards.map((card, idx) => (
-          <div key={idx} className="flex flex-col items-center w-28 group">
-            <button
-              className={`rounded-full ${card.bgColor || "bg-sky-300"} w-28 h-28 flex items-center justify-center mb-3 transition-transform duration-300 transform group-hover:scale-125 group-hover:shadow-cyan`}
-            >
-              {card.imgSrc ? <img src={card.imgSrc} alt={card.title} className="w-12 h-12 md:w-14 md:h-14" /> : card.icon || <IoAddCircle className="w-12 h-12 text-white" />}
-            </button>
-            <span className="text-sm md:text-base font-semibold text-center leading-tight transition-colors duration-300 group-hover:text-cyan-400">
-              {card.title}
-            </span>
+          <div
+            key={idx}
+            className="bg-white rounded-2xl shadow-md transition-all duration-300 transform hover:scale-105 w-72 p-6 flex flex-col items-center relative group"
+          >
+
+            <div className={`rounded-full ${card.bgColor || "bg-sky-300"} w-20 h-20 flex items-center justify-center mb-4`}>
+              {card.imgSrc ? (
+                <img src={card.imgSrc} alt={card.title} className="w-12 h-12" />
+              ) : (
+                card.icon || <IoAddCircle className="w-20 h-20 text-white" />
+              )}
+            </div>
+
+            <h3 className="text-lg font-bold text-gray-800 text-center">{card.title}</h3>
+
             {card.price && (
-              <span className="text-sm md:text-base font-bold text-center mt-1">{card.price}</span>
+              <p className="text-2xl font-extrabold text-cyan-500 mt-2">
+                {card.price} <span className="text-sm font-medium text-gray-500"></span>
+              </p>
             )}
+
             {card.description && (
-              <span className="text-xs md:text-sm text-center mt-1 whitespace-pre-line">{card.description}</span>
+              <p className="text-sm text-gray-600 text-center mt-3 whitespace-pre-line">
+                {card.description}
+              </p>
             )}
+
+            <button className="mt-6 bg-cyan-400 text-white font-semibold px-6 py-2 rounded-full transition-colors duration-300">
+              Elegir Plan
+            </button>
           </div>
         ))}
       </div>
 
       {/* Botón principal */}
-{/* Botón principal */}
-{buttonText && (
-  <button
-    onClick={handleAccessApp}
-    className={`bg-sky-500 cursor-pointer hover:bg-cyan-950 text-white font-bold py-4 px-10 rounded-xl text-lg md:text-xl transition-colors duration-300 flex items-center gap-3 hover:shadow-cyan ${buttonClassName}`}
-  >
-    {buttonIcon && buttonIcon /* Se muestra solo si se pasa */}
-    {buttonText}
-  </button>
-)}
+      {buttonText && (
+        <button
+          onClick={handleAccessApp}
+          className={`bg-sky-500 cursor-pointer hover:bg-cyan-950 text-white font-bold py-4 px-10 rounded-xl text-lg md:text-xl transition-colors duration-300 flex items-center gap-3 hover:shadow-cyan ${buttonClassName}`}
+        >
+          {buttonIcon && buttonIcon }
+          {buttonText}
+        </button>
+      )}
 
 
     </div>
