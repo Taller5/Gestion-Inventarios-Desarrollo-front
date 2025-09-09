@@ -90,13 +90,16 @@ export default function Homepage() {
       ],
     
 
-      buttonText: "Contáctanos",
-      onButtonClick: handleOpenModal,
-      buttonIcon: <FaWhatsapp className="w-10 h-10 text-white" />, // Icono en el botón
-      containerClassName: "bg-sky-100 text-gray-900 py-20 px-8 md:px-20",
-      buttonClassName: "bg-sky-500 text-black hover:bg-gray-300 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
-      alignment: "center",
-      direction: "row",
+       cardClassName: "flex flex-col items-center w-40 sm:w-44 md:w-48 group bg-white rounded-xl shadow-md p-4",
+  cardButtonClassName: "rounded-full w-20 h-20 md:w-24 md:h-24 flex items-center justify-center mb-3 transition-transform duration-300 transform group-hover:scale-125 group-hover:shadow-cyan",
+
+  buttonText: "Contáctanos",
+  onButtonClick: handleOpenModal,
+  buttonIcon: <FaWhatsapp className="w-1 h-10 text-white" />,
+  containerClassName: "bg-sky-100 text-gray-900 py-20 px-8 md:px-20",
+  buttonClassName: "bg-sky-500 text-black hover:bg-gray-300 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
+  alignment: "center",
+  direction: "row",
 
     }
   ];
