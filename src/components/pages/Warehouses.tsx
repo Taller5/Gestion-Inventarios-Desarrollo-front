@@ -14,7 +14,7 @@ type Warehouse = {
   branch: {
     nombre: string;
     business: {
-      nombre: string;
+      nombre_comercial: string;
     };
   };
 };
@@ -155,7 +155,7 @@ export default function Warehouses() {
     ID: warehouse.bodega_id,
     Código: warehouse.codigo,
     Sucursal: warehouse.branch?.nombre || "N/A",
-    Negocio: warehouse.branch?.business?.nombre || "N/A",
+    Negocio: warehouse.branch?.business?.nombre_comercial || "N/A",
     Acciones: (
       <div className="flex">
         <Button
