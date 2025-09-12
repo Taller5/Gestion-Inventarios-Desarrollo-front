@@ -22,6 +22,10 @@ export class LoginService {
     });
 
     if (!response.ok) {
+      // Si el backend responde con 429, muestra un mensaje especial
+      if (response.status === 429) {
+        throw new Error("Demasiados intentos. Espere un minuto antes de volver a intentarlo.");
+      }
       const errorData = await response.json();
       throw new Error(errorData.message || 'Credenciales inválidas');
     }
