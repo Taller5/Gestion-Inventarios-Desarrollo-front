@@ -90,7 +90,7 @@ export default function Form(props: FormProps) {
           disabled={props.loading}
           className="w-full py-3 bg-azul-fuerte text-white font-bold rounded-2xl hover:bg-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
-          {props.loading ? "Ingresando..." : props.buttonText2 || "Ingresar"}
+          {props.buttonText2}
         </button>
       )}
     </form>
