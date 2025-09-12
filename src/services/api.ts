@@ -21,35 +21,42 @@ export const apiRequest = async <T>(
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
-    
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text();
+      const errorData = errorText ? JSON.parse(errorText) : {};
       throw new Error(errorData.message || 'Error en la solicitud');
     }
 
-    return response.json();
+    const text = await response.text();
+    if (!text) {
+      return [] as T; // o null, según lo que esperes
+    }
+
+    return JSON.parse(text);
   } catch (error) {
     console.error('API Error:', error);
     throw error;
   }
 };
 
-export const get = <T>(endpoint: string, token?: string) => 
+
+export const get = <T>(endpoint: string, token?: string) =>
   apiRequest<T>(endpoint, { method: 'GET', token });
 
-export const post = <T>(endpoint: string, data: any, token?: string) => 
-  apiRequest<T>(endpoint, { 
-    method: 'POST', 
+export const post = <T>(endpoint: string, data: any, token?: string) =>
+  apiRequest<T>(endpoint, {
+    method: 'POST',
     body: JSON.stringify(data),
-    token 
+    token
   });
 
-export const put = <T>(endpoint: string, data: any, token?: string) => 
-  apiRequest<T>(endpoint, { 
-    method: 'PUT', 
+export const put = <T>(endpoint: string, data: any, token?: string) =>
+  apiRequest<T>(endpoint, {
+    method: 'PUT',
     body: JSON.stringify(data),
-    token 
+    token
   });
 
-export const del = <T>(endpoint: string, token?: string) => 
+export const del = <T>(endpoint: string, token?: string) =>
   apiRequest<T>(endpoint, { method: 'DELETE', token });
