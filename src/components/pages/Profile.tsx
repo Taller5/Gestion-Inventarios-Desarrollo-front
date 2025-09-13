@@ -4,6 +4,8 @@ import SideBar from "../ui/SideBar";
 import Container from "../ui/Container";
 import { LoginService } from "../services/LoginService";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface ProfileProps {
   titleSection: string;
   textSection: string;
@@ -23,7 +25,7 @@ export default function Profile(props: ProfileProps) {
   const [email, setEmail] = useState(userFromStorage.email || "");
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(
     userFromStorage.profile_photo
-      ? `http://localhost:8000/${userFromStorage.profile_photo}`
+      ? `${API_URL}/${userFromStorage.profile_photo}`
       : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
   );
   const [saving, setSaving] = useState(false);
@@ -77,7 +79,7 @@ export default function Profile(props: ProfileProps) {
     }
 
     const response = await fetch(
-      `http://localhost:8000/api/v1/employees/${user.id}/password`,
+      `${API_URL}/api/v1/employees/${user.id}/password`,
       {
         method: "PUT",
         headers: {
@@ -131,7 +133,7 @@ export default function Profile(props: ProfileProps) {
         const formData = new FormData();
         formData.append("profile_photo", file);
         const response = await fetch(
-          `http://localhost:8000/api/v1/employees/${user.id}/profile-photo`,
+          `${API_URL}/api/v1/employees/${user.id}/profile-photo`,
           {
             method: "POST",
             headers: {
@@ -146,7 +148,7 @@ export default function Profile(props: ProfileProps) {
           const updatedUser = { ...user, profile_photo: data.profile_photo };
           localStorage.setItem("user", JSON.stringify(updatedUser));
           window.dispatchEvent(new Event("userUpdated"));
-          setProfilePhotoUrl(`http://localhost:8000/${data.profile_photo}`);
+          setProfilePhotoUrl(`${API_URL}/${data.profile_photo}`);
           setAlert({ type: "success", message: "Foto de perfil actualizada correctamente" });
         } else {
           throw new Error(data.message || "Error al subir la foto");
@@ -155,7 +157,7 @@ export default function Profile(props: ProfileProps) {
         setAlert({ type: "error", message: error.message || "Ocurrió un error al actualizar la foto de perfil" });
         setProfilePhotoUrl(
           userFromStorage.profile_photo
-            ? `http://localhost:8000/${userFromStorage.profile_photo}`
+            ? `${API_URL}/${userFromStorage.profile_photo}`
             : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
         );
       } finally {
@@ -173,7 +175,7 @@ export default function Profile(props: ProfileProps) {
       setSaving(false);
       return;
     }
-    const response = await fetch(`http://localhost:8000/api/v1/employees/${user.id}`, {
+    const response = await fetch(`${API_URL}/api/v1/employees/${user.id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

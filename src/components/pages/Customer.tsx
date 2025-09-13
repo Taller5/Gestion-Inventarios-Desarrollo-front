@@ -10,6 +10,8 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill} from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 type Customer = {
   customer_id: number;
   name: string;
@@ -52,7 +54,7 @@ export default function CustomersPage() {
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/customers");
+      const res = await fetch(`${API_URL}/api/v1/customers`);
       const data = await res.json();
       setCustomers(data);
       setFilteredCustomers(data);
@@ -92,7 +94,7 @@ export default function CustomersPage() {
   }, [modalOpen, customerToEdit]);
 
   const handleDelete = async (id: number) => {
-    await fetch(`http://localhost:8000/api/v1/customers/${id}`, {
+    await fetch(`${API_URL}/api/v1/customers/${id}`, {
       method: "DELETE",
     });
     setCustomers(customers.filter((c) => c.customer_id !== id));
@@ -162,7 +164,7 @@ export default function CustomersPage() {
 
       if (customerToEdit) {
         const res = await fetch(
-          `http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`,
+          `${API_URL}/api/v1/customers/${customerToEdit.customer_id}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -195,7 +197,7 @@ export default function CustomersPage() {
           setAlert({ type: "error", message: "No se pudo editar el cliente." });
         }
       } else {
-        const res = await fetch("http://localhost:8000/api/v1/customers", {
+        const res = await fetch(`${API_URL}/api/v1/customers`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),

@@ -1,3 +1,5 @@
+const API_URL = import.meta.env.VITE_API_URL;
+
 // services/LoginService.ts
 export interface LoginCredentials {
   email: string;
@@ -15,7 +17,7 @@ export interface LoginResponse {
 
 export class LoginService {
   static async login(credentials: LoginCredentials): Promise<LoginResponse> {
-    const response = await fetch('http://127.0.0.1:8000/api/login', {
+    const response = await fetch(`${API_URL}/api/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(credentials),

@@ -8,6 +8,8 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 type Business = {
   negocio_id: number;
   nombre: string;
@@ -41,7 +43,7 @@ export default function Businesses() {
     const fetchBusinesses = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch("http://127.0.0.1:8000/api/v1/businesses", {
+        const response = await fetch(`${API_URL}/api/v1/businesses`, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
@@ -99,7 +101,7 @@ export default function Businesses() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`http://127.0.0.1:8000/api/v1/businesses/${id}`, {
+      const response = await fetch(`${API_URL}/api/v1/businesses/${id}`, {
         method: "DELETE",
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -127,8 +129,8 @@ export default function Businesses() {
 
     const token = localStorage.getItem('token');
     const url = businessToEdit 
-      ? `http://127.0.0.1:8000/api/v1/businesses/${businessToEdit.negocio_id}`
-      : "http://127.0.0.1:8000/api/v1/businesses";
+      ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
+      : `${API_URL}/api/v1/businesses`;
 
     try {
       const method = businessToEdit ? "PUT" : "POST";

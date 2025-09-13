@@ -9,6 +9,8 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 type User = {
   id: number;
   name: string;
@@ -32,7 +34,7 @@ export default function Employees() {
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/employees")
+    fetch(`${API_URL}/api/v1/employees`)
       .then((res) => res.json())
       .then((data) => setUsers(data))
       .catch(() => setUsers([]));
@@ -40,7 +42,7 @@ export default function Employees() {
 
   const handleDelete = async () => {
     if (selectedUserId === null) return;
-    await fetch(`http://localhost:8000/api/v1/employees/${selectedUserId}`, {
+    await fetch(`${API_URL}/api/v1/employees/${selectedUserId}`, {
       method: "DELETE",
     });
     setUsers(users.filter((user) => user.id !== selectedUserId));
