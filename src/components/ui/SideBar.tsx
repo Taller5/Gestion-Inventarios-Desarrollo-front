@@ -1,60 +1,59 @@
 import React from "react";
 import Button from "./Button";
 
-
 interface SideBarProps {
   role: string;
 }
 
 export default function SideBar(props: SideBarProps) {
+  const btnInventario = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" />);
+  const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" />);
+  const btnClientes = (<Button text="Clientes y Fidelización" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/customer" />);
+  const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/employees" />);
+  const btnNegocios = (<Button text="Negocios" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/businesses" />);
+  const btnSucursales = (<Button text="Sucursales" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/branches" />);
+  const btnBodegas = (<Button text="Bodegas" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" />);
+  const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" />);
+  const btnSalesPages = (<Button text="Punto de Venta" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/salesPage" />);
 
+  // Botones base para todos los usuarios
+  let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnBodegas, btnPerfil];
 
-const btnInventario = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" ></Button>)
-const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" ></Button>)
-const btnClientes = (<Button text="Clientes y Fidelización" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/customer" ></Button>)
-const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/employees" ></Button>)
-const btnNegocios = (<Button text="Negocios" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/businesses" ></Button>)
-const btnSucursales = (<Button text="Sucursales" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/branches" ></Button>)
-const btnBodegas = (<Button text="Bodegas" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" ></Button>)
-const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" ></Button>)
+  // Agregar botones adicionales para administradores y supervisores
+  if (props.role === 'administrador' || props.role === 'supervisor') {
+      sideBarButtons.splice(4, 0, btnNegocios, btnSucursales);
+  }
 
-// Botones base para todos los usuarios
-let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnBodegas, btnPerfil];
+  // Agregar Sales Pages para roles específicos
+  if (["administrador", "supervisor", "vendedor"].includes(props.role)) {
+    sideBarButtons.push(btnSalesPages);
+  }
 
-// Agregar botones adicionales para administradores y supervisores
-if (props.role === 'administrador' || props.role === 'supervisor') {
-    sideBarButtons.splice(4, 0, btnNegocios, btnSucursales);
-}
-
-
-switch (props.role) {
-  case "supervisor":
-    // supervisor ya tiene sus botones por defecto, incluyendo los nuevos módulos
-    break;
-  case "vendedor":
-    // Eliminar módulos que no debe ver el vendedor
-    sideBarButtons = sideBarButtons.filter(btn => 
-      btn.props.text !== 'Personal y Roles' && 
-      btn.props.text !== 'Registro de Ingresos' &&
-      btn.props.text !== 'Negocios' &&
-      btn.props.text !== 'Sucursales' &&
-      btn.props.text !== 'Bodegas'
-    );
-    break;
-
-  case "bodeguero":
-    // Filtrar solo los módulos que debe ver el bodeguero
-    sideBarButtons = sideBarButtons.filter(btn => 
-      btn.props.text === 'Inventario' || 
-      btn.props.text === 'Perfil' ||
-      btn.props.text === 'Bodegas'
-    );
-    break;
-
-  default:
-    break;
-}
-
+  switch (props.role) {
+    case "supervisor":
+      // supervisor ya tiene sus botones por defecto
+      break;
+    case "vendedor":
+      // Eliminar módulos que no debe ver el vendedor
+      sideBarButtons = sideBarButtons.filter(btn => 
+        btn.props.text !== 'Personal y Roles' && 
+        btn.props.text !== 'Registro de Ingresos' &&
+        btn.props.text !== 'Negocios' &&
+        btn.props.text !== 'Sucursales' &&
+        btn.props.text !== 'Bodegas'
+      );
+      break;
+    case "bodeguero":
+      // Filtrar solo los módulos que debe ver el bodeguero
+      sideBarButtons = sideBarButtons.filter(btn => 
+        btn.props.text === 'Inventario' || 
+        btn.props.text === 'Perfil' ||
+        btn.props.text === 'Bodegas'
+      );
+      break;
+    default:
+      break;
+  }
 
   return (
     <section className="bg-sky-700 h-screen w-1/6 min-w-[200px] flex flex-col">
@@ -68,11 +67,11 @@ switch (props.role) {
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-7 w-7 flex-shrink-0 text-white"
-                 viewBox="0 0 24 24"
+                viewBox="0 0 24 24"
                 fill="currentColor"
->
-  <path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zm-9 2.618L5 15.236V9.764l7 3.382 7-3.382v5.472l-7 3.382z" />
-</svg>
+              >
+                <path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zm-9 2.618L5 15.236V9.764l7 3.382 7-3.382v5.472l-7 3.382z" />
+              </svg>
               <div className="flex-1">{btn}</div>
             </div>
           ))}

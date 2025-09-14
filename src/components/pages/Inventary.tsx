@@ -3,7 +3,7 @@ import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/SearchBar";
+import { SearchBar } from "../ui/searchBar";
 
 import { FaTrash } from "react-icons/fa";
 import { IoAddCircle } from "react-icons/io5";

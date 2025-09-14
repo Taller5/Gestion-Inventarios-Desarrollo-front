@@ -4,7 +4,7 @@ import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/SearchBar";
+import { SearchBar } from "../ui/searchBar";
 import SimpleModal from "../ui/SimpleModal";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill} from "react-icons/ri";
@@ -104,136 +104,131 @@ export default function CustomersPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoadingForm(true);
+  setAlert(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoadingForm(true);
-    setAlert(null);
+  try {
+    // Excluir al cliente en edición
+    const otherCustomers = customerToEdit
+      ? customers.filter(c => c.customer_id !== customerToEdit.customer_id)
+      : customers;
 
-    try {
-      // Client-side validation for duplicates
-      const isDuplicateEmail = customers.some(
-        (c) =>
-          c.email.toLowerCase() === form.email.toLowerCase() &&
-          (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
-      );
+    // Validaciones de duplicados
+    const isDuplicateEmail = otherCustomers.some(
+      c => c.email.toLowerCase() === form.email.toLowerCase()
+    );
 
-      const isDuplicateId = customers.some(
-        (c) =>
-          c.identity_number === form.identity_number &&
-          (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
-      );
+    const isDuplicateId = otherCustomers.some(
+      c => c.identity_number === form.identity_number
+    );
 
-      const isDuplicatePhone =
-        form.phone &&
-        customers.some(
-          (c) =>
-            c.phone &&
-            c.phone === form.phone &&
-            (!customerToEdit || c.customer_id !== customerToEdit.customer_id)
-        );
+    const isDuplicatePhone = form.phone
+      ? otherCustomers.some(c => c.phone && c.phone === form.phone)
+      : false;
 
-      if (isDuplicateEmail) {
-        setAlert({
-          type: "error",
-          message: "Ya existe un cliente con este correo electrónico.",
-        });
-        setLoadingForm(false);
-        return;
-      }
-
-      if (isDuplicateId) {
-        setAlert({
-          type: "error",
-          message: "Ya existe un cliente con esta cédula.",
-        });
-        setLoadingForm(false);
-        return;
-      }
-
-      if (isDuplicatePhone) {
-        setAlert({
-          type: "error",
-          message: "Ya existe un cliente con este número de teléfono.",
-        });
-        setLoadingForm(false);
-        return;
-      }
-
-      if (customerToEdit) {
-        const res = await fetch(
-          `http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(form),
-          }
-        );
-        const data = await res.json();
-
-        if (res.ok) {
-          setAlert({
-            type: "success",
-            message: "Cliente editado correctamente.",
-          });
-          setCustomers((prev) =>
-            prev.map((c) => (c.customer_id === data.customer_id ? data : c))
-          );
-          setFilteredCustomers((prev) =>
-            prev.map((c) => (c.customer_id === data.customer_id ? data : c))
-          );
-          setTimeout(() => setModalOpen(false), 1200);
-        } else if (res.status === 409) {
-          setAlert({
-            type: "error",
-            message:
-              "Error: Ya existe un cliente con la misma cédula o correo.",
-          });
-        } else if (data?.message) {
-          setAlert({ type: "error", message: data.message });
-        } else {
-          setAlert({ type: "error", message: "No se pudo editar el cliente." });
-        }
-      } else {
-        const res = await fetch("http://localhost:8000/api/v1/customers", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          setAlert({
-            type: "success",
-            message: "Cliente agregado correctamente.",
-          });
-          setCustomers((prev) => [...prev, data]);
-          setFilteredCustomers((prev) => [...prev, data]);
-          setTimeout(() => setModalOpen(false), 1200);
-        } else if (res.status === 409) {
-          setAlert({
-            type: "error",
-            message:
-              "Error: Ya existe un cliente con la misma cédula o correo.",
-          });
-        } else if (data?.message) {
-          setAlert({ type: "error", message: data.message });
-        } else {
-          setAlert({
-            type: "error",
-            message: "No se pudo agregar el cliente.",
-          });
-        }
-      }
-    } catch (err: any) {
+    if (isDuplicateEmail) {
       setAlert({
         type: "error",
-        message: `Error de conexión: ${err.message || "Servidor no responde"}`,
+        message: "Ya existe un cliente con este correo electrónico.",
       });
-    } finally {
       setLoadingForm(false);
+      return;
     }
-  };
+
+    if (isDuplicateId) {
+      setAlert({
+        type: "error",
+        message: "Ya existe un cliente con esta cédula.",
+      });
+      setLoadingForm(false);
+      return;
+    }
+
+    if (isDuplicatePhone) {
+      setAlert({
+        type: "error",
+        message: "Ya existe un cliente con este número de teléfono.",
+      });
+      setLoadingForm(false);
+      return;
+    }
+
+    // ----- Guardar o editar -----
+    if (customerToEdit) {
+      const res = await fetch(
+        `http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        }
+      );
+      const data = await res.json();
+
+      if (res.ok) {
+        setAlert({
+          type: "success",
+          message: "Cliente editado correctamente.",
+        });
+        setCustomers(prev =>
+          prev.map(c => (c.customer_id === data.customer_id ? data : c))
+        );
+        setFilteredCustomers(prev =>
+          prev.map(c => (c.customer_id === data.customer_id ? data : c))
+        );
+        setTimeout(() => setModalOpen(false), 1200);
+      } else if (res.status === 409) {
+        setAlert({
+          type: "error",
+          message: "Error: Ya existe un cliente con la misma cédula o correo.",
+        });
+      } else if (data?.message) {
+        setAlert({ type: "error", message: data.message });
+      } else {
+        setAlert({ type: "error", message: "No se pudo editar el cliente." });
+      }
+    } else {
+      const res = await fetch("http://localhost:8000/api/v1/customers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+
+      if (res.ok) {
+        setAlert({
+          type: "success",
+          message: "Cliente agregado correctamente.",
+        });
+        setCustomers(prev => [...prev, data]);
+        setFilteredCustomers(prev => [...prev, data]);
+        setTimeout(() => setModalOpen(false), 1200);
+      } else if (res.status === 409) {
+        setAlert({
+          type: "error",
+          message: "Error: Ya existe un cliente con la misma cédula o correo.",
+        });
+      } else if (data?.message) {
+        setAlert({ type: "error", message: data.message });
+      } else {
+        setAlert({
+          type: "error",
+          message: "No se pudo agregar el cliente.",
+        });
+      }
+    }
+  } catch (err: any) {
+    setAlert({
+      type: "error",
+      message: `Error de conexión: ${err.message || "Servidor no responde"}`,
+    });
+  } finally {
+    setLoadingForm(false);
+  }
+};
+
 
   const tableContent = filteredCustomers.map((c) => ({
     ID: c.customer_id,
