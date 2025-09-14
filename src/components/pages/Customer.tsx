@@ -4,7 +4,7 @@ import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/SearchBar";
+import { SearchBar } from "../ui/searchBar";
 import SimpleModal from "../ui/SimpleModal";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill} from "react-icons/ri";
@@ -104,7 +104,6 @@ export default function CustomersPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoadingForm(true);
@@ -281,7 +280,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <SearchBar<Customer>
                     data={customers}
                     displayField="identity_number"
-                    searchFields={["identity_number", "name"]}
                     placeholder="Buscar por cédula..."
                     onResultsChange={(results) => {
                       setFilteredCustomers(results);

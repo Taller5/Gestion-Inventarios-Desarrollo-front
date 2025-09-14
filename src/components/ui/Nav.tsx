@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface NavProps {
   logo?: string;
 }
@@ -40,7 +42,7 @@ const handleLogout = () => {
             {user.profile_photo && (
               <img
                 className="w-10 h-10 rounded-full"
-                src={user.profile_photo.startsWith("http") ? user.profile_photo : `http://localhost:8000/${user.profile_photo}`}
+                src={user.profile_photo.startsWith("http") ? user.profile_photo : `${API_URL}/${user.profile_photo}`}
                 alt="Perfil"
               />
             )}

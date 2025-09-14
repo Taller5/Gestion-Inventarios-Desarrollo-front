@@ -9,6 +9,8 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 type Business = {
   margen_ganancia: string; 
   negocio_id: number;
@@ -71,7 +73,7 @@ export default function Businesses() {
       try {
         const token = localStorage.getItem("token");
         const response = await fetch(
-          "http://127.0.0.1:8000/api/v1/businesses",
+          `${API_URL}/api/v1/businesses`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -148,7 +150,7 @@ export default function Businesses() {
     try {
       const token = localStorage.getItem("token");
       const response = await fetch(
-        `http://127.0.0.1:8000/api/v1/businesses/${id}`,
+        `${API_URL}/api/v1/businesses/${id}`,
         {
           method: "DELETE",
           headers: {
@@ -188,8 +190,8 @@ export default function Businesses() {
 
     const token = localStorage.getItem("token");
     const url = businessToEdit
-      ? `http://127.0.0.1:8000/api/v1/businesses/${businessToEdit.negocio_id}`
-      : "http://127.0.0.1:8000/api/v1/businesses";
+      ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
+      : `${API_URL}/api/v1/businesses`;
 
     try {
       const method = businessToEdit ? "PUT" : "POST";

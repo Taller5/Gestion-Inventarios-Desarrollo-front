@@ -2,6 +2,8 @@ import { useState } from "react";
 import Container from "../ui/Container";
 import emailjs from "@emailjs/browser";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 export default function RecoverPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,7 +22,7 @@ export default function RecoverPassword() {
 
     try {
       // 1️⃣ Llamar al endpoint de Laravel que genera la contraseña temporal
-      const res = await fetch("http://localhost:8000/api/v1/employees/recover-password", {
+      const res = await fetch(`${API_URL}/api/v1/employees/recover-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

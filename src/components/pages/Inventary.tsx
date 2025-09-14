@@ -10,6 +10,7 @@ import { FaTrash } from "react-icons/fa";
 import { IoAddCircle } from "react-icons/io5";
 import { CgDetailsMore } from "react-icons/cg";
 
+const API_URL = import.meta.env.VITE_API_URL;
 
 //type bodega
 type Warehouse = {
@@ -50,7 +51,7 @@ export default function Inventary() {
 
   // Cargar bodegas al inicio
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/warehouses")
+    fetch(`${API_URL}/api/v1/warehouses`)
       .then(res => res.json())
       .then(data => setWarehouses(data));
   }, []);
@@ -93,8 +94,8 @@ export default function Inventary() {
   useEffect(() => {
     setLoading(true);
     Promise.all([
-      fetch("http://localhost:8000/api/v1/products").then(res => res.json()),
-      fetch("http://localhost:8000/api/v1/batch").then(res => res.json())
+      fetch(`${API_URL}/api/v1/products`).then(res => res.json()),
+      fetch(`${API_URL}/api/v1/batch`).then(res => res.json())
     ])
       .then(([productosData, lotesData]) => {
         setProductos(productosData);
@@ -262,7 +263,7 @@ export default function Inventary() {
                         text="Eliminar"
                         style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                         onClick={async () => {
-                          const res = await fetch(`http://localhost:8000/api/v1/products/${productoAEliminar.id}`, {
+                          const res = await fetch(`${API_URL}/api/v1/products/${productoAEliminar.id}`, {
                             method: "DELETE"
                           });
                           if (res.ok) {
@@ -321,7 +322,7 @@ export default function Inventary() {
                     onSubmit={async (e) => {
                       e.preventDefault();
                       setLoadingForm(true);
-                      const res = await fetch("http://localhost:8000/api/v1/products", {
+                      const res = await fetch(`${API_URL}/api/v1/products`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -410,7 +411,7 @@ export default function Inventary() {
                     onSubmit={async (e) => {
                       e.preventDefault();
                       setLoadingForm(true);
-                      const res = await fetch("http://localhost:8000/api/v1/batch", {
+                      const res = await fetch(`${API_URL}/api/v1/batch`, {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({
@@ -495,7 +496,7 @@ export default function Inventary() {
                       e.preventDefault();
                       setLoadingForm(true);
                       const lote = formLote;
-                      const res = await fetch(`http://localhost:8000/api/v1/batch/${lote.lote_id}`, {
+                      const res = await fetch(`${API_URL}/api/v1/batch/${lote.lote_id}`, {
                         method: "PUT",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify({

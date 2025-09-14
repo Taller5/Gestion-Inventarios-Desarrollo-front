@@ -9,6 +9,8 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 type Warehouse = {
   bodega_id: number;
   codigo: string;
@@ -49,9 +51,6 @@ export default function Warehouses() {
   const [warehouseToEdit, setWarehouseToEdit] =
     useState<Partial<Warehouse> | null>(null);
 
-  const API_URL =
-    import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
-
   // Fetch warehouses and branches on component mount
   useEffect(() => {
     const fetchData = async () => {
@@ -60,10 +59,10 @@ export default function Warehouses() {
         const token = localStorage.getItem("token");
 
         const [warehousesRes, branchesRes] = await Promise.all([
-          fetch(`${API_URL}/warehouses`, {
+          fetch(`${API_URL}/api/v1/warehouses`, {
             headers: { Authorization: `Bearer ${token}` },
           }).then((res) => res.json()),
-          fetch(`${API_URL}/branches`, {
+          fetch(`${API_URL}/api/v1/branches`, {
             headers: { Authorization: `Bearer ${token}` },
           }).then((res) => res.json()),
         ]);
@@ -86,7 +85,7 @@ export default function Warehouses() {
 
     try {
       const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/warehouses/${selectedWarehouseId}`, {
+      await fetch(`${API_URL}/api/v1/warehouses/${selectedWarehouseId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -116,7 +115,7 @@ export default function Warehouses() {
       if (warehouseToEdit?.bodega_id) {
         // Update existing warehouse
         response = await fetch(
-          `${API_URL}/warehouses/${warehouseToEdit.bodega_id}`,
+          `${API_URL}api/v1/warehouses/${warehouseToEdit.bodega_id}`,
           {
             method: "PUT",
             headers: {
@@ -135,7 +134,7 @@ export default function Warehouses() {
         );
       } else {
         // Create new warehouse
-        response = await fetch(`${API_URL}/warehouses`, {
+        response = await fetch(`${API_URL}/api/v1/warehouses`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,

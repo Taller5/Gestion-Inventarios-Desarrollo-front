@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 interface ModalProps {
     open: boolean;
     onClose: () => void;
@@ -69,7 +71,7 @@ export default function Modal({
         try {
             if (isEditMode) {
                 // Editar usuario
-                const res = await fetch(`http://localhost:8000/api/v1/employees/${userToEdit.id}`, {
+                const res = await fetch(`${API_URL}/api/v1/employees/${userToEdit.id}`, {
                     method: "PUT",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(form)
@@ -87,7 +89,7 @@ export default function Modal({
                 }
             } else {
                 // Crear usuario
-                const res = await fetch("http://localhost:8000/api/v1/employees", {
+                const res = await fetch(`${API_URL}/api/v1/employees`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(form)

@@ -8,6 +8,8 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
+
+const API_URL = import.meta.env.VITE_API_URL;
 // Types
 type Branch = {
   sucursal_id: number;
@@ -208,7 +210,7 @@ export default function Branches() {
       try {
         // Fetch businesses
         const businessesRes = await fetch(
-          "http://127.0.0.1:8000/api/v1/businesses",
+          `${API_URL}/api/v1/businesses`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -224,7 +226,7 @@ export default function Branches() {
 
         // Fetch branches
         const branchesRes = await fetch(
-          "http://127.0.0.1:8000/api/v1/branches",
+          `${API_URL}/api/v1/branches`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -242,7 +244,7 @@ export default function Branches() {
           branchesData.map(async (branch) => {
             if (branch.negocio_id) {
               const res = await fetch(
-                `http://127.0.0.1:8000/api/v1/businesses/${branch.negocio_id}`,
+                `${API_URL}/api/v1/businesses/${branch.negocio_id}`,
                 {
                   headers: {
                     Authorization: `Bearer ${token}`,
@@ -254,6 +256,7 @@ export default function Branches() {
               if (res.ok) {
                 const negocio = await res.json();
                 branch.negocio = { nombre: negocio.nombre_comercial };
+
               }
             }
             return branch;
@@ -286,12 +289,14 @@ export default function Branches() {
 
   // Handle form submission
   // Handle form submission
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const url = branchToEdit
-        ? `http://127.0.0.1:8000/api/v1/branches/${branchToEdit.sucursal_id}`
-        : "http://127.0.0.1:8000/api/v1/branches";
+        ? `${API_URL}/api/v1/branches/${branchToEdit.sucursal_id}`
+        : `${API_URL}/api/v1/branches`;
+
 
       const method = branchToEdit ? "PUT" : "POST";
       const response = await fetch(url, {
@@ -353,13 +358,15 @@ export default function Branches() {
       // Primero verificar si la sucursal tiene bodegas asociadas
       let warehousesResponse;
       try {
+
         warehousesResponse = await fetch(
-          `http://127.0.0.1:8000/api/v1/warehouses?branch_id=${selectedBranchId}`,
+          `${API_URL}/api/v1/warehouses?branch_id=${selectedBranchId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
               Accept: "application/json",
             },
+
           }
         );
 
@@ -393,7 +400,7 @@ export default function Branches() {
 
       // Si no hay bodegas asociadas, proceder con la eliminación
       const response = await fetch(
-        `http://127.0.0.1:8000/api/v1/branches/${selectedBranchId}`,
+        `${API_URL}/api/v1/branches/${selectedBranchId}`,
         {
           method: "DELETE",
           headers: {
