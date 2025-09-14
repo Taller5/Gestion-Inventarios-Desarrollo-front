@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WarehousesRouteImport } from './routes/warehouses'
+import { Route as SalesPageRouteImport } from './routes/salesPage'
 import { Route as RecoverPasswordRouteImport } from './routes/recoverPassword'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
@@ -25,6 +26,11 @@ import { Route as IndexRouteImport } from './routes/index'
 const WarehousesRoute = WarehousesRouteImport.update({
   id: '/warehouses',
   path: '/warehouses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SalesPageRoute = SalesPageRouteImport.update({
+  id: '/salesPage',
+  path: '/salesPage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
@@ -95,6 +101,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
 }
 export interface FileRoutesByTo {
@@ -109,6 +116,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
 }
 export interface FileRoutesById {
@@ -124,6 +132,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
 }
 export interface FileRouteTypes {
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/recoverPassword'
+    | '/salesPage'
     | '/warehouses'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -154,6 +164,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/recoverPassword'
+    | '/salesPage'
     | '/warehouses'
   id:
     | '__root__'
@@ -168,6 +179,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/profile'
     | '/recoverPassword'
+    | '/salesPage'
     | '/warehouses'
   fileRoutesById: FileRoutesById
 }
@@ -183,6 +195,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
+  SalesPageRoute: typeof SalesPageRoute
   WarehousesRoute: typeof WarehousesRoute
 }
 
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/warehouses'
       fullPath: '/warehouses'
       preLoaderRoute: typeof WarehousesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/salesPage': {
+      id: '/salesPage'
+      path: '/salesPage'
+      fullPath: '/salesPage'
+      preLoaderRoute: typeof SalesPageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recoverPassword': {
@@ -287,6 +307,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
+  SalesPageRoute: SalesPageRoute,
   WarehousesRoute: WarehousesRoute,
 }
 export const routeTree = rootRouteImport
