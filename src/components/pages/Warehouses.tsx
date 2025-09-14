@@ -7,6 +7,8 @@ import Container from "../ui/Container";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
+import { SearchBar } from "../ui/SearchBar";
+
 type Warehouse = {
   bodega_id: number;
   codigo: string;
@@ -38,6 +40,11 @@ export default function Warehouses() {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
   );
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [warehousesFiltered, setWarehousesFiltered] = useState<Warehouse[]>([]);
+  useEffect(() => {
+    setWarehousesFiltered(warehouses);
+  }, [warehouses]);
   const [showEditModal, setShowEditModal] = useState(false);
   const [warehouseToEdit, setWarehouseToEdit] =
     useState<Partial<Warehouse> | null>(null);
@@ -151,7 +158,7 @@ export default function Warehouses() {
     }
   };
 
-  const tableContent = warehouses.map((warehouse) => ({
+  const tableContent = warehousesFiltered.map((warehouse) => ({
     ID: warehouse.bodega_id,
     Código: warehouse.codigo,
     Sucursal: warehouse.branch?.nombre || "N/A",
@@ -196,24 +203,58 @@ export default function Warehouses() {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-              <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">Administrar Bodegas</h1>
+               <h1 className="text-2xl font-bold mb-6 text-left">Administrar Bodegas</h1>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
+                <div className="w-full h-10">
+               <SearchBar<Warehouse>
+                      data={warehouses}
+                      displayField="bodega_id"
+                      searchFields={["bodega_id", "codigo"]}
+                      placeholder="Buscar por ID o codigo..."
+                      onResultsChange={results => {
+                        setWarehousesFiltered(results);
+                        if (results.length > 0 || !results) setAlert(null); 
+                      }}
+                      onSelect={item => setWarehousesFiltered([item])}
+                      onNotFound={q => {
+                        if (q === "") {
+                          setAlert(null); 
+                        } else {
+                          setWarehousesFiltered([]);
+                          setAlert({
+                            type: "error",
+                            message: `No existe ningún producto con el código o nombre "${q}".`,
+                          });
+                        }
+                      }}
+                    />
+                  {/* Mostrar alert de búsqueda */}
+                  {alert && (
+                    <div
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                        alert.type === "success"
+                          ? "bg-green-100 text-green-700 border border-green-300"
+                          : "bg-red-100 text-red-700 border border-red-300"
+                      }`}
+                    >
+                      {alert.message}
+                    </div>
+                  )}
+                </div>
                 <div className="relative group">
                   <Button
-                    text={
-                      <span className="flex items-center gap-2">
-                        {/* Ícono de usuario con "+" usando IoAddCircle */}
-                        <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                        Añadir Bodega
-                      </span>
-                    }
                     style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                     onClick={() => {
                       setWarehouseToEdit(null);
                       setShowEditModal(true);
                     }}
                     disabled={branches.length === 0}
-                  />
+                    ><IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                       <span className="whitespace-nowrap text-base">
+                        Añadir Bodega
+                      </span>
+                    </Button>
+                  
                   {branches.length === 0 && (
                     <div className="absolute bottom-full left-0 mb-1 w-64 bg-gray-800 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       Primero debe crear una sucursal

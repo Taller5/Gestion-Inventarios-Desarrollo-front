@@ -4,6 +4,7 @@ import { IoSearch } from "react-icons/io5";
 interface SearchProps<T> {
   data: T[]; // Recibe datos directamente
   displayField: keyof T;
+  searchFields?: (keyof T)[];
   placeholder?: string;
   onSelect: (item: T) => void;
   onNotFound?: (query: string) => void;
@@ -13,6 +14,7 @@ interface SearchProps<T> {
 export function SearchBar<T extends Record<string, any>>({
   data,
   displayField,
+  searchFields,
   placeholder = "Buscar...",
   onSelect,
   onNotFound,
@@ -29,11 +31,13 @@ export function SearchBar<T extends Record<string, any>>({
     }
 
     // Filtrado parcial mientras escribes
-    const filtered = data.filter(
-      (item) =>
-        String(item[displayField]).toLowerCase().includes(query.toLowerCase()) ||
-        (item.name && item.name.toLowerCase().includes(query.toLowerCase()))
-    );
+    const filtered = data.filter(item =>
+  (searchFields || [displayField]).some(
+    field =>
+      item[field] &&
+      String(item[field]).toLowerCase().includes(query.toLowerCase())
+  )
+);
     setResults(filtered);
     onResultsChange?.(filtered);
   }, [query, data, displayField]);

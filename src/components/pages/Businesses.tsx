@@ -7,6 +7,7 @@ import Container from "../ui/Container";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
+import { SearchBar } from "../ui/SearchBar";
 
 type Business = {
   margen_ganancia: string; 
@@ -42,6 +43,11 @@ export default function Businesses() {
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
+  const[businessesFiltered, setBusinessesFiltered] = useState<Business[]>([]);
+
+    useEffect(() => {
+    setBusinessesFiltered(businesses);
+  }, [businesses]);
 
   const [form, setForm] = useState({
     nombre_legal: "",
@@ -245,7 +251,7 @@ export default function Businesses() {
     }
   };
 
-  const tableContent = businesses.map((b) => ({
+  const tableContent = businessesFiltered.map((b) => ({
     "ID": b.negocio_id,
     "Nombre legal": b.nombre_legal,
     "Nombre comercial": b.nombre_comercial,
@@ -291,22 +297,55 @@ export default function Businesses() {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-              <div className="flex items-center justify-between mb-4">
-                <h1 className="text-2xl font-bold">Administrar Negocios</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">Administrar Negocios</h1>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
+                <div className="w-full h-10">
+               <SearchBar<Business>
+                      data={businesses}
+                      displayField="negocio_id"
+                      searchFields={["negocio_id", "nombre_legal"]}
+                      placeholder="Buscar por ID o nombre legal..."
+                      onResultsChange={results => {
+                        setBusinessesFiltered(results);
+                        if (results.length > 0 || !results) setAlert(null); 
+                      }}
+                      onSelect={item => setBusinessesFiltered([item])}
+                      onNotFound={q => {
+                        if (q === "") {
+                          setAlert(null); 
+                        } else {
+                          setBusinessesFiltered([]);
+                          setAlert({
+                            type: "error",
+                            message: `No existe ningún producto con el código o nombre "${q}".`,
+                          });
+                        }
+                      }}
+                    />
+                  {/* Mostrar alert de búsqueda */}
+                  {alert && (
+                    <div
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                        alert.type === "success"
+                          ? "bg-green-100 text-green-700 border border-green-300"
+                          : "bg-red-100 text-red-700 border border-red-300"
+                      }`}
+                    >
+                      {alert.message}
+                    </div>
+                  )}
+                </div>
                 <Button
-                  text={
-                    <span className="flex items-center gap-2">
-                      {/* Ícono de usuario con "+" usando IoAddCircle */}
-                      <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                      Añadir negocio
-                    </span>
-                  }
                   style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                   onClick={() => {
                     setBusinessToEdit(null);
                     setModalOpen(true);
                   }}
-                />
+                  >  <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                    <span className="whitespace-nowrap text-base">
+                      Añadir negocio
+                    </span>
+                  </Button>
               </div>
 
               {loading ? (
