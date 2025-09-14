@@ -3,7 +3,8 @@ import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/searchBar";
+import { SearchBar } from "../ui/SearchBar";
+import SimpleModal from "../ui/SimpleModal";
 
 import { FaTrash } from "react-icons/fa";
 import { IoAddCircle } from "react-icons/io5";
@@ -80,7 +81,7 @@ export default function Inventary() {
 
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [productosFiltrados, setProductosFiltrados] = useState<any[]>([]);
+  const [productsFiltered, setProductsFiltered] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<string | null>(null); // agrupado por codigo
   // modalOpen: false | 'add-product' | 'add-lote' | Lote
@@ -128,7 +129,7 @@ export default function Inventary() {
 
   // Inicializa productosFiltrados con todos los productos agrupados
   useEffect(() => {
-    setProductosFiltrados(agruparProductos(productos, lotes));
+    setProductsFiltered(agruparProductos(productos, lotes));
   }, [productos, lotes]);
 
 
@@ -143,20 +144,21 @@ export default function Inventary() {
               {/* Barra de búsqueda y botones principales */}
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-               <SearchBar<Producto>
+                  <SearchBar<Producto>
                       data={productos}
                       displayField="codigo"
+                      searchFields={["codigo", "nombre"]}
                       placeholder="Buscar por código o nombre..."
                       onResultsChange={results => {
-                        setProductosFiltrados(results);
+                        setProductsFiltered(results);
                         if (results.length > 0 || !results) setAlert(null); 
                       }}
-                      onSelect={item => setProductosFiltrados([item])}
+                      onSelect={item => setProductsFiltered([item])}
                       onNotFound={q => {
                         if (q === "") {
                           setAlert(null); 
                         } else {
-                          setProductosFiltrados([]);
+                          setProductsFiltered([]);
                           setAlert({
                             type: "error",
                             message: `No existe ningún producto con el código o nombre "${q}".`,
@@ -179,7 +181,7 @@ export default function Inventary() {
                 </div>
                    <div className="flex gap-2">
                  <Button
-                    style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-3 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                    style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                     onClick={() => {
                       setEditMode(false);
                       setFormProducto({ codigo: "", nombre: "", stock: 0, precio: 0, bodega: "" });
@@ -208,11 +210,11 @@ export default function Inventary() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {loading ? (
                       <tr><td colSpan={headers.length} className="text-center py-4">Cargando...</td></tr>
-                    ) : productosFiltrados.length === 0 ? (
+                    ) : productsFiltered.length === 0 ? (
                       <tr><td colSpan={headers.length} className="text-center py-4">Sin resultados</td></tr>
                     ) : (
                       // Renderiza una fila por producto agrupado
-                      productosFiltrados.map((producto: any) => (
+                      productsFiltered.map((producto: any) => (
                         <React.Fragment key={producto.codigo}>
                           <tr className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer" onClick={() => setExpanded(expanded === producto.codigo ? null : producto.codigo)}>
                             <td className="px-3 py-3 text-sm text-gray-600">{producto.codigo}</td>
@@ -251,13 +253,12 @@ export default function Inventary() {
                               
               {/* Modal de confirmación para eliminar producto */}
               {productoAEliminar && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/10 backdrop-blur-xs"></div>
+                <SimpleModal open={true} onClose={() => setProductoAEliminar(null)}>
                   <div className="z-10 relative bg-white rounded-xl w-full max-w-md p-8">
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Eliminar producto</h2>
                     <p className="mb-6 text-center">¿Seguro que deseas eliminar el producto <b>{productoAEliminar.nombre}</b>?</p>
                     <div className="flex gap-4 justify-center">
-                     <Button
+                      <Button
                         text="Eliminar"
                         style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                         onClick={async () => {
@@ -277,7 +278,7 @@ export default function Inventary() {
                       />
                     </div>
                   </div>
-                </div>
+                </SimpleModal>
               )}
                             </td>
                           </tr>
@@ -314,9 +315,8 @@ export default function Inventary() {
                 </table>
               </div>
               {/* Modal para agregar producto */}
-              {modalOpen === 'add-product' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+               {modalOpen === 'add-product' && (
+                <SimpleModal open={true} onClose={() => setModalOpen(false)}>
                   <form
                     onSubmit={async (e) => {
                       e.preventDefault();
@@ -339,7 +339,7 @@ export default function Inventary() {
                       setLoadingForm(false);
                       setModalOpen(false);
                     }}
-                    className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto"
+                    className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
                   >
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Agregar Producto</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -400,13 +400,12 @@ export default function Inventary() {
                       />
                     </div>
                   </form>
-                </div>
+                </SimpleModal>
               )}
 
               {/* Modal para agregar lote */}
-              {modalOpen === 'add-lote' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+               {modalOpen === 'add-lote' && (
+                <SimpleModal open={true} onClose={() => { setModalOpen(false); setEditMode(false); }}>
                   <form
                     onSubmit={async (e) => {
                       e.preventDefault();
@@ -434,7 +433,7 @@ export default function Inventary() {
                       setModalOpen(false);
                       setEditMode(false);
                     }}
-                    className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto"
+                    className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
                   >
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Agregar Lote</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -459,7 +458,6 @@ export default function Inventary() {
                         </label>
                       </div>
                       <div className="flex flex-col gap-4">
-                        
                         <label className="font-semibold">Proveedor
                           <input name="proveedor" value={formLote.proveedor} onChange={e => setFormLote(f => ({ ...f, proveedor: e.target.value }))} placeholder="Proveedor" className="w-full border rounded-lg px-3 py-2" required />
                         </label>
@@ -486,13 +484,12 @@ export default function Inventary() {
                     />
                     </div>
                   </form>
-                </div>
+                </SimpleModal>
               )}
 
               {/* Modal para ver detalles o editar un lote */}
               {modalOpen && typeof modalOpen === 'object' && modalOpen !== null && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                <SimpleModal open={true} onClose={() => { setModalOpen(false); setEditMode(false); }}>
                   <form
                     onSubmit={async (e) => {
                       e.preventDefault();
@@ -521,7 +518,7 @@ export default function Inventary() {
                       setModalOpen(false);
                       setEditMode(false);
                     }}
-                    className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto"
+                    className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
                   >
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
                       {editMode ? "Editar Lote" : "Detalles del Lote"}
@@ -550,14 +547,12 @@ export default function Inventary() {
                       </div>
                       {/* Columna 2 */}
                       <div className="flex flex-col gap-4">
-                        
                         <label className="font-semibold">Proveedor
                           <input name="proveedor" value={formLote.proveedor} onChange={e => setFormLote(f => ({ ...f, proveedor: e.target.value }))} placeholder="Proveedor" className="w-full border rounded-lg px-3 py-2" required readOnly={!editMode} />
                         </label>
                         <label className="font-semibold">Fecha de vencimiento
                           <input name="fecha_salida" type="date" value={formLote.fecha_salida} onChange={e => setFormLote(f => ({ ...f, fecha_salida: e.target.value }))} placeholder="Fecha de vencimiento" className="w-full border rounded-lg px-3 py-2" required readOnly={!editMode} />
                         </label>
-                        
                         <label className="font-semibold">Descripción
                           <textarea name="descripcion" value={formLote.descripcion} onChange={e => setFormLote(f => ({ ...f, descripcion: e.target.value }))} placeholder="Descripción" className="w-full border rounded-lg px-3 py-2 min-h-[40px]" readOnly={!editMode} />
                         </label>
@@ -591,7 +586,7 @@ export default function Inventary() {
                       />
                     </div>
                   </form>
-                </div>
+                </SimpleModal>
               )}
             </div>
           </div>
