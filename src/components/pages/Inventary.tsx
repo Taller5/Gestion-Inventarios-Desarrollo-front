@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+
 import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
@@ -42,6 +43,13 @@ type Lote = {
   nombre: string;
 };
 
+// type provider
+type Provider = {
+  id: number;
+  name: string;
+  products: { id: number; nombre: string }[];
+};
+
 const headers = ["Código", "Nombre", "Stock", "Precio", "Bodega", "Acciones"];
 
 export default function Inventary() {
@@ -80,6 +88,7 @@ export default function Inventary() {
     nombre: "",
     lote_id: undefined,
   });
+
   const [loadingForm, setLoadingForm] = useState(false);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
@@ -98,6 +107,64 @@ export default function Inventary() {
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(
     null
   );
+
+  // Estado para proveedores
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [filteredProviders, setFilteredProviders] = useState<Provider[]>([]);
+  // Cargar proveedores al inicio
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/providers`)
+      .then((res) => res.json())
+      .then((data) => setProviders(data));
+  }, []);
+
+  // Filtrar proveedores por producto seleccionado en el lote
+  useEffect(() => {
+    if (!formLote.codigo) {
+      setFilteredProviders([]);
+      return;
+    }
+    // Buscar el producto por código
+    const producto = productos.find((p) => p.codigo === formLote.codigo);
+    if (!producto) {
+      setFilteredProviders([]);
+      return;
+    }
+    // Filtrar proveedores que tengan ese producto
+    const filtered = providers.filter((prov) =>
+      prov.products.some((prod) => prod.id === producto.id)
+    );
+    setFilteredProviders(filtered);
+  }, [formLote.codigo, productos, providers]);
+
+  // Tipo para proveedor
+ 
+
+  // Cargar proveedores al inicio
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/providers`)
+      .then((res) => res.json())
+      .then((data) => setProviders(data));
+  }, []);
+
+  // Filtrar proveedores por producto seleccionado en el lote
+  useEffect(() => {
+    if (!formLote.codigo) {
+      setFilteredProviders([]);
+      return;
+    }
+    // Buscar el producto por código
+    const producto = productos.find((p: Producto) => p.codigo === formLote.codigo);
+    if (!producto) {
+      setFilteredProviders([]);
+      return;
+    }
+    // Filtrar proveedores que tengan ese producto
+    const filtered = providers.filter((prov) =>
+      prov.products.some((prod) => prod.id === producto.id)
+    );
+    setFilteredProviders(filtered);
+  }, [formLote.codigo, productos, providers]);
 
   useEffect(() => {
     setLoading(true);
@@ -708,7 +775,7 @@ export default function Inventary() {
                         <div className="flex flex-col gap-4">
                           <label className="font-semibold">
                             Proveedor
-                            <input
+                            <select
                               name="proveedor"
                               value={formLote.proveedor}
                               onChange={(e) =>
@@ -717,10 +784,22 @@ export default function Inventary() {
                                   proveedor: e.target.value,
                                 }))
                               }
-                              placeholder="Proveedor"
                               className="w-full border rounded-lg px-3 py-2"
                               required
-                            />
+                            >
+                              <option value="">Seleccione un proveedor</option>
+                              {filteredProviders.length === 0 ? (
+                                <option value="" disabled>
+                                  No hay proveedores para este producto
+                                </option>
+                              ) : (
+                                filteredProviders.map((prov) => (
+                                  <option key={prov.id} value={prov.name}>
+                                    {prov.name}
+                                  </option>
+                                ))
+                              )}
+                            </select>
                           </label>
                           <label className="font-semibold">
                             Fecha de vencimiento
@@ -937,20 +1016,40 @@ export default function Inventary() {
                           <div className="flex flex-col gap-4">
                             <label className="font-semibold">
                               Proveedor
-                              <input
-                                name="proveedor"
-                                value={formLote.proveedor}
-                                onChange={(e) =>
-                                  setFormLote((f) => ({
-                                    ...f,
-                                    proveedor: e.target.value,
-                                  }))
-                                }
-                                placeholder="Proveedor"
-                                className="w-full border rounded-lg px-3 py-2"
-                                required
-                                readOnly={!editMode}
-                              />
+                              {editMode ? (
+                                <select
+                                  name="proveedor"
+                                  value={formLote.proveedor}
+                                  onChange={(e) =>
+                                    setFormLote((f) => ({
+                                      ...f,
+                                      proveedor: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full border rounded-lg px-3 py-2"
+                                  required
+                                >
+                                  <option value="">Seleccione un proveedor</option>
+                                  {filteredProviders.length === 0 ? (
+                                    <option value="" disabled>
+                                      No hay proveedores para este producto
+                                    </option>
+                                  ) : (
+                                    filteredProviders.map((prov) => (
+                                      <option key={prov.id} value={prov.name}>
+                                        {prov.name}
+                                      </option>
+                                    ))
+                                  )}
+                                </select>
+                              ) : (
+                                <input
+                                  name="proveedor"
+                                  value={formLote.proveedor}
+                                  readOnly
+                                  className="w-full border rounded-lg px-3 py-2 bg-gray-300"
+                                />
+                              )}
                             </label>
                             <label className="font-semibold">
                               Fecha de vencimiento
