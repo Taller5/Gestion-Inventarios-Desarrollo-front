@@ -16,14 +16,48 @@ type Provider = {
   email: string;
   phone: string;
   state: string;
-  products: string[];
+  products: Product[]; // productos asociados (del backend)
 };
+
+
+// Para el formulario, products es string[] (nombres) y el id es opcional
+type ProviderForm = Omit<Provider, 'products'> & { id?: number; products: string[] };
+// Para el backend, products es number[]
+type ProviderPayload = Omit<Provider, 'products'> & { products: number[] };
 
 const headers = ["id", "name", "contact", "email", "phone", "state", "products", "actions"];
 
-const MOCK_PRODUCTS = ["Arroz", "Frijoles", "Azúcar", "Harina", "Aceite", "Sal"];
+
+// Productos reales del inventario
+type Product = {
+  id: number;
+  codigo: string;
+  nombre: string;
+  stock: number;
+  precio: number;
+  bodega?: string;
+};
 
 export default function Providers() {
+  
+  const API_URL = import.meta.env.VITE_API_URL;
+  // Estado para productos del inventario
+  const [products, setProducts] = useState<Product[]>([]);
+
+  // Obtener productos reales del inventario
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/products`);
+        const data = await res.json();
+        setProducts(data);
+      } catch (err) {
+        // Si falla, deja el array vacío
+        setProducts([]);
+      }
+    };
+    fetchProducts();
+  }, [API_URL]);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
@@ -35,21 +69,87 @@ export default function Providers() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [providerToEdit, setProviderToEdit] = useState<Provider | null>(null);
 
+
+
+
+  // Obtener todos los proveedores
+  const fetchProviders = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/providers`);
+      const data = await res.json();
+      setProviders(data);
+      setProvidersFiltered(data);
+    } catch (err) {
+      setAlert({ type: "error", message: "Error al cargar proveedores" });
+    }
+  };
+
   useEffect(() => {
-    const mockProviders: Provider[] = [
-      { id: 1, name: "Distribuidora La Fortuna", contact: "Carlos López", email: "carlos@lafortuna.com", phone: "8888-1234", state: "Activo", products: ["Arroz","Frijoles"] },
-      { id: 2, name: "Agroinsumos del Norte", contact: "María Pérez", email: "maria@agronorte.com", phone: "8888-5678", state: "Activo", products: ["Azúcar","Harina"] },
-      { id: 3, name: "Ferretería El Martillo", contact: "Juan García", email: "juan@martillo.com", phone: "8888-9876", state: "Inactivo", products: ["Aceite","Sal"] },
-    ];
-    setProviders(mockProviders);
-    setProvidersFiltered(mockProviders);
+    fetchProviders();
   }, []);
 
-  const handleDelete = () => {
+
+  // Eliminar proveedor
+  const handleDelete = async () => {
     if (selectedProviderId === null) return;
-    setProviders(providers.filter((prov) => prov.id !== selectedProviderId));
+    await deleteProvider(selectedProviderId);
     setShowModal(false);
     setSelectedProviderId(null);
+  };
+
+  // Crear proveedor
+  const createProvider = async (providerData: ProviderPayload) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/providers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(providerData),
+      });
+      if (res.ok) {
+        fetchProviders();
+        setAlert({ type: "success", message: "Proveedor creado correctamente" });
+      } else {
+        setAlert({ type: "error", message: "Error al crear proveedor" });
+      }
+    } catch {
+      setAlert({ type: "error", message: "Error al crear proveedor" });
+    }
+  };
+
+  // Actualizar proveedor
+  const updateProvider = async (id: number, providerData: ProviderPayload) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/providers/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(providerData),
+      });
+      if (res.ok) {
+        fetchProviders();
+        setAlert({ type: "success", message: "Proveedor actualizado correctamente" });
+      } else {
+        setAlert({ type: "error", message: "Error al actualizar proveedor" });
+      }
+    } catch {
+      setAlert({ type: "error", message: "Error al actualizar proveedor" });
+    }
+  };
+
+  // Eliminar proveedor (API)
+  const deleteProvider = async (id: number) => {
+    try {
+      const res = await fetch(`${API_URL}/api/v1/providers/${id}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        fetchProviders();
+        setAlert({ type: "success", message: "Proveedor eliminado correctamente" });
+      } else {
+        setAlert({ type: "error", message: "Error al eliminar proveedor" });
+      }
+    } catch {
+      setAlert({ type: "error", message: "Error al eliminar proveedor" });
+    }
   };
 
   const getActions = (provider: Provider) => [
@@ -84,19 +184,41 @@ export default function Providers() {
     email: prov.email,
     phone: prov.phone,
     state: prov.state,
-    products: prov.products.join(", "),
+    products: prov.products && Array.isArray(prov.products)
+      ? prov.products.map((p) => p.nombre).join(", ")
+      : "",
     actions: getActions(prov),
   }));
 
-  const handleProviderAdded = (prov: Provider) => setProviders((prev) => [...prev, prov]);
-  const handleProviderEdited = (updatedProv: Provider) => setProviders((prev) =>
-    prev.map((prov) => (prov.id === updatedProv.id ? { ...prov, ...updatedProv } : prov))
-  );
+
+  // Convierte los nombres de productos seleccionados a IDs
+  const getProductIdsFromNames = (names: string[]) => {
+    return products
+      .filter((p) => names.includes(p.nombre))
+      .map((p) => p.id);
+  };
+
+  const handleProviderAdded = async (prov: ProviderForm) => {
+    const productIds = getProductIdsFromNames(prov.products);
+    const payload: ProviderPayload = { ...prov, products: productIds };
+    await createProvider(payload);
+    setShowEditModal(false);
+    setProviderToEdit(null);
+  };
+
+  const handleProviderEdited = async (updatedProv: ProviderForm & { id: number }) => {
+    const productIds = getProductIdsFromNames(updatedProv.products);
+    const payload: ProviderPayload = { ...updatedProv, products: productIds };
+    await updateProvider(updatedProv.id, payload);
+    setShowEditModal(false);
+    setProviderToEdit(null);
+  };
 
   // ---------------------- Modal de Proveedor ----------------------
+
   const ProviderModal = () => {
-    const [formData, setFormData] = useState<Provider>({
-      id: Math.floor(Math.random() * 10000),
+    const [formData, setFormData] = useState<ProviderForm>({
+      id: 0,
       name: "",
       contact: "",
       email: "",
@@ -106,8 +228,28 @@ export default function Providers() {
     });
 
     useEffect(() => {
-      if (providerToEdit) setFormData(providerToEdit);
-    }, [providerToEdit]);
+      if (providerToEdit) {
+        setFormData({
+          id: providerToEdit.id,
+          name: providerToEdit.name,
+          contact: providerToEdit.contact,
+          email: providerToEdit.email,
+          phone: providerToEdit.phone,
+          state: providerToEdit.state,
+          products: providerToEdit.products.map((p) => p.nombre),
+        });
+      } else {
+        setFormData({
+          id: 0,
+          name: "",
+          contact: "",
+          email: "",
+          phone: "",
+          state: "Activo",
+          products: [],
+        });
+      }
+    }, [providerToEdit, showEditModal]);
 
     if (!showEditModal) return null;
 
@@ -120,12 +262,17 @@ export default function Providers() {
       }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+
+
+    const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (providerToEdit) handleProviderEdited(formData);
-      else handleProviderAdded(formData);
-      setShowEditModal(false);
-      setProviderToEdit(null);
+      if (providerToEdit) {
+        await handleProviderEdited(formData);
+      } else {
+        // No enviar el id en el create
+        const { id, ...rest } = formData;
+  await handleProviderAdded(rest as ProviderForm);
+      }
     };
 
     return (
@@ -143,25 +290,26 @@ export default function Providers() {
               <option value="Inactivo">Inactivo</option>
             </select>
 
-<div>
-  <p className="font-semibold mb-2">Productos que distribuye:</p>
-  <div className="border rounded max-h-40 overflow-y-auto p-2">
-    {MOCK_PRODUCTS.map((product) => (
-      <label key={product} className="flex items-center gap-2 mb-1 cursor-pointer">
-        <input
-          type="checkbox"
-          checked={formData.products.includes(product)}
-          onChange={() => toggleProduct(product)}
-          className="accent-sky-500"
-        />
-        {product}
-      </label>
-    ))}
-  </div>
-  <p className="text-sm text-gray-500 mt-1">
-    Marca los productos que distribuye el proveedor.
-  </p>
-</div>
+
+    <div>
+      <p className="font-semibold mb-2">Productos que distribuye:</p>
+      <div className="border rounded max-h-40 overflow-y-auto p-2">
+        {products.map((product) => (
+          <label key={product.id} className="flex items-center gap-2 mb-1 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={formData.products.includes(product.nombre)}
+              onChange={() => toggleProduct(product.nombre)}
+              className="accent-sky-500"
+            />
+            {product.nombre}
+          </label>
+        ))}
+      </div>
+      <p className="text-sm text-gray-500 mt-1">
+        Marca los productos que distribuye el proveedor.
+      </p>
+    </div>
 
 
 
