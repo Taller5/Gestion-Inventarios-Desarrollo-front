@@ -1,4 +1,4 @@
-import React from "react";
+
 import Button from "./Button";
 
 interface SideBarProps {
@@ -15,9 +15,12 @@ export default function SideBar(props: SideBarProps) {
   const btnBodegas = (<Button text="Bodegas" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" />);
   const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" />);
   const btnSalesPages = (<Button text="Punto de Venta" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/salesPage" />);
+  const btnProvider = (<Button text="Proveedores" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Provider" />);
+  const btnCashRegisterPage = (<Button text="Control de Caja" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/cashRegisterPage" />);
+  
 
   // Botones base para todos los usuarios
-  let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnBodegas, btnPerfil];
+  let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnBodegas, btnPerfil, btnProvider, btnCashRegisterPage];
 
   // Agregar botones adicionales para administradores y supervisores
   if (props.role === 'administrador' || props.role === 'supervisor') {

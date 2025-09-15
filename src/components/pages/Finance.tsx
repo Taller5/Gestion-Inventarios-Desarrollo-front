@@ -1,6 +1,6 @@
 import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
-import Button from "../ui/Button"; //esto debería borrarse
+
 import Container from "../ui/Container";
 
 

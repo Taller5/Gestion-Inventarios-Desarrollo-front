@@ -39,7 +39,7 @@ export default function SalesPage() {
   // Estados
   const [clientes, setClientes] = useState<Customer[]>([]);
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [lotes, setLotes] = useState<Lote[]>([]);
+  const [lotes, setLotes] = useState<Lote[]>([]);//si se borra se daña
   const [clienteSeleccionado, setClienteSeleccionado] = useState<Customer | null>(null);
   const [carrito, setCarrito] = useState<{ producto: Producto; cantidad: number; descuento: number }[]>([]);
   const [total, setTotal] = useState(0);
@@ -153,15 +153,15 @@ useEffect(() => {
       .then(setClientes);
   }, []);
 
-  // Calcula stock real
-  const productosConStock = productos.map(producto => {
-    const stock = lotes
-      .filter(lote => lote.codigo === producto.codigo)
-      .reduce((sum, lote) => sum + Number(lote.cantidad), 0);
-    return { ...producto, stock };
-  });
-// Al final de tus imports
+ // Calcula stock real basado en los lotes
+// Clave para localStorage
 const LOCAL_STORAGE_KEY = "venta_en_curso";
+
+// Calcula stock temporal basado en el stock de cada producto
+const productosConStock: (Producto & { stockTemporal: number })[] = productos.map(producto => ({
+  ...producto,
+  stockTemporal: producto.stock ?? 0 // stock original del producto
+}));
 
 // Cuando agregues al carrito o cambies cliente
 useEffect(() => {
@@ -210,71 +210,121 @@ const productosFiltrados = queryProducto.trim()
     setTotal(subtotal);
   }, [carrito]);
 
-  // Agregar al carrito
-  const agregarAlCarrito = (producto: Producto & { stock: number }) => {
-    if ((producto.stock ?? 0) <= 0) {
-      setAlert({ type: "error", message: "Producto sin stock" });
-      return;
-    }
-    setCarrito(prev => {
-      const idx = prev.findIndex(item => item.producto.codigo === producto.codigo);
-      if (idx >= 0) {
-        const nuevo = [...prev];
-        nuevo[idx].cantidad += 1;
+
+// Agregar al carrito
+const agregarAlCarrito = (producto: Producto & { stock?: number }) => {
+  const stockActual = producto.stock ?? 0;
+  if (stockActual <= 0) {
+    setAlert({ type: "error", message: "Producto sin stock" });
+    return;
+  }
+
+  setCarrito(prev => {
+    const idx = prev.findIndex(item => item.producto.codigo === producto.codigo);
+    if (idx >= 0) {
+      const nuevo = [...prev];
+      if (nuevo[idx].cantidad + 1 > stockActual) {
+        setAlert({ type: "error", message: "No se puede superar el stock disponible" });
         return nuevo;
       }
-      return [...prev, { producto, cantidad: 1, descuento: 0 }];
-    });
-    setLotes(prev =>
-      prev.map(l =>
-        l.codigo === producto.codigo && l.cantidad > 0
-          ? { ...l, cantidad: l.cantidad - 1 }
-          : l
-      )
-    );
-    setModalOpen(false);
-    setAlert({ type: "success", message: `${producto.nombre} agregado al carrito` });
-  };
-
-  // Eliminar del carrito
-  const eliminarDelCarrito = (codigo: string) => {
-    const item = carrito.find(i => i.producto.codigo === codigo);
-    if (!item) return;
-    setLotes(prev =>
-      prev.map(l =>
-        l.codigo === codigo ? { ...l, cantidad: l.cantidad + item.cantidad } : l
-      )
-    );
-    setCarrito(prev => prev.filter(i => i.producto.codigo !== codigo));
-  };
-
-  // Editar carrito
-  const iniciarEdicion = (idx: number) => {
-    setEditIdx(idx);
-    setEditCantidad(carrito[idx].cantidad);
-    setEditDescuento(carrito[idx].descuento);
-  };
-  const guardarEdicion = (idx: number) => {
-    setCarrito(prev => {
-      const nuevo = [...prev];
-      nuevo[idx].cantidad = editCantidad;
-      nuevo[idx].descuento = editDescuento;
+      nuevo[idx].cantidad += 1;
       return nuevo;
-    });
-    setEditIdx(null);
-  };
+    }
+    return [...prev, { producto, cantidad: 1, descuento: 0 }];
+  });
+
+  // Descontar 1 del stock temporal
+  setProductos(prev =>
+    prev.map(p =>
+      p.codigo === producto.codigo
+        ? { ...p, stock: (p.stock ?? 0) - 1 }
+        : p
+    )
+  );
+
+  setModalOpen(false);
+  setAlert({ type: "success", message: `${producto.nombre} agregado al carrito` });
+};
+
+// Eliminar del carrito
+const eliminarDelCarrito = (codigo: string) => {
+  const item = carrito.find(i => i.producto.codigo === codigo);
+  if (!item) return;
+
+  // Sumar la cantidad eliminada al stock temporal
+  setProductos(prev =>
+    prev.map(p =>
+      p.codigo === codigo
+        ? { ...p, stock: (p.stock ?? 0) + item.cantidad }
+        : p
+    )
+  );
+
+  setCarrito(prev => prev.filter(i => i.producto.codigo !== codigo));
+};
+
+// Iniciar edición de un item del carrito
+const iniciarEdicion = (idx: number) => {
+  setEditIdx(idx);
+  setEditCantidad(carrito[idx].cantidad);
+  setEditDescuento(carrito[idx].descuento);
+};
+
+// Guardar edición
+const guardarEdicion = (idx: number) => {
+  setCarrito(prev => {
+    const nuevo = [...prev];
+    const item = nuevo[idx];
+    const producto = productos.find(p => p.codigo === item.producto.codigo);
+    if (!producto) return prev;
+
+    const stockActual = producto.stock ?? 0;
+    const diferencia = editCantidad - item.cantidad;
+
+    if (diferencia > stockActual) {
+      setAlert({ type: "error", message: "Cantidad excede stock disponible" });
+      return prev;
+    }
+
+    // Actualizar stock temporal
+    setProductos(prevProductos =>
+      prevProductos.map(p =>
+        p.codigo === item.producto.codigo
+          ? { ...p, stock: (p.stock ?? 0) - diferencia }
+          : p
+      )
+    );
+
+    item.cantidad = editCantidad;
+    item.descuento = editDescuento;
+    return nuevo;
+  });
+
+  setEditIdx(null);
+};
+
+
+
+
 const finalizarVenta = async (e: React.FormEvent) => {
   e.preventDefault();
 
   if (!clienteSeleccionado || !sucursalSeleccionada || carrito.length === 0) {
-    setAlert({ type: "error", message: "Seleccione cliente, sucursal y agregue productos al carrito." });
+    setFacturaModal(false); // Cierra modal si hay error
+    setAlert({type:"error", message: "Seleccione cliente, sucursal y agregue productos al carrito." });
     return;
   }
 
   try {
     // Validar monto entregado si el pago es en efectivo
     if (metodoPago === "Efectivo" && montoEntregado <= 0) {
-      setAlert({ type: "error", message: "Ingrese el monto entregado" });
+      setFacturaModal(false);
+      setAlert({type: "error", message: "Ingrese el monto entregado"});
+      return;
+    }
+    if ((metodoPago === "Tarjeta" || metodoPago === "SINPE") && !comprobante.trim()) {
+      setFacturaModal(false);
+       setAlert({type: "error", message: "Debe ingresar el comprobante para el método de pago seleccionado."});
       return;
     }
 
@@ -295,79 +345,87 @@ const finalizarVenta = async (e: React.FormEvent) => {
 
     // Validar monto suficiente si es pago en efectivo
     if (metodoPago === "Efectivo" && montoEntregado < totalAPagar) {
-      setAlert({ type: "error", message: `El monto entregado es menor al total a pagar. Faltan ₡${(totalAPagar - montoEntregado).toLocaleString()}` });
+      setFacturaModal(false);
+      setAlert({type:"error", message: `El monto entregado es menor al total a pagar. Faltan ₡${(totalAPagar - montoEntregado).toLocaleString()}` });
       return;
     }
 
-    // Preparar productos para la factura (ahora con 'code')
+    // Preparar productos para la factura
     const productosFactura = carrito.map(item => ({
-      code: item.producto.codigo, // <-- campo obligatorio
-      name: item.producto.nombre, // opcional, pero recomendable
+      code: item.producto.codigo,
+      name: item.producto.nombre,
       quantity: item.cantidad,
       discount: item.descuento || 0,
       price: item.producto.precio
     }));
 
-// Preparar factura
-const facturaData = {
-  // Cliente
-  customer_name: clienteSeleccionado.name,
-  customer_identity_number: clienteSeleccionado.identity_number,
+    // Preparar factura
+    const facturaData = {
+      customer_name: clienteSeleccionado.name,
+      customer_identity_number: clienteSeleccionado.identity_number,
+      branch_name: sucursalSeleccionada.nombre,
+      business_name: sucursalSeleccionada.business.nombre_comercial,
+      business_legal_name: sucursalSeleccionada.business.nombre_legal,
+      business_phone: sucursalSeleccionada.business.telefono || "-",
+      business_email: sucursalSeleccionada.business.email || "-",
+      province: sucursalSeleccionada.provincia || "-",
+      canton: sucursalSeleccionada.canton || "-",
+      branches_phone: sucursalSeleccionada.telefono || "-",
+      business_id_type: sucursalSeleccionada.business.tipo_identificacion || "N/A",
+      business_id_number: sucursalSeleccionada.business.numero_identificacion || "N/A",
+      cashier_name: user?.name || "N/A",
+      date: new Date(),
+      products: productosFactura,
+      subtotal,
+      total_discount: totalDescuento,
+      taxes: 0,
+      total: totalAPagar,
+      amount_paid: metodoPagoBackend === "Cash" ? montoEntregado : totalAPagar,
+      change: vuelto,
+      payment_method: metodoPagoBackend,
+      receipt: metodoPagoBackend === "Cash" ? "N/A" : comprobante || "",
+    };
 
-  // Sucursal / Negocio
-  branch_name: sucursalSeleccionada.nombre,
-  business_name: sucursalSeleccionada.business.nombre_comercial,
-  business_legal_name: sucursalSeleccionada.business.nombre_legal,
-  business_phone: sucursalSeleccionada.business.telefono || "-",
-  business_email: sucursalSeleccionada.business.email || "-",
-  province: sucursalSeleccionada.provincia || "-",
-  canton: sucursalSeleccionada.canton || "-",
-  branches_phone: sucursalSeleccionada.telefono || "-",
-  business_id_type: sucursalSeleccionada.business.tipo_identificacion || "N/A",
-  business_id_number: sucursalSeleccionada.business.numero_identificacion || "N/A",
-   
-  // Cajero y fecha
-  cashier_name: user?.name || "N/A",
-  date: new Date(),
-
-  // Productos y totales
-  products: productosFactura,
-  subtotal: subtotal,
-  total_discount: totalDescuento,
-  taxes: 0,
-  total: totalAPagar,
-  amount_paid: metodoPagoBackend === "Cash" ? montoEntregado : totalAPagar,
-  change: vuelto,
-  payment_method: metodoPagoBackend,
-  receipt: metodoPagoBackend === "Cash" ? "N/A" : comprobante || "",
-};
-
-// **Log para verificar tipo de cedula**
-console.log("Tipo de cédula a enviar:", facturaData.business_id_type);
-
-// Enviar factura al backend
+    // Enviar factura al backend
 const response = await fetch("http://localhost:8000/api/v1/invoices", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-  },
+  headers: { "Content-Type": "application/json", "Accept": "application/json" },
   body: JSON.stringify(facturaData),
 });
 
+// Intentar leer JSON sin romper la app
+let responseData: any = null;
+try {
+  responseData = await response.json();
+} catch {
+  // La respuesta no es JSON, ignoramos porque la venta ya se guardó
+  console.warn("El backend respondió con HTML o texto en lugar de JSON.");
+}
 
-    const responseData = await response.json();
+// Solo mostrar alerta de éxito usando el ID si existe
+setAlert({
+  type: "success",
+  message: `Factura ${responseData?.id ? `#${responseData.id}` : ""} creada exitosamente. ${vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ''}`
+});
 
-    if (!response.ok) {
-      const errorMsg = responseData.message || "Error al procesar la factura";
-      throw new Error(errorMsg);
-    }
+
+    // Restar stock de productos
+    await Promise.all(
+      carrito.map(async (item) => {
+        const productoRes = await fetch(`http://localhost:8000/api/v1/products/${item.producto.id}`);
+        const productoData = await productoRes.json();
+        const nuevoStock = productoData.stock - item.cantidad;
+
+        await fetch(`http://localhost:8000/api/v1/products/${item.producto.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ stock: nuevoStock }),
+        });
+      })
+    );
 
     // Mensaje de éxito
-    setAlert({ 
-      type: "success", 
-      message: `Factura #${responseData.id} creada exitosamente. ${vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ''}` 
-    });
+    setAlert({type: "success", message: `Factura #${responseData.id} creada exitosamente. ${vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ''}` });
 
     // Limpiar estados
     setCarrito([]);
@@ -383,7 +441,8 @@ const response = await fetch("http://localhost:8000/api/v1/invoices", {
 
   } catch (error: any) {
     console.error("Error en finalizarVenta:", error);
-    setAlert({ type: "error", message: error.message || "Ocurrió un error al procesar la venta. Por favor intente nuevamente." });
+    setFacturaModal(false); // Cierra modal si hay error inesperado
+    setAlert({type: "error", message:  "Ocurrió un error al procesar la venta. Por favor intente nuevamente." } );
   }
 };
 
@@ -398,47 +457,59 @@ const response = await fetch("http://localhost:8000/api/v1/invoices", {
               <div className="w-2/3">
                 <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
 
-                {/* Selector de cliente */}
-                <div className="mb-6">
-                  <input
-                    type="text"
-                    placeholder="Buscar cliente por nombre, email o cédula..."
-                    className="border rounded px-3 py-2 w-full mb-2"
-                    value={queryCliente}
-                    onChange={e => setQueryCliente(e.target.value)}
-                  />
-                  <div className="max-h-40 overflow-y-auto border rounded bg-white">
-                    {clientesFiltrados.map(cliente => (
-                      <div
-                        key={cliente.customer_id}
-                        className={`px-4 py-2 cursor-pointer hover:bg-sky-100 ${
-                          clienteSeleccionado?.customer_id === cliente.customer_id ? "bg-sky-200 font-bold" : ""
-                        }`}
-                        onClick={() => setClienteSeleccionado(cliente)}
-                      >
-                        {cliente.name}
-                        {cliente.identity_number && (
-                          <span className="text-gray-500 ml-2">
-                            Cédula: {cliente.identity_number}
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+       {/* Selector de cliente */}
+<div className="mb-6">
+  <input
+    type="text"
+    placeholder="Buscar cliente por nombre, email o cédula..."
+    className="border rounded px-3 py-2 w-full mb-2"
+    value={queryCliente}
+    onChange={e => setQueryCliente(e.target.value)}
+  />
 
-                  {clienteSeleccionado && (
-                    <p className="mt-2 font-bold text-blue-700">
-                      Cliente seleccionado: {clienteSeleccionado.name} ({clienteSeleccionado.identity_number})
-                    </p>
-                  )}
+  <div className="max-h-40 overflow-y-auto border rounded bg-white">
+    {/* Opción de cliente de relleno */}
+    <div
+      className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+        clienteSeleccionado?.customer_id === 0 ? "bg-gray-200 font-bold" : ""
+      }`}
+      onClick={() => setClienteSeleccionado({ customer_id: 0, name: "Cliente genérico", identity_number: "N/A" })}
+    >
+      Cliente genérico (No registrado)
+    </div>
 
-                  <Button
-                    style="bg-green-500 hover:bg-green-700 text-white font-bold px-3 py-1 rounded mt-2"
-                    onClick={() => (window.location.href = "/customer")}
-                  >
-                    <IoPersonAdd /> Nuevo cliente
-                  </Button>
-                </div>
+    {clientesFiltrados.map(cliente => (
+      <div
+        key={cliente.customer_id}
+        className={`px-4 py-2 cursor-pointer hover:bg-sky-100 ${
+          clienteSeleccionado?.customer_id === cliente.customer_id ? "bg-sky-200 font-bold" : ""
+        }`}
+        onClick={() => setClienteSeleccionado(cliente)}
+      >
+        {cliente.name}
+        {cliente.identity_number && (
+          <span className="text-gray-500 ml-2">
+            Cédula: {cliente.identity_number}
+          </span>
+        )}
+      </div>
+    ))}
+  </div>
+
+  {clienteSeleccionado && (
+    <p className="mt-2 font-bold text-blue-700">
+      Cliente seleccionado: {clienteSeleccionado.name} ({clienteSeleccionado.identity_number})
+    </p>
+  )}
+
+  <Button
+    style="bg-green-500 hover:bg-green-700 text-white font-bold px-3 py-1 rounded mt-2"
+    onClick={() => (window.location.href = "/customer")}
+  >
+    <IoPersonAdd /> Nuevo cliente
+  </Button>
+</div>
+
 
                 {/* Navegador productos */}
                 <div className="shadow-md rounded-lg p-4 mb-6">
@@ -657,7 +728,7 @@ const response = await fetch("http://localhost:8000/api/v1/invoices", {
   <div className="fixed inset-0 z-50 flex items-center justify-center">
     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-      <h2 className="text-xl font-bold mb-4 text-center">Seleccione la sucursal</h2>
+      <h2 className="text-xl font-bold mb-4 text-center">Seleccione la sucursal en la cual esta trabajando</h2>
 
       <div className="flex flex-col gap-3">
         {sucursales.map(sucursal => (
@@ -677,9 +748,26 @@ const response = await fetch("http://localhost:8000/api/v1/invoices", {
       {sucursales.length === 0 && (
         <p className="text-red-500 mt-4 text-center">No hay sucursales disponibles</p>
       )}
+
+      {/* Botones adicionales */}
+      <div className="flex justify-between mt-6">
+        <button
+          className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded font-bold"
+          onClick={() => setModalSucursal(false)}
+        >
+          Cancelar
+        </button>
+        <button
+          className="px-4 py-2 bg-green-500 hover:bg-green-700 text-white rounded font-bold"
+          onClick={() => window.location.href = "/Branches"} // redirige a Branches
+        >
+          Por favor, agrega una sucursal.
+        </button>
+      </div>
     </div>
   </div>
 )}
+
 {facturaModal && (
   <div className="fixed inset-0 z-50 flex items-center justify-center">
     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
@@ -797,25 +885,25 @@ const response = await fetch("http://localhost:8000/api/v1/invoices", {
     />
   </div>
 
-  <div>
-    <label>Comprobante</label>
-    <input
-      type="text"
-      className="w-full border rounded px-3 py-2"
-      value={comprobante}
-      onChange={(e) => setComprobante(e.target.value)}
-      disabled={metodoPago === "Efectivo"} // 👈 solo se habilita si es Tarjeta o SINPE
-      placeholder={
-        metodoPago === "Efectivo"
-          ? "No requiere comprobante"
-          : "Ingrese comprobante"
-      }
-    />
-  </div>
+<div>
+  <label>Comprobante</label>
+  <input
+    type="text"
+    className="w-full border rounded px-3 py-2 bg-gray-200"
+    value={metodoPago === "Efectivo" ? "No se necesita comprobante" : comprobante}
+    onChange={(e) => setComprobante(e.target.value)}
+    disabled={metodoPago === "Efectivo"}
+    placeholder={metodoPago === "Efectivo" ? "" : "Ingrese comprobante"}
+  />
+</div>
+
 </div>
 
       {/* BOTONES */}
       <div className="flex justify-end gap-4">
+
+        
+{/* //se encarga de crear la factura*/}
 <Button
   text="Imprimir factura"
   style="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded text-lg"
