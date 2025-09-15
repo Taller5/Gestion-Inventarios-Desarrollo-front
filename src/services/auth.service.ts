@@ -37,7 +37,7 @@ export const sendPasswordRecoveryEmail = async (email: string) => {
 
 // This function is reserved for future implementation of password reset
 // It will be used when the user clicks the reset link in their email
-export const resetPassword = async (token: string, newPassword: string): Promise<void> => {
+export const resetPassword = async (token: string): Promise<void> => {
   // Implementation will be added when the reset password functionality is developed
   console.log('Resetting password with token:', token);
   // TODO: Implement password reset API call

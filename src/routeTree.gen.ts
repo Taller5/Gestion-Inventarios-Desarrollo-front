@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as WarehousesRouteImport } from './routes/warehouses'
 import { Route as SalesPageRouteImport } from './routes/salesPage'
 import { Route as RecoverPasswordRouteImport } from './routes/recoverPassword'
+import { Route as ProviderRouteImport } from './routes/provider'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventaryRouteImport } from './routes/inventary'
@@ -19,6 +20,7 @@ import { Route as HomepageRouteImport } from './routes/homepage'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as EmployeesRouteImport } from './routes/employees'
 import { Route as CustomerRouteImport } from './routes/customer'
+import { Route as CashRegisterPageRouteImport } from './routes/cashRegisterPage'
 import { Route as BusinessesRouteImport } from './routes/businesses'
 import { Route as BranchesRouteImport } from './routes/branches'
 import { Route as IndexRouteImport } from './routes/index'
@@ -36,6 +38,11 @@ const SalesPageRoute = SalesPageRouteImport.update({
 const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
   id: '/recoverPassword',
   path: '/recoverPassword',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProviderRoute = ProviderRouteImport.update({
+  id: '/provider',
+  path: '/provider',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProfileRoute = ProfileRouteImport.update({
@@ -73,6 +80,11 @@ const CustomerRoute = CustomerRouteImport.update({
   path: '/customer',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CashRegisterPageRoute = CashRegisterPageRouteImport.update({
+  id: '/cashRegisterPage',
+  path: '/cashRegisterPage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BusinessesRoute = BusinessesRouteImport.update({
   id: '/businesses',
   path: '/businesses',
@@ -93,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/branches': typeof BranchesRoute
   '/businesses': typeof BusinessesRoute
+  '/cashRegisterPage': typeof CashRegisterPageRoute
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -100,6 +113,7 @@ export interface FileRoutesByFullPath {
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
   '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
@@ -108,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/branches': typeof BranchesRoute
   '/businesses': typeof BusinessesRoute
+  '/cashRegisterPage': typeof CashRegisterPageRoute
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -115,6 +130,7 @@ export interface FileRoutesByTo {
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
   '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
@@ -124,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/branches': typeof BranchesRoute
   '/businesses': typeof BusinessesRoute
+  '/cashRegisterPage': typeof CashRegisterPageRoute
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
@@ -131,6 +148,7 @@ export interface FileRoutesById {
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
+  '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
   '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
@@ -141,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/branches'
     | '/businesses'
+    | '/cashRegisterPage'
     | '/customer'
     | '/employees'
     | '/finance'
@@ -148,6 +167,7 @@ export interface FileRouteTypes {
     | '/inventary'
     | '/login'
     | '/profile'
+    | '/provider'
     | '/recoverPassword'
     | '/salesPage'
     | '/warehouses'
@@ -156,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/branches'
     | '/businesses'
+    | '/cashRegisterPage'
     | '/customer'
     | '/employees'
     | '/finance'
@@ -163,6 +184,7 @@ export interface FileRouteTypes {
     | '/inventary'
     | '/login'
     | '/profile'
+    | '/provider'
     | '/recoverPassword'
     | '/salesPage'
     | '/warehouses'
@@ -171,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/branches'
     | '/businesses'
+    | '/cashRegisterPage'
     | '/customer'
     | '/employees'
     | '/finance'
@@ -178,6 +201,7 @@ export interface FileRouteTypes {
     | '/inventary'
     | '/login'
     | '/profile'
+    | '/provider'
     | '/recoverPassword'
     | '/salesPage'
     | '/warehouses'
@@ -187,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   BranchesRoute: typeof BranchesRoute
   BusinessesRoute: typeof BusinessesRoute
+  CashRegisterPageRoute: typeof CashRegisterPageRoute
   CustomerRoute: typeof CustomerRoute
   EmployeesRoute: typeof EmployeesRoute
   FinanceRoute: typeof FinanceRoute
@@ -194,6 +219,7 @@ export interface RootRouteChildren {
   InventaryRoute: typeof InventaryRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
+  ProviderRoute: typeof ProviderRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   SalesPageRoute: typeof SalesPageRoute
   WarehousesRoute: typeof WarehousesRoute
@@ -220,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/recoverPassword'
       fullPath: '/recoverPassword'
       preLoaderRoute: typeof RecoverPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/provider': {
+      id: '/provider'
+      path: '/provider'
+      fullPath: '/provider'
+      preLoaderRoute: typeof ProviderRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/profile': {
@@ -271,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CustomerRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cashRegisterPage': {
+      id: '/cashRegisterPage'
+      path: '/cashRegisterPage'
+      fullPath: '/cashRegisterPage'
+      preLoaderRoute: typeof CashRegisterPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/businesses': {
       id: '/businesses'
       path: '/businesses'
@@ -299,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BranchesRoute: BranchesRoute,
   BusinessesRoute: BusinessesRoute,
+  CashRegisterPageRoute: CashRegisterPageRoute,
   CustomerRoute: CustomerRoute,
   EmployeesRoute: EmployeesRoute,
   FinanceRoute: FinanceRoute,
@@ -306,6 +347,7 @@ const rootRouteChildren: RootRouteChildren = {
   InventaryRoute: InventaryRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
+  ProviderRoute: ProviderRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   SalesPageRoute: SalesPageRoute,
   WarehousesRoute: WarehousesRoute,

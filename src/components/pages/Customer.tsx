@@ -4,7 +4,7 @@ import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
-import { SearchBar } from "../ui/searchBar";
+import { SearchBar } from "../ui/SearchBar";
 import SimpleModal from "../ui/SimpleModal";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill} from "react-icons/ri";
