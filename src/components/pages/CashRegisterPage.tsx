@@ -24,6 +24,7 @@ type CashRegister = {
   user: { id: number; name: string };
 };
 
+// Encabezados de tabla
 const headers = [
   "ID",
   "Sucursal",
@@ -34,6 +35,9 @@ const headers = [
   "Cerrada",
   "Acciones",
 ];
+
+// URL base desde .env
+const API_URL = import.meta.env.VITE_API_URL as string;
 
 export default function CashRegisterPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -53,9 +57,10 @@ export default function CashRegisterPage() {
   const [cashRegisterToClose, setCashRegisterToClose] = useState<CashRegister | null>(null);
   const [closingAmount, setClosingAmount] = useState<number | "">("");
 
+  // Obtener sucursales
   const fetchBranches = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/branches");
+      const res = await fetch(`${API_URL}/api/v1/branches`);
       const data = await res.json();
       setBranches(data);
     } catch (err) {
@@ -63,9 +68,10 @@ export default function CashRegisterPage() {
     }
   };
 
+  // Obtener cajas registradoras
   const fetchCashRegisters = async () => {
     try {
-      const res = await fetch("http://localhost:8000/api/v1/cash-registers");
+      const res = await fetch(`${API_URL}/api/v1/cash-registers`);
       const data = await res.json();
       setCashRegisters(data);
     } catch (err) {
@@ -78,6 +84,7 @@ export default function CashRegisterPage() {
     fetchCashRegisters();
   }, []);
 
+  // Abrir caja
   const handleOpenCashRegister = async () => {
     if (!selectedBranch || openingAmount === "" || openingAmount <= 0) {
       setAlert({ type: "error", message: "Selecciona una sucursal y un monto válido." });
@@ -89,7 +96,7 @@ export default function CashRegisterPage() {
     setAlert(null);
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/cash-registers/open", {
+      const res = await fetch(`${API_URL}/api/v1/cash-registers/open`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
@@ -111,13 +118,14 @@ export default function CashRegisterPage() {
     }
   };
 
+  // Cerrar caja
   const handleCloseCashRegister = async () => {
     if (!cashRegisterToClose || closingAmount === "" || closingAmount < 0) return;
     setLoading(true);
     setAlert(null);
 
     try {
-      const res = await fetch(`http://localhost:8000/api/v1/cash-registers/close/${cashRegisterToClose.id}`, {
+      const res = await fetch(`${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ closing_amount: closingAmount }),
@@ -141,6 +149,7 @@ export default function CashRegisterPage() {
     }
   };
 
+  // Contenido tabla
   const tableContent = cashRegisters.map(c => ({
     ID: c.id,
     Sucursal: c.branch?.nombre,
@@ -193,7 +202,13 @@ export default function CashRegisterPage() {
                     <h2 className="text-xl font-bold mb-4 text-center">Abrir Caja</h2>
 
                     {alert && (
-                      <div className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-green-100 text-green-700 border border-green-300" : "bg-red-100 text-red-700 border border-red-300"}`}>
+                      <div
+                        className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                          alert.type === "success"
+                            ? "bg-green-100 text-green-700 border border-green-300"
+                            : "bg-red-100 text-red-700 border border-red-300"
+                        }`}
+                      >
                         {alert.message}
                       </div>
                     )}
@@ -208,7 +223,9 @@ export default function CashRegisterPage() {
                         >
                           <option value="">Selecciona una sucursal</option>
                           {branches.map(b => (
-                            <option key={b.sucursal_id} value={b.sucursal_id}>{b.nombre}</option>
+                            <option key={b.sucursal_id} value={b.sucursal_id}>
+                              {b.nombre}
+                            </option>
                           ))}
                         </select>
                       </div>
@@ -225,17 +242,30 @@ export default function CashRegisterPage() {
                     </div>
 
                     <div className="flex justify-end gap-4">
-                      <Button style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold px-6 py-2 rounded" onClick={handleOpenCashRegister} disabled={loading}>
+                      <Button
+                        style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold px-6 py-2 rounded"
+                        onClick={handleOpenCashRegister}
+                        disabled={loading}
+                      >
                         {loading ? "Abriendo..." : "Abrir Caja"}
                       </Button>
-                      <Button style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded" onClick={() => setModalOpen(false)}>Cancelar</Button>
+                      <Button
+                        style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded"
+                        onClick={() => setModalOpen(false)}
+                      >
+                        Cancelar
+                      </Button>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Modal Cerrar Caja */}
-              <SimpleModal open={closeModalOpen} onClose={() => setCloseModalOpen(false)} title={`Cerrar Caja #${cashRegisterToClose?.id}`}>
+              <SimpleModal
+                open={closeModalOpen}
+                onClose={() => setCloseModalOpen(false)}
+                title={`Cerrar Caja #${cashRegisterToClose?.id}`}
+              >
                 <div className="flex flex-col gap-4">
                   <label className="font-semibold">Monto de cierre:</label>
                   <input
@@ -246,10 +276,17 @@ export default function CashRegisterPage() {
                     placeholder="0.00"
                   />
                   <div className="flex gap-4 justify-end mt-4">
-                    <Button style="bg-azul-fuerte hover:bg-azul-claro text-white px-6 py-2 rounded" onClick={handleCloseCashRegister} disabled={loading}>
+                    <Button
+                      style="bg-azul-fuerte hover:bg-azul-claro text-white px-6 py-2 rounded"
+                      onClick={handleCloseCashRegister}
+                      disabled={loading}
+                    >
                       {loading ? "Cerrando..." : "Cerrar Caja"}
                     </Button>
-                    <Button style="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded" onClick={() => setCloseModalOpen(false)}>
+                    <Button
+                      style="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded"
+                      onClick={() => setCloseModalOpen(false)}
+                    >
                       Cancelar
                     </Button>
                   </div>
