@@ -7,7 +7,7 @@ import Container from "../ui/Container";
 import { SearchBar } from "../ui/SearchBar";
 import SimpleModal from "../ui/SimpleModal";
 import { IoAddCircle } from "react-icons/io5";
-import { RiEdit2Fill} from "react-icons/ri";
+import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 
 type Customer = {
@@ -19,6 +19,9 @@ type Customer = {
 };
 
 const headers = ["ID", "Nombre", "Cédula", "Teléfono", "Email", "Acciones"];
+
+// ✅ Usamos la variable de entorno
+const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CustomersPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -32,9 +35,7 @@ export default function CustomersPage() {
   const [modalOpen, setModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [customerIdToDelete, setCustomerIdToDelete] = useState<number | null>(
-    null
-  );
+  const [customerIdToDelete, setCustomerIdToDelete] = useState<number | null>(null);
 
   const [form, setForm] = useState({
     name: "",
@@ -43,16 +44,13 @@ export default function CustomersPage() {
     identity_number: "",
   });
   const [loadingForm, setLoadingForm] = useState(false);
-  const [alert, setAlert] = useState<{
-    type: "success" | "error";
-    message: string;
-  } | null>(null);
+  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Función para cargar clientes
   const fetchClients = async () => {
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/api/v1/customers");
+      const res = await fetch(`${API_URL}/api/v1/customers`);
       const data = await res.json();
       setCustomers(data);
       setFilteredCustomers(data);
@@ -80,19 +78,14 @@ export default function CustomersPage() {
           identity_number: customerToEdit.identity_number,
         });
       } else {
-        setForm({
-          name: "",
-          email: "",
-          phone: "",
-          identity_number: "",
-        });
+        setForm({ name: "", email: "", phone: "", identity_number: "" });
       }
       setAlert(null);
     }
   }, [modalOpen, customerToEdit]);
 
   const handleDelete = async (id: number) => {
-    await fetch(`http://localhost:8000/api/v1/customers/${id}`, {
+    await fetch(`${API_URL}/api/v1/customers/${id}`, {
       method: "DELETE",
     });
     setCustomers(customers.filter((c) => c.customer_id !== id));
@@ -104,131 +97,101 @@ export default function CustomersPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoadingForm(true);
-  setAlert(null);
 
-  try {
-    // Excluir al cliente en edición
-    const otherCustomers = customerToEdit
-      ? customers.filter(c => c.customer_id !== customerToEdit.customer_id)
-      : customers;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoadingForm(true);
+    setAlert(null);
 
-    // Validaciones de duplicados
-    const isDuplicateEmail = otherCustomers.some(
-      c => c.email.toLowerCase() === form.email.toLowerCase()
-    );
+    try {
+      const otherCustomers = customerToEdit
+        ? customers.filter((c) => c.customer_id !== customerToEdit.customer_id)
+        : customers;
 
-    const isDuplicateId = otherCustomers.some(
-      c => c.identity_number === form.identity_number
-    );
+      const isDuplicateEmail = otherCustomers.some(
+        (c) => c.email.toLowerCase() === form.email.toLowerCase()
+      );
+      const isDuplicateId = otherCustomers.some(
+        (c) => c.identity_number === form.identity_number
+      );
+      const isDuplicatePhone = form.phone
+        ? otherCustomers.some((c) => c.phone && c.phone === form.phone)
+        : false;
 
-    const isDuplicatePhone = form.phone
-      ? otherCustomers.some(c => c.phone && c.phone === form.phone)
-      : false;
+      if (isDuplicateEmail) {
+        setAlert({ type: "error", message: "Ya existe un cliente con este correo electrónico." });
+        setLoadingForm(false);
+        return;
+      }
+      if (isDuplicateId) {
+        setAlert({ type: "error", message: "Ya existe un cliente con esta cédula." });
+        setLoadingForm(false);
+        return;
+      }
+      if (isDuplicatePhone) {
+        setAlert({ type: "error", message: "Ya existe un cliente con este número de teléfono." });
+        setLoadingForm(false);
+        return;
+      }
 
-    if (isDuplicateEmail) {
-      setAlert({
-        type: "error",
-        message: "Ya existe un cliente con este correo electrónico.",
-      });
-      setLoadingForm(false);
-      return;
-    }
-
-    if (isDuplicateId) {
-      setAlert({
-        type: "error",
-        message: "Ya existe un cliente con esta cédula.",
-      });
-      setLoadingForm(false);
-      return;
-    }
-
-    if (isDuplicatePhone) {
-      setAlert({
-        type: "error",
-        message: "Ya existe un cliente con este número de teléfono.",
-      });
-      setLoadingForm(false);
-      return;
-    }
-
-    // ----- Guardar o editar -----
-    if (customerToEdit) {
-      const res = await fetch(
-        `http://localhost:8000/api/v1/customers/${customerToEdit.customer_id}`,
-        {
+      if (customerToEdit) {
+        const res = await fetch(`${API_URL}/api/v1/customers/${customerToEdit.customer_id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          setAlert({ type: "success", message: "Cliente editado correctamente." });
+          setCustomers((prev) => prev.map((c) => (c.customer_id === data.customer_id ? data : c)));
+          setFilteredCustomers((prev) =>
+            prev.map((c) => (c.customer_id === data.customer_id ? data : c))
+          );
+          setTimeout(() => setModalOpen(false), 1200);
+        } else if (res.status === 409) {
+          setAlert({
+            type: "error",
+            message: "Error: Ya existe un cliente con la misma cédula o correo.",
+          });
+        } else if (data?.message) {
+          setAlert({ type: "error", message: data.message });
+        } else {
+          setAlert({ type: "error", message: "No se pudo editar el cliente." });
         }
-      );
-      const data = await res.json();
-
-      if (res.ok) {
-        setAlert({
-          type: "success",
-          message: "Cliente editado correctamente.",
-        });
-        setCustomers(prev =>
-          prev.map(c => (c.customer_id === data.customer_id ? data : c))
-        );
-        setFilteredCustomers(prev =>
-          prev.map(c => (c.customer_id === data.customer_id ? data : c))
-        );
-        setTimeout(() => setModalOpen(false), 1200);
-      } else if (res.status === 409) {
-        setAlert({
-          type: "error",
-          message: "Error: Ya existe un cliente con la misma cédula o correo.",
-        });
-      } else if (data?.message) {
-        setAlert({ type: "error", message: data.message });
       } else {
-        setAlert({ type: "error", message: "No se pudo editar el cliente." });
+        const res = await fetch(`${API_URL}/api/v1/customers`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(form),
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          setAlert({ type: "success", message: "Cliente agregado correctamente." });
+          setCustomers((prev) => [...prev, data]);
+          setFilteredCustomers((prev) => [...prev, data]);
+          setTimeout(() => setModalOpen(false), 1200);
+        } else if (res.status === 409) {
+          setAlert({
+            type: "error",
+            message: "Error: Ya existe un cliente con la misma cédula o correo.",
+          });
+        } else if (data?.message) {
+          setAlert({ type: "error", message: data.message });
+        } else {
+          setAlert({ type: "error", message: "No se pudo agregar el cliente." });
+        }
       }
-    } else {
-      const res = await fetch("http://localhost:8000/api/v1/customers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+    } catch (err: any) {
+      setAlert({
+        type: "error",
+        message: `Error de conexión: ${err.message || "Servidor no responde"}`,
       });
-      const data = await res.json();
-
-      if (res.ok) {
-        setAlert({
-          type: "success",
-          message: "Cliente agregado correctamente.",
-        });
-        setCustomers(prev => [...prev, data]);
-        setFilteredCustomers(prev => [...prev, data]);
-        setTimeout(() => setModalOpen(false), 1200);
-      } else if (res.status === 409) {
-        setAlert({
-          type: "error",
-          message: "Error: Ya existe un cliente con la misma cédula o correo.",
-        });
-      } else if (data?.message) {
-        setAlert({ type: "error", message: data.message });
-      } else {
-        setAlert({
-          type: "error",
-          message: "No se pudo agregar el cliente.",
-        });
-      }
+    } finally {
+      setLoadingForm(false);
     }
-  } catch (err: any) {
-    setAlert({
-      type: "error",
-      message: `Error de conexión: ${err.message || "Servidor no responde"}`,
-    });
-  } finally {
-    setLoadingForm(false);
-  }
-};
-
+  };
 
   const tableContent = filteredCustomers.map((c) => ({
     ID: c.customer_id,
@@ -245,8 +208,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             setModalOpen(true);
           }}
         >
-          <RiEdit2Fill/>
-          Editar
+          <RiEdit2Fill /> Editar
         </Button>
         <Button
           style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
@@ -255,8 +217,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             setDeleteModalOpen(true);
           }}
         >
-          <FaTrash/>
-          Eliminar
+          <FaTrash /> Eliminar
         </Button>
       </div>
     ),
@@ -269,12 +230,9 @@ const handleSubmit = async (e: React.FormEvent) => {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-              {/* Título a la izquierda */}
-              <h1 className="text-2xl font-bold mb-6 text-left">
-                Clientes y Fidelización
-              </h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">Clientes y Fidelización</h1>
 
-              {/* Barra de búsqueda y botones centrados debajo del título */}
+              {/* Barra de búsqueda y botones */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-6">
                 <div className="w-full h-10">
                   <SearchBar<Customer>
@@ -283,12 +241,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                     placeholder="Buscar por cédula..."
                     onResultsChange={(results) => {
                       setFilteredCustomers(results);
-                      if (results.length > 0 || !results) setAlert(null); // limpia alert si hay resultados o vacío
+                      if (results.length > 0 || !results) setAlert(null);
                     }}
                     onSelect={(item) => setFilteredCustomers([item])}
                     onNotFound={(q) => {
                       if (q === "") {
-                        setAlert(null); // si borraste todo, quitar alerta
+                        setAlert(null);
                       } else {
                         setFilteredCustomers([]);
                         setAlert({
@@ -299,7 +257,6 @@ const handleSubmit = async (e: React.FormEvent) => {
                     }}
                   />
 
-                  {/* Mostrar alert de búsqueda */}
                   {alert && (
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
@@ -321,11 +278,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                       setModalOpen(true);
                     }}
                   >
-                    {/* Ícono de usuario con "+" usando IoAddCircle */}
                     <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                    <span className="whitespace-nowrap text-base">
-                      Añadir Cliente
-                    </span>
+                    <span className="whitespace-nowrap text-base">Añadir Cliente</span>
                   </Button>
                 </div>
               </div>
@@ -334,10 +288,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               {loading ? (
                 <p>Cargando clientes...</p>
               ) : (
-                <TableInformation
-                  headers={headers}
-                  tableContent={tableContent}
-                />
+                <TableInformation headers={headers} tableContent={tableContent} />
               )}
 
               {/* Modal de clientes */}
@@ -429,8 +380,8 @@ const handleSubmit = async (e: React.FormEvent) => {
                         {loadingForm
                           ? "Guardando..."
                           : customerToEdit
-                            ? "Guardar cambios"
-                            : "Guardar"}
+                          ? "Guardar cambios"
+                          : "Guardar"}
                       </button>
                       <button
                         type="button"
@@ -451,15 +402,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                 title="Confirmar eliminación"
                 className="shadow-2xl"
               >
-                <p className="mb-4">
-                  ¿Seguro que deseas eliminar este cliente?
-                </p>
+                <p className="mb-4">¿Seguro que deseas eliminar este cliente?</p>
                 <div className="flex gap-4 justify-center">
                   <button
                     className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() =>
-                      customerIdToDelete && handleDelete(customerIdToDelete)
-                    }
+                    onClick={() => customerIdToDelete && handleDelete(customerIdToDelete)}
                   >
                     Eliminar
                   </button>
