@@ -5,6 +5,9 @@ import { MdOutlineMail } from "react-icons/md";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { FaRegCopyright } from "react-icons/fa6";
 import Nav from "./Nav";
+import { LoginService } from "../services/LoginService";
+import { useEffect, useState } from "react";
+import SimpleModal from "./SimpleModal";
 
 interface NavProps {
   logo?: string;
@@ -58,7 +61,17 @@ interface ContainerProps {
 
 export default function Container(props: ContainerProps) {
   const nav = <Nav {...props.nav} />;
-
+  const [showInactivityModal, setShowInactivityModal] = useState(false);
+  // Callback para el cierre por inactividad
+  useEffect(() => {
+    LoginService.setInactivityCallback(() => {
+      setShowInactivityModal(true);
+    });
+  }, []);
+  const handleCloseModal = () => {
+    setShowInactivityModal(false);
+    window.location.href = "/login"; // redirige al login
+  };
   let pageContent;
 
   // Normalizar arrays
@@ -102,7 +115,21 @@ export default function Container(props: ContainerProps) {
       {nav}
 
       <div className="flex flex-col flex-grow">{pageContent}</div>
-
+      {showInactivityModal && (
+        <SimpleModal
+          open={showInactivityModal}
+          onClose={handleCloseModal}
+          title="Sesión finalizada"
+        >
+          <p>Tu sesión ha sido cerrada por inactividad.</p>
+          <button
+            className="mt-4 px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
+            onClick={handleCloseModal}
+          >
+            Ir a login
+          </button>
+        </SimpleModal>
+      )}
       <footer className="w-full bg-sky-950 text-white py-3 px-6">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-2 text-center">
           {/* Logo o nombre */}
