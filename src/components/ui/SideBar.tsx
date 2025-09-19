@@ -62,7 +62,7 @@ export default function SideBar(props: SideBarProps) {
   const currentPath = window.location.pathname.toLowerCase();
 
   return (
-    <section className="bg-sky-700 h-screen w-1/6 min-w-[200px] flex flex-col">
+    <section className="bg-sky-700 w-1/6 min-w-[200px] min-h-220 flex flex-col pt-4">
       <div className="pt-10 flex flex-col gap-3">
         {Array.isArray(sideBarButtons) &&
           sideBarButtons.map((btn, index) => {
@@ -70,12 +70,12 @@ export default function SideBar(props: SideBarProps) {
             const isActive = currentPath === btnPath || currentPath.startsWith(btnPath + "/");
             // Mantener los estilos originales y solo agregar el color activo
             const originalStyle = btn.props.style || "";
-            const activeStyle = isActive ? "bg-white text-sky-700 font-bold" : "text-white";
+            const activeStyle = isActive ? "bg-sky-200 text-sky-700 font-bold" : "text-white";
             return (
               <div
                 key={index}
                 className={`flex items-center gap-2 mb-3 w-full pl-6 duration-300 cursor-pointer 
-                  ${isActive ? "bg-white" : "hover:bg-sky-600"}
+                  ${isActive ? "bg-sky-200" : "hover:bg-sky-600"}
                 `}
               >
                 <svg
