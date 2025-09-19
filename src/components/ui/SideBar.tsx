@@ -1,4 +1,4 @@
-
+import React from "react";
 import Button from "./Button";
 
 interface SideBarProps {
@@ -6,18 +6,18 @@ interface SideBarProps {
 }
 
 export default function SideBar(props: SideBarProps) {
-  const btnInventario = (<Button text="Inventario" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" />);
-  const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" />);
-  const btnClientes = (<Button text="Clientes y Fidelización" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/customer" />);
-  const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/employees" />);
-  const btnNegocios = (<Button text="Negocios" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/businesses" />);
-  const btnSucursales = (<Button text="Sucursales" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/branches" />);
-  const btnBodegas = (<Button text="Bodegas" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" />);
-  const btnPerfil = (<Button text="Perfil" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" />);
-  const btnSalesPages = (<Button text="Punto de Venta" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/salesPage" />);
-  const btnProvider = (<Button text="Proveedores" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/Provider" />);
-  const btnCashRegisterPage = (<Button text="Control de Caja" style="bg-transparent text-white font-bold rounded p-1 cursor-pointer w-full text-left" to="/cashRegisterPage" />);
-  
+  const btnInventario = (<Button text="Inventario" style="bg-transparent  font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" />);
+  const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" />);
+  const btnClientes = (<Button text="Clientes y Fidelización" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/customer" />);
+  const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/employees" />);
+  const btnNegocios = (<Button text="Negocios" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/businesses" />);
+  const btnSucursales = (<Button text="Sucursales" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/branches" />);
+  const btnBodegas = (<Button text="Bodegas" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" />);
+  const btnPerfil = (<Button text="Perfil" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" />);
+  const btnSalesPages = (<Button text="Punto de Venta" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/salesPage" />);
+  const btnProvider = (<Button text="Proveedores" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/Provider" />);
+  const btnCashRegisterPage = (<Button text="Control de Caja" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/cashRegisterPage" />);
+
 
   // Botones base para todos los usuarios
   let sideBarButtons = [btnInventario, btnRegistroIngresos, btnClientes, btnPersonal, btnBodegas, btnPerfil, btnProvider, btnCashRegisterPage];
@@ -58,26 +58,42 @@ export default function SideBar(props: SideBarProps) {
       break;
   }
 
+  // Obtener la ruta actual
+  const currentPath = window.location.pathname.toLowerCase();
+
   return (
     <section className="bg-sky-700 h-screen w-1/6 min-w-[200px] flex flex-col">
       <div className="pt-10 flex flex-col gap-3">
         {Array.isArray(sideBarButtons) &&
-          sideBarButtons.map((btn, index) => (
-            <div
-              key={index}
-              className="flex items-center gap-2 mb-3 w-full pl-6 hover:bg-sky-600 duration-300 cursor-pointer rounded-lg"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-7 w-7 flex-shrink-0 text-white"
-                viewBox="0 0 24 24"
-                fill="currentColor"
+          sideBarButtons.map((btn, index) => {
+            const btnPath = (btn.props.to || "").toLowerCase();
+            const isActive = currentPath === btnPath || currentPath.startsWith(btnPath + "/");
+            // Mantener los estilos originales y solo agregar el color activo
+            const originalStyle = btn.props.style || "";
+            const activeStyle = isActive ? "bg-white text-sky-700 font-bold" : "text-white";
+            return (
+              <div
+                key={index}
+                className={`flex items-center gap-2 mb-3 w-full pl-6 duration-300 cursor-pointer 
+                  ${isActive ? "bg-white" : "hover:bg-sky-600"}
+                `}
               >
-                <path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zm-9 2.618L5 15.236V9.764l7 3.382 7-3.382v5.472l-7 3.382z" />
-              </svg>
-              <div className="flex-1">{btn}</div>
-            </div>
-          ))}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className={`h-7 w-7 flex-shrink-0 ${isActive ? "text-sky-700" : "text-white"}`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M21 16V8a1 1 0 0 0-.553-.894l-8-4a1 1 0 0 0-.894 0l-8 4A1 1 0 0 0 3 8v8a1 1 0 0 0 .553.894l8 4a1 1 0 0 0 .894 0l8-4A1 1 0 0 0 21 16zm-9 2.618L5 15.236V9.764l7 3.382 7-3.382v5.472l-7 3.382z" />
+                </svg>
+                <div className="flex-1">
+                  {React.cloneElement(btn, {
+                    style: `${originalStyle} ${activeStyle}`.trim()
+                  })}
+                </div>
+              </div>
+            );
+          })}
       </div>
     </section>
   );

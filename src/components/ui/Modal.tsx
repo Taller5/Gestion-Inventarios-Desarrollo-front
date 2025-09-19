@@ -29,6 +29,8 @@ export default function Modal({
     const [loading, setLoading] = useState(false);
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+    const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+
     // Inicializa el formulario con los datos del usuario a editar
     useEffect(() => {
         if (open) {
@@ -113,6 +115,32 @@ export default function Modal({
         }
     };
 
+    // Reemplaza tu función getPasswordErrors por una igual a la de Profile:
+    const passwordValidations = [
+        {
+            test: (pw: string) => pw.length >= 6,
+            message: "Al menos 6 caracteres"
+        },
+        {
+            test: (pw: string) => /[A-Z]/.test(pw),
+            message: "Al menos una letra mayúscula"
+        },
+        {
+            test: (pw: string) => /[a-z]/.test(pw),
+            message: "Al menos una letra minúscula"
+        },
+        {
+            test: (pw: string) => /\d/.test(pw),
+            message: "Al menos un número"
+        },
+        {
+            test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
+            message: "Al menos un carácter especial"
+        }
+    ];
+    const getPasswordErrors = (pw: string) =>
+        passwordValidations.filter(v => !v.test(pw)).map(v => v.message);
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-transparent backdrop-blur-sm"></div>
@@ -188,9 +216,15 @@ export default function Modal({
                             placeholder="Contraseña"
                             required={!isEditMode}
                             minLength={isEditMode ? undefined : 6}
+                            onFocus={() => setNewPasswordFocused(true)}
+                            onBlur={() => setNewPasswordFocused(false)}
                         />
-                        {(!isEditMode && form.password.length > 0 && form.password.length < 6) && (
-                            <span className="text-red-500 text-xs mt-1">Mínimo 6 caracteres</span>
+                        {newPasswordFocused && (
+                            <ul className="text-sm text-red-700 list-disc pl-5 mt-2">
+                                {getPasswordErrors(form.password).slice(0, 1).map((error, index) => (
+                                    <li key={index}>{error}</li>
+                                ))}
+                            </ul>
                         )}
                     </div>
                 </div>
