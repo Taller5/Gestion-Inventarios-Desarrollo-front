@@ -10,6 +10,7 @@ import SimpleModal from "../ui/SimpleModal";
 import { FaTrash } from "react-icons/fa";
 import { IoAddCircle } from "react-icons/io5";
 import { CgDetailsMore } from "react-icons/cg";
+import { RiEdit2Fill } from "react-icons/ri";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -103,10 +104,12 @@ export default function Inventary() {
     false | "add-product" | "add-lote" | Lote
   >(false);
   const [editMode, setEditMode] = useState(false);
+  const [editProductMode, setEditProductMode] = useState(false);
   // Estado para el producto a eliminar y mostrar modal de confirmación
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(
     null
   );
+  const [loteAEliminar, setLoteAEliminar] = useState<Lote | null>(null);
 
   // Estado para proveedores
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -138,7 +141,6 @@ export default function Inventary() {
   }, [formLote.codigo, productos, providers]);
 
   // Tipo para proveedor
- 
 
   // Cargar proveedores al inicio
   useEffect(() => {
@@ -154,7 +156,9 @@ export default function Inventary() {
       return;
     }
     // Buscar el producto por código
-    const producto = productos.find((p: Producto) => p.codigo === formLote.codigo);
+    const producto = productos.find(
+      (p: Producto) => p.codigo === formLote.codigo
+    );
     if (!producto) {
       setFilteredProviders([]);
       return;
@@ -265,7 +269,7 @@ export default function Inventary() {
                     <Button
                       style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                       onClick={() => {
-                        setEditMode(false);
+                        setEditProductMode(false);
                         setFormProducto({
                           codigo: "",
                           nombre: "",
@@ -351,7 +355,7 @@ export default function Inventary() {
                               </td>
                               <td className=" flex flex-row py-3 px-3  text-sm gap-2">
                                 <Button
-                                  style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  style="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
                                   onClick={() => {
                                     setEditMode(true);
                                     setFormLote({
@@ -371,6 +375,28 @@ export default function Inventary() {
                                 >
                                   <IoAddCircle />
                                   Agregar lote
+                                </Button>
+                                {/* Botón Editar Producto */}
+                                <Button
+                                  style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  onClick={() => {
+                                    setEditProductMode(true);
+
+                                    setFormProducto({
+                                      id: producto.id,
+                                      codigo: producto.codigo,
+                                      nombre: producto.nombre,
+                                      stock: producto.stock,
+                                      precio: producto.precio,
+                                      bodega: producto.bodega?.bodega_id
+                                        ? producto.bodega.bodega_id
+                                        : producto.bodega,
+                                    });
+                                    setModalOpen("add-product");
+                                  }}
+                                >
+                                  <RiEdit2Fill />
+                                  Editar
                                 </Button>
                                 <Button
                                   style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
@@ -457,9 +483,9 @@ export default function Inventary() {
                                           {lote.cantidad}
                                         </span>
                                         {/* Botón para ver detalles completos del lote en el modal */}
-                                        <div className="ml-auto">
+                                        <div className="ml-auto flex gap-2">
                                           <Button
-                                            style="text-sm  cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold  py-1 px-2 rounded "
+                                            style="text-sm cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded"
                                             onClick={() => {
                                               setEditMode(false);
                                               setFormLote(lote);
@@ -468,6 +494,52 @@ export default function Inventary() {
                                           >
                                             <CgDetailsMore />
                                             Detalles
+                                          </Button>
+                                          <Button
+                                            style="text-sm cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+                                            onClick={() => {
+                                              setEditMode(true);
+                                              setFormLote(lote);
+                                              setModalOpen(lote);
+                                            }}
+                                          >
+                                            <RiEdit2Fill />
+                                            Editar
+                                          </Button>
+                                          <Button
+                                            style="text-sm cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                                            onClick={async () => {
+                                              if (
+                                                !window.confirm(
+                                                  "¿Seguro que deseas eliminar este lote?"
+                                                )
+                                              )
+                                                return;
+                                              setLoadingForm(true);
+                                              try {
+                                                const res = await fetch(
+                                                  `${API_URL}/api/v1/batch/${lote.lote_id}`,
+                                                  {
+                                                    method: "DELETE",
+                                                  }
+                                                );
+                                                if (res.ok) {
+                                                  setLotes((prev) =>
+                                                    prev.filter(
+                                                      (l) =>
+                                                        l.lote_id !==
+                                                        lote.lote_id
+                                                    )
+                                                  );
+                                                }
+                                              } finally {
+                                                setLoadingForm(false);
+                                              }
+                                            }}
+                                            disabled={loadingForm}
+                                          >
+                                            <FaTrash />
+                                            Eliminar
                                           </Button>
                                         </div>
                                       </div>
@@ -482,35 +554,76 @@ export default function Inventary() {
                     </tbody>
                   </table>
                 </div>
-                {/* Modal para agregar producto */}
+                {/* Modal para agregar/editar producto */}
                 {modalOpen === "add-product" && (
                   <SimpleModal open={true} onClose={() => setModalOpen(false)}>
                     <form
                       onSubmit={async (e) => {
                         e.preventDefault();
                         setLoadingForm(true);
-                        const res = await fetch(`${API_URL}/api/v1/products`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            codigo: formProducto.codigo,
-                            nombre: formProducto.nombre,
-                            stock: 0,
-                            precio: Number(formProducto.precio),
-                            bodega_id: Number(formProducto.bodega),
-                          }),
-                        });
-                        if (res.ok) {
-                          const nuevoProducto = await res.json();
-                          setProductos((prev) => [...prev, nuevoProducto]);
+                        if (editProductMode) {
+                          // Editar producto
+                          const res = await fetch(
+                            `${API_URL}/api/v1/products/${formProducto.id}`,
+                            {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                nombre: formProducto.nombre,
+                                precio: Number(formProducto.precio),
+                                bodega_id: Number(formProducto.bodega),
+                              }),
+                            }
+                          );
+                          if (res.ok) {
+                            const actualizado = await res.json();
+                            setProductos((prev) =>
+                              prev.map((p) =>
+                                p.codigo === formProducto.codigo
+                                  ? { ...p, ...actualizado }
+                                  : p
+                              )
+                            );
+                            // ACTUALIZA EL NOMBRE EN LOS LOTES RELACIONADOS
+                            setLotes((prev) =>
+                              prev.map((lote) =>
+                                lote.codigo === formProducto.codigo
+                                  ? { ...lote, nombre: formProducto.nombre }
+                                  : lote
+                              )
+                            );
+                          }
+                        } else {
+                          // Crear producto
+                          const res = await fetch(
+                            `${API_URL}/api/v1/products`,
+                            {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({
+                                codigo: formProducto.codigo,
+                                nombre: formProducto.nombre,
+                                stock: 0,
+                                precio: Number(formProducto.precio),
+                                bodega_id: Number(formProducto.bodega),
+                              }),
+                            }
+                          );
+                          if (res.ok) {
+                            const nuevoProducto = await res.json();
+                            setProductos((prev) => [...prev, nuevoProducto]);
+                          }
                         }
                         setLoadingForm(false);
                         setModalOpen(false);
+                        setEditProductMode(false);
                       }}
                       className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
                     >
                       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                        Agregar Producto
+                        {editProductMode
+                          ? "Editar Producto"
+                          : "Agregar Producto"}
                       </h2>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="flex flex-col gap-4">
@@ -528,6 +641,8 @@ export default function Inventary() {
                               placeholder="Código"
                               className="w-full border rounded-lg px-3 py-2"
                               required
+                              disabled={editProductMode}
+                              readOnly={editProductMode}
                             />
                           </label>
                           <label className="font-semibold">
@@ -550,10 +665,7 @@ export default function Inventary() {
                             Stock
                             <input
                               name="stock"
-                              value={(() => {
-                                // Siempre 0 al crear
-                                return 0;
-                              })()}
+                              value={formProducto.stock}
                               disabled
                               readOnly
                               className="w-full border rounded-lg px-3 py-2 bg-gray-300"
@@ -604,7 +716,13 @@ export default function Inventary() {
                       </div>
                       <div className="flex gap-4 justify-end mt-6">
                         <Button
-                          text={loadingForm ? "Guardando..." : "Guardar"}
+                          text={
+                            loadingForm
+                              ? "Guardando..."
+                              : editProductMode
+                                ? "Guardar cambios"
+                                : "Guardar"
+                          }
                           style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="submit"
                           disabled={
@@ -619,7 +737,10 @@ export default function Inventary() {
                           text="Cerrar"
                           style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="button"
-                          onClick={() => setModalOpen(false)}
+                          onClick={() => {
+                            setModalOpen(false);
+                            setEditProductMode(false);
+                          }}
                         />
                       </div>
                     </form>
@@ -1029,7 +1150,9 @@ export default function Inventary() {
                                   className="w-full border rounded-lg px-3 py-2"
                                   required
                                 >
-                                  <option value="">Seleccione un proveedor</option>
+                                  <option value="">
+                                    Seleccione un proveedor
+                                  </option>
                                   {filteredProviders.length === 0 ? (
                                     <option value="" disabled>
                                       No hay proveedores para este producto
@@ -1096,14 +1219,6 @@ export default function Inventary() {
                               style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                               type="submit"
                               disabled={loadingForm}
-                            />
-                          )}
-                          {!editMode && !loadingForm && (
-                            <Button
-                              text="Editar"
-                              style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                              type="button"
-                              onClick={() => setEditMode(true)}
                             />
                           )}
                           <Button
