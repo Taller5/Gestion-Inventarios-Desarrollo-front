@@ -57,6 +57,19 @@ export default function CashRegisterPage() {
   const [cashRegisterToClose, setCashRegisterToClose] = useState<CashRegister | null>(null);
   const [closingAmount, setClosingAmount] = useState<number | "">("");
 
+  // Función para formatear fecha
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "-";
+    const date = new Date(dateString);
+    return date.toLocaleString("es-CR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   // Obtener sucursales
   const fetchBranches = async () => {
     try {
@@ -104,7 +117,7 @@ export default function CashRegisterPage() {
       const data = await res.json();
       if (res.ok) {
         setAlert({ type: "success", message: "Caja abierta correctamente" });
-        setCashRegisters(prev => [...prev, data.data]);
+        setCashRegisters(prev => [...prev, data.data]); // añade nueva caja
         setModalOpen(false);
         setSelectedBranch(null);
         setOpeningAmount("");
@@ -156,8 +169,8 @@ export default function CashRegisterPage() {
     Usuario: c.user?.name,
     "Monto apertura": c.opening_amount,
     "Monto cierre": c.closing_amount ?? "-",
-    Abierta: c.opened_at,
-    Cerrada: c.closed_at ?? "-",
+    Abierta: formatDate(c.opened_at),
+    Cerrada: formatDate(c.closed_at),
     Acciones: !c.closed_at ? (
       <Button
         style="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 rounded text-sm"
