@@ -89,6 +89,11 @@ export default function Inventary() {
     nombre: "",
     lote_id: undefined,
   });
+  const [simpleModal, setSimpleModal] = useState({
+    open: false,
+    title: "",
+    message: "",
+  });
 
   const [loadingForm, setLoadingForm] = useState(false);
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -109,7 +114,6 @@ export default function Inventary() {
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(
     null
   );
-
 
   // Estado para proveedores
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -507,40 +511,78 @@ export default function Inventary() {
                                             Editar
                                           </Button>
                                           <Button
-                                            style="text-sm cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded"
+                                            style="text-sm cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded justify-self-end"
                                             onClick={async () => {
-                                              if (
-                                                !window.confirm(
-                                                  "¿Seguro que deseas eliminar este lote?"
-                                                )
-                                              )
-                                                return;
-                                              setLoadingForm(true);
-                                              try {
-                                                const res = await fetch(
-                                                  `${API_URL}/api/v1/batch/${lote.lote_id}`,
-                                                  {
-                                                    method: "DELETE",
-                                                  }
-                                                );
-                                                if (res.ok) {
-                                                  setLotes((prev) =>
-                                                    prev.filter(
-                                                      (l) =>
-                                                        l.lote_id !==
-                                                        lote.lote_id
-                                                    )
-                                                  );
-                                                }
-                                              } finally {
-                                                setLoadingForm(false);
-                                              }
+                                              setSimpleModal({
+                                                open: true,
+                                                title: "Confirmación",
+                                                message:
+                                                  "¿Seguro que deseas eliminar este lote?",
+                                              });
                                             }}
-                                            disabled={loadingForm}
                                           >
                                             <FaTrash />
                                             Eliminar
                                           </Button>
+
+                                          <SimpleModal
+                                            open={simpleModal.open}
+                                            onClose={() =>
+                                              setSimpleModal({
+                                                ...simpleModal,
+                                                open: false,
+                                              })
+                                            }
+                                            title={simpleModal.title}
+                                          >
+                                            <div className="flex flex-col gap-4">
+                                              <p>{simpleModal.message}</p>
+                                              <div className="flex justify-end gap-2">
+                                                <button
+                                                  className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded cursor-pointer"
+                                                  onClick={() =>
+                                                    setSimpleModal({
+                                                      ...simpleModal,
+                                                      open: false,
+                                                    })
+                                                  }
+                                                >
+                                                  Cancelar
+                                                </button>
+                                                <button
+                                                  className="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded cursor-pointer"
+                                                  onClick={async () => {
+                                                    setLoadingForm(true);
+                                                    try {
+                                                      const res = await fetch(
+                                                        `${API_URL}/api/v1/batch/${lote.lote_id}`,
+                                                        {
+                                                          method: "DELETE",
+                                                        }
+                                                      );
+                                                      if (res.ok) {
+                                                        setLotes((prev) =>
+                                                          prev.filter(
+                                                            (l) =>
+                                                              l.lote_id !==
+                                                              lote.lote_id
+                                                          )
+                                                        );
+                                                      }
+                                                    } finally {
+                                                      setLoadingForm(false);
+                                                      setSimpleModal({
+                                                        ...simpleModal,
+                                                        open: false,
+                                                      });
+                                                    }
+                                                  }}
+                                                >
+                                                  Eliminar
+                                                </button>
+                                              </div>
+                                            </div>
+                                          </SimpleModal>
                                         </div>
                                       </div>
                                     ))}

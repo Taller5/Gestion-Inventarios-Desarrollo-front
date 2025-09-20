@@ -708,7 +708,11 @@ const guardarEdicion = (idx: number) => {
                     type="number"
                     min={1}
                     value={editCantidad}
-                    onChange={(e) => setEditCantidad(Number(e.target.value))}
+                    onChange={(e) => {
+                        const value = Math.max(1, Number(e.target.value));
+                        setEditCantidad(value);
+                      }}
+
                     className="border rounded px-2 py-1 w-16"
                   />
                 ) : (
