@@ -18,13 +18,12 @@ type CashRegister = {
   user_id: number;
   opening_amount: number;
   closing_amount?: number;
-  opened_at: string;
-  closed_at?: string;
+  opened_at: string | null;
+  closed_at?: string | null;
   branch: Branch;
   user: { id: number; name: string };
 };
 
-// Encabezados de tabla
 const headers = [
   "ID",
   "Sucursal",
@@ -36,8 +35,93 @@ const headers = [
   "Acciones",
 ];
 
-// URL base desde .env
 const API_URL = import.meta.env.VITE_API_URL as string;
+
+/**
+ * Convierte varios formatos de fecha a una representación en la zona "America/Costa_Rica".
+ * - Acepta ISO con zona (ej: 2025-09-19T14:33:00Z)
+ * - Acepta ISO sin zona (2025-09-19T14:33:00) -> lo trata como UTC
+ * - Acepta formato con espacio (2025-09-19 14:33:00) -> lo convierte a ISO y trata como UTC
+ * - Acepta timestamps numéricos
+ * - Si la cadena ya es legible (contiene '/',' de ' u otro formato no ISO) la devuelve tal cual
+ */
+const formatDateSafe = (input?: string | number | null) => {
+  if (input === null || input === undefined || input === "") return "-";
+
+  // Si es número (timestamp)
+  if (typeof input === "number") {
+    const d = new Date(input);
+    if (!isNaN(d.getTime())) {
+      return d.toLocaleString("es-CR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "America/Costa_Rica",
+      });
+    }
+    return String(input);
+  }
+
+  const s = String(input).trim();
+
+  // Si parece ya una fecha legible (ej: "19/09/2025 14:33" o "19 de septiembre ..."), devolvemos tal cual
+  // Esto evita re-parsing de una fecha que ya es para mostrar.
+  if (/[\/]|[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(s) && !/T/.test(s)) {
+    return s;
+  }
+
+  // Regex ISO-like: YYYY-MM-DDTHH:MM:SS(.sss)?(Z|+hh:mm|-hh:mm)?
+  const isoRegex =
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:\d{2})?$/;
+  // Regex space-separated: YYYY-MM-DD HH:MM(:SS)?
+  const spaceIsoRegex = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?$/;
+  let isoCandidate = s;
+
+  if (isoRegex.test(s)) {
+    // si ya tiene Z o offset, úsalo tal cual; si no tiene zona, asumimos UTC y agregamos 'Z'
+    if (!/[Zz]|[+\-]\d{2}:\d{2}$/.test(s)) {
+      isoCandidate = s + "Z";
+    }
+  } else if (spaceIsoRegex.test(s)) {
+    // convierte "2025-09-19 14:33:00" -> "2025-09-19T14:33:00Z"
+    isoCandidate = s.replace(" ", "T") + "Z";
+  } else {
+    // último recurso: intentar crear Date directamente (puede funcionar para algunos formatos)
+    const tryD = new Date(s);
+    if (!isNaN(tryD.getTime())) {
+      return tryD.toLocaleString("es-CR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZone: "America/Costa_Rica",
+      });
+    }
+    // si sigue inválido, devolvemos la cadena original (fallback)
+    return s;
+  }
+
+  const d = new Date(isoCandidate);
+  if (isNaN(d.getTime())) {
+    // fallback: devuelve la cadena original si no se pudo parsear
+    return s;
+  }
+
+  return d.toLocaleString("es-CR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "America/Costa_Rica",
+  });
+};
 
 export default function CashRegisterPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -47,30 +131,19 @@ export default function CashRegisterPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
   const [openingAmount, setOpeningAmount] = useState<number | "">("");
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]);
 
-  // Modal para cerrar caja
   const [closeModalOpen, setCloseModalOpen] = useState(false);
-  const [cashRegisterToClose, setCashRegisterToClose] = useState<CashRegister | null>(null);
+  const [cashRegisterToClose, setCashRegisterToClose] =
+    useState<CashRegister | null>(null);
   const [closingAmount, setClosingAmount] = useState<number | "">("");
 
-  // Función para formatear fecha
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "-";
-    const date = new Date(dateString);
-    return date.toLocaleString("es-CR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  // Obtener sucursales
   const fetchBranches = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/branches`);
@@ -81,7 +154,6 @@ export default function CashRegisterPage() {
     }
   };
 
-  // Obtener cajas registradoras
   const fetchCashRegisters = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/cash-registers`);
@@ -97,14 +169,20 @@ export default function CashRegisterPage() {
     fetchCashRegisters();
   }, []);
 
-  // Abrir caja
   const handleOpenCashRegister = async () => {
     if (!selectedBranch || openingAmount === "" || openingAmount <= 0) {
-      setAlert({ type: "error", message: "Selecciona una sucursal y un monto válido." });
+      setAlert({
+        type: "error",
+        message: "Selecciona una sucursal y un monto válido.",
+      });
       return;
     }
 
-    const payload = { sucursal_id: selectedBranch, user_id: userId, opening_amount: openingAmount };
+    const payload = {
+      sucursal_id: selectedBranch,
+      user_id: userId,
+      opening_amount: openingAmount,
+    };
     setLoading(true);
     setAlert(null);
 
@@ -115,14 +193,21 @@ export default function CashRegisterPage() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
+
       if (res.ok) {
         setAlert({ type: "success", message: "Caja abierta correctamente" });
-        setCashRegisters(prev => [...prev, data.data]); // añade nueva caja
+
+        // Agregamos la nueva caja tal cual viene desde el backend; formatDateSafe se encargará de parsearla
+        setCashRegisters((prev) => [...prev, data.data]);
+
         setModalOpen(false);
         setSelectedBranch(null);
         setOpeningAmount("");
       } else {
-        setAlert({ type: "error", message: data.message || "Error al abrir la caja" });
+        setAlert({
+          type: "error",
+          message: data.message || "Error al abrir la caja",
+        });
       }
     } catch (err: any) {
       setAlert({ type: "error", message: `Error de conexión: ${err.message}` });
@@ -131,29 +216,37 @@ export default function CashRegisterPage() {
     }
   };
 
-  // Cerrar caja
   const handleCloseCashRegister = async () => {
-    if (!cashRegisterToClose || closingAmount === "" || closingAmount < 0) return;
+    if (!cashRegisterToClose || closingAmount === "" || closingAmount < 0)
+      return;
     setLoading(true);
     setAlert(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ closing_amount: closingAmount }),
-      });
+      const res = await fetch(
+        `${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ closing_amount: closingAmount }),
+        }
+      );
       const data = await res.json();
+
       if (res.ok) {
-        setAlert({ type: "success", message: "Caja cerrada correctamente" });
-        setCashRegisters(prev =>
-          prev.map(c => (c.id === cashRegisterToClose.id ? data.data : c))
+        // Actualizamos la caja en el estado con la respuesta del backend
+        setCashRegisters((prev) =>
+          prev.map((c) => (c.id === cashRegisterToClose.id ? data.data : c))
         );
+
         setCloseModalOpen(false);
         setCashRegisterToClose(null);
         setClosingAmount("");
       } else {
-        setAlert({ type: "error", message: data.message || "Error al cerrar la caja" });
+        setAlert({
+          type: "error",
+          message: data.message || "Error al cerrar la caja",
+        });
       }
     } catch (err: any) {
       setAlert({ type: "error", message: `Error de conexión: ${err.message}` });
@@ -162,15 +255,14 @@ export default function CashRegisterPage() {
     }
   };
 
-  // Contenido tabla
-  const tableContent = cashRegisters.map(c => ({
+  const tableContent = cashRegisters.map((c) => ({
     ID: c.id,
     Sucursal: c.branch?.nombre,
     Usuario: c.user?.name,
     "Monto apertura": c.opening_amount,
     "Monto cierre": c.closing_amount ?? "-",
-    Abierta: formatDate(c.opened_at),
-    Cerrada: formatDate(c.closed_at),
+    Abierta: formatDateSafe(c.opened_at),
+    Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
     Acciones: !c.closed_at ? (
       <Button
         style="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 rounded text-sm"
@@ -192,9 +284,10 @@ export default function CashRegisterPage() {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-              <h1 className="text-2xl font-bold mb-6 text-left">Gestión de Cajas</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Gestión de Cajas
+              </h1>
 
-              {/* Abrir nueva caja */}
               <div className="flex items-center gap-4 mb-6">
                 <Button
                   style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-2 px-4 rounded flex items-center gap-2"
@@ -204,15 +297,15 @@ export default function CashRegisterPage() {
                 </Button>
               </div>
 
-              {/* Tabla de cajas */}
               <TableInformation headers={headers} tableContent={tableContent} />
 
-              {/* Modal Abrir Caja */}
               {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
                   <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-                    <h2 className="text-xl font-bold mb-4 text-center">Abrir Caja</h2>
+                    <h2 className="text-xl font-bold mb-4 text-center">
+                      Abrir Caja
+                    </h2>
 
                     {alert && (
                       <div
@@ -228,14 +321,18 @@ export default function CashRegisterPage() {
 
                     <div className="flex flex-col gap-4 mb-4">
                       <div>
-                        <label className="block font-semibold mb-1">Sucursal</label>
+                        <label className="block font-semibold mb-1">
+                          Sucursal
+                        </label>
                         <select
                           value={selectedBranch ?? ""}
-                          onChange={e => setSelectedBranch(Number(e.target.value))}
+                          onChange={(e) =>
+                            setSelectedBranch(Number(e.target.value))
+                          }
                           className="w-full border rounded-lg px-3 py-2"
                         >
                           <option value="">Selecciona una sucursal</option>
-                          {branches.map(b => (
+                          {branches.map((b) => (
                             <option key={b.sucursal_id} value={b.sucursal_id}>
                               {b.nombre}
                             </option>
@@ -243,11 +340,15 @@ export default function CashRegisterPage() {
                         </select>
                       </div>
                       <div>
-                        <label className="block font-semibold mb-1">Monto de apertura</label>
+                        <label className="block font-semibold mb-1">
+                          Monto de apertura
+                        </label>
                         <input
                           type="number"
                           value={openingAmount}
-                          onChange={e => setOpeningAmount(Number(e.target.value))}
+                          onChange={(e) =>
+                            setOpeningAmount(Number(e.target.value))
+                          }
                           placeholder="0.00"
                           className="w-full border rounded-lg px-3 py-2"
                         />
@@ -273,7 +374,6 @@ export default function CashRegisterPage() {
                 </div>
               )}
 
-              {/* Modal Cerrar Caja */}
               <SimpleModal
                 open={closeModalOpen}
                 onClose={() => setCloseModalOpen(false)}
@@ -284,7 +384,7 @@ export default function CashRegisterPage() {
                   <input
                     type="number"
                     value={closingAmount}
-                    onChange={e => setClosingAmount(Number(e.target.value))}
+                    onChange={(e) => setClosingAmount(Number(e.target.value))}
                     className="w-full border rounded-lg px-3 py-2"
                     placeholder="0.00"
                   />
