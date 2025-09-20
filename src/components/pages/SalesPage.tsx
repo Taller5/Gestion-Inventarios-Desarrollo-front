@@ -81,6 +81,7 @@ const mostrarAlerta = (type: "success" | "error", message: string) => {
   const [editIdx, setEditIdx] = useState<number | null>(null);
   const [editCantidad, setEditCantidad] = useState<number>(1);
   const [editDescuento, setEditDescuento] = useState<number>(0);
+  const [cantidadSeleccionada, setCantidadSeleccionada] = useState(1);
 
   //Facturación
   const [metodoPago, setMetodoPago] = useState<string>("Efectivo");
@@ -859,7 +860,7 @@ const guardarEdicion = (idx: number) => {
 
               <div className="w-1/3"></div>
 
-             {modalOpen && productoSeleccionado && (
+{modalOpen && productoSeleccionado && (
   <div className="fixed inset-0 z-50 flex items-center justify-center">
     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
@@ -868,19 +869,53 @@ const guardarEdicion = (idx: number) => {
       <p><strong>Nombre:</strong> {productoSeleccionado.nombre}</p>
       <p><strong>Precio:</strong> ₡{productoSeleccionado.precio}</p>
       <p>
-        <strong>Stock disponible:</strong> {getAvailableStock(productoSeleccionado.codigo)}
+        <strong>Stock disponible:</strong>{" "}
+        {getAvailableStock(productoSeleccionado.codigo)}
       </p>
+
+      {/* Input cantidad */}
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">
+          Cantidad:
+        </label>
+        <input
+          type="number"
+          min={1}
+          max={getAvailableStock(productoSeleccionado.codigo)}
+          value={cantidadSeleccionada}
+          onChange={(e) =>
+            setCantidadSeleccionada(
+              Math.min(
+                getAvailableStock(productoSeleccionado.codigo),
+                Math.max(1, Number(e.target.value))
+              )
+            )
+          }
+          className="border rounded px-3 py-2 w-24 mt-1"
+        />
+      </div>
+
       <div className="flex justify-end gap-4 mt-6">
         <Button
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded"
-          onClick={() => agregarAlCarrito(productoSeleccionado)}
+          style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded flex items-center gap-1"
+          onClick={() => {
+            // Llamamos agregarAlCarrito N veces
+            for (let i = 0; i < cantidadSeleccionada; i++) {
+              agregarAlCarrito(productoSeleccionado);
+            }
+            setModalOpen(false);
+            setCantidadSeleccionada(1); // reset
+          }}
           disabled={getAvailableStock(productoSeleccionado.codigo) <= 0}
         >
           <IoAddCircle /> Agregar
         </Button>
         <Button
           style="bg-red-500 hover:bg-red-700 text-white font-bold px-4 py-2 rounded"
-          onClick={() => setModalOpen(false)}
+          onClick={() => {
+            setModalOpen(false);
+            setCantidadSeleccionada(1); // reset
+          }}
         >
           Cancelar
         </Button>
@@ -888,6 +923,7 @@ const guardarEdicion = (idx: number) => {
     </div>
   </div>
 )}
+
 
 
               {modalSucursal && (
