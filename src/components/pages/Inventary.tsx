@@ -109,7 +109,7 @@ export default function Inventary() {
   const [productoAEliminar, setProductoAEliminar] = useState<Producto | null>(
     null
   );
-  const [loteAEliminar, setLoteAEliminar] = useState<Lote | null>(null);
+
 
   // Estado para proveedores
   const [providers, setProviders] = useState<Provider[]>([]);
