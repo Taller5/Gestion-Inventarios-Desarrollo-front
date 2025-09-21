@@ -217,6 +217,7 @@ export default function Providers() {
   // ---------------------- Modal de Proveedor ----------------------
 
   const ProviderModal = () => {
+  const [emailError, setEmailError] = useState<string>("");
     const [formData, setFormData] = useState<ProviderForm>({
       id: 0,
       name: "",
@@ -266,12 +267,19 @@ export default function Providers() {
 
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+      const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
+      if (!emailRegex.test(formData.email)) {
+        setEmailError("Debe ingresar un email con dominio válido, por ejemplo: usuario@dominio.com");
+        return;
+      } else {
+        setEmailError("");
+      }
       if (providerToEdit) {
         await handleProviderEdited(formData);
       } else {
         // No enviar el id en el create
         const { id, ...rest } = formData;
-  await handleProviderAdded(rest as ProviderForm);
+        await handleProviderAdded(rest as ProviderForm);
       }
     };
 
@@ -282,9 +290,14 @@ export default function Providers() {
           <h2 className="text-xl font-bold mb-4">{providerToEdit ? "Editar Proveedor" : "Añadir Proveedor"}</h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input className="border p-2 rounded" type="text" placeholder="Nombre del proveedor" value={formData.name} onChange={(e)=>setFormData({...formData, name:e.target.value})} required/>
-            <input className="border p-2 rounded" type="text" placeholder="Contacto" value={formData.contact} onChange={(e)=>setFormData({...formData, contact:e.target.value})} required/>
-            <input className="border p-2 rounded" type="email" placeholder="Email" value={formData.email} onChange={(e)=>setFormData({...formData, email:e.target.value})} required/>
-            <input className="border p-2 rounded" type="text" placeholder="Teléfono" value={formData.phone} onChange={(e)=>setFormData({...formData, phone:e.target.value})} required/>
+            <input className="border p-2 rounded" type="text" title="Persona encargada del proveedor" placeholder="Contacto de la persona encargada del proveedor" value={formData.contact} onChange={(e)=>setFormData({...formData, contact:e.target.value})} required/>
+            <input className="border p-2 rounded" type="email" placeholder="Email" 
+                        title="Debe tener un dominio válido, por ejemplo: usuario@dominio.com" value={formData.email} onChange={(e)=>setFormData({...formData, email:e.target.value})} required/>
+                        {emailError && <span className="text-red-500 text-sm">{emailError}</span>}
+            <input className="border p-2 rounded" type="text" placeholder="Teléfono" value={formData.phone} onChange={(e) => {
+                        const onlyNums = e.target.value.replace(/[^0-9]/g, "");
+                        setFormData({ ...formData, phone: onlyNums });
+              }} required/>
             <select className="border p-2 rounded" value={formData.state} onChange={(e)=>setFormData({...formData, state:e.target.value})}>
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>

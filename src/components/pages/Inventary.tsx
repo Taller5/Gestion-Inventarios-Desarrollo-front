@@ -483,7 +483,7 @@ export default function Inventary() {
                                           {lote.fecha_salida}
                                         </span>
                                         <span>
-                                          <b>Cantidad actual:</b>{" "}
+                                          <b>Productos ingresados por lote:</b>{" "}
                                           {lote.cantidad}
                                         </span>
                                         {/* Botón para ver detalles completos del lote en el modal */}
