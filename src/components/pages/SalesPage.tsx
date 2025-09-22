@@ -854,7 +854,7 @@ const guardarEdicion = (idx: number) => {
 
   <Button
     text="Pagar"
-    style="bg-blue-500 text-white px-8 py-3 rounded text-lg font-bold"
+    style="bg-blue-500 text-white px-8 py-3 rounded text-lg font-bold hover:bg-blue-900 cursor-pointer"
     onClick={() => setFacturaModal(true)}
     disabled={carrito.length === 0 || !clienteSeleccionado}
   />

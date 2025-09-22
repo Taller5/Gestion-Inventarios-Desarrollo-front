@@ -97,7 +97,7 @@ export default function Homepage() {
   onButtonClick: handleOpenModal,
   buttonIcon: <FaWhatsapp className="w-1 h-10 text-white" />,
   containerClassName: "bg-sky-100 text-gray-900 py-20 px-8 md:px-20",
-  buttonClassName: "bg-sky-500 text-black hover:bg-gray-300 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
+  buttonClassName: "bg-sky-500 text-black hover:bg-sky-600 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
   alignment: "center",
   direction: "row",
 
