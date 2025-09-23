@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -7,28 +8,34 @@ interface NavProps {
 }
 
 export default function Nav({ logo }: NavProps) {
-  const [user, setUser] = useState<{ name?: string; profile_photo?: string } | null>(null);
+  const [user, setUser] = useState<{
+    name?: string;
+    profile_photo?: string;
+  } | null>(null);
+
+  // ✅ Ruta actual con TanStack Router
+  const { location } = useRouterState();
+  const isLoginPage = location.pathname === "/login";
 
   useEffect(() => {
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) setUser(JSON.parse(storedUser));
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
 
-  const handleUserUpdate = () => {
-    const updatedUser = localStorage.getItem("user");
-    if (updatedUser) setUser(JSON.parse(updatedUser));
+    const handleUserUpdate = () => {
+      const updatedUser = localStorage.getItem("user");
+      if (updatedUser) setUser(JSON.parse(updatedUser));
+    };
+
+    window.addEventListener("userUpdated", handleUserUpdate);
+    return () => window.removeEventListener("userUpdated", handleUserUpdate);
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("authToken");
+    setUser(null);
+    window.location.href = "/"; // 🔄 redirige al home
   };
-
-  window.addEventListener("userUpdated", handleUserUpdate);
-  return () => window.removeEventListener("userUpdated", handleUserUpdate);
-}, []);
-
-
-const handleLogout = () => {
-  localStorage.removeItem("user");
-  localStorage.removeItem("authToken");
-  setUser(null);
-  window.location.href = "/"; // redirige al home
-};
 
   return (
     <nav className="bg-white flex items-center justify-between py-1 px-7 shadow h-[80px] w-full top-0 left-0">
@@ -42,7 +49,11 @@ const handleLogout = () => {
             {user.profile_photo && (
               <img
                 className="w-10 h-10 rounded-full"
-                src={user.profile_photo.startsWith("http") ? user.profile_photo : `${API_URL}/${user.profile_photo}`}
+                src={
+                  user.profile_photo.startsWith("http")
+                    ? user.profile_photo
+                    : `${API_URL}/${user.profile_photo}`
+                }
                 alt="Perfil"
               />
             )}
@@ -55,12 +66,14 @@ const handleLogout = () => {
             </button>
           </>
         ) : (
-          <button
-            onClick={() => (window.location.href = "/login")}
-            className="bg-blue-500 hover:bg-blue-600  cursor-pointer text-white px-3 py-1 rounded"
-          >
-            Iniciar sesión
-          </button>
+          !isLoginPage && (
+            <button
+              onClick={() => (window.location.href = "/login")}
+              className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded"
+            >
+              Iniciar sesión
+            </button>
+          )
         )}
       </div>
     </nav>
