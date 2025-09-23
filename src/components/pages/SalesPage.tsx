@@ -520,18 +520,7 @@ const guardarEdicion = (idx: number) => {
       onChange={(e) => setQueryCliente(e.target.value)}
     />
   </div>
-<Button
-  style="bg-gray-300 hover:bg-gray-400 text-black font-bold px-3 py-1 rounded mb-2"
-  onClick={() =>
-    setClienteSeleccionado({
-      customer_id: 0,
-      name: "Cliente genérico",
-      identity_number: "N/A",
-    })
-  }
->
-  Cliente genérico
-</Button>
+
 
 {/* Mostrar dropdown solo si hay texto en el input */}
 {queryCliente && (
@@ -550,7 +539,10 @@ const guardarEdicion = (idx: number) => {
               ? "bg-sky-200 font-bold"
               : ""
           }`}
-          onClick={() => setClienteSeleccionado(cliente)}
+          onClick={() => {
+            setClienteSeleccionado(cliente);
+            setQueryCliente(""); // 🚀 Limpiar input al seleccionar
+          }}
         >
           {cliente.name}
           {cliente.identity_number && (
@@ -571,6 +563,9 @@ const guardarEdicion = (idx: number) => {
         No existe ningún cliente con ese nombre o cédula.
       </p>
     )}
+
+
+    
   </div>
 )}
 
@@ -583,13 +578,43 @@ const guardarEdicion = (idx: number) => {
       {clienteSeleccionado.identity_number})
     </p>
   )}
-
+<div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
   <Button
-    style="bg-green-500 hover:bg-green-700 text-white font-bold px-3 py-1 rounded mt-2 flex items-center"
+    style="bg-green-500 hover:bg-green-600 text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform hover:scale-105 flex items-center justify-center"
     onClick={() => (window.location.href = "/customer")}
   >
-    <IoPersonAdd className="mr-1" /> Nuevo cliente
+    <IoPersonAdd className="mr-2" size={18} /> Nuevo cliente
   </Button>
+
+  <Button
+    style="bg-gray-200 hover:bg-gray-300 text-black font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform hover:scale-105 flex items-center justify-center"
+    onClick={() =>
+      setClienteSeleccionado({
+        customer_id: 0,
+        name: "Cliente genérico",
+        identity_number: "N/A",
+      })
+    }
+  >
+    Cliente genérico
+  </Button>
+</div>
+
+
+  {/* Botón para cambiar sucursal */}
+  {sucursalSeleccionada && !modalSucursal && (
+    <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6 mt-4">
+      <button
+        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shadow transition-colors duration-200"
+        onClick={() => setModalSucursal(true)}
+      >
+        Cambiar sucursal
+      </button>
+      <span className="text-gray-700 font-semibold text-left md:text-right">
+        Sucursal actual: {sucursalSeleccionada.nombre} - {sucursalSeleccionada.business.nombre_comercial}
+      </span>
+    </div>
+  )}
 </div>
 
 {/* Navegador de productos */}
@@ -609,58 +634,62 @@ const guardarEdicion = (idx: number) => {
   </div>
 
   {/* Mostrar dropdown solo si se está digitando un código */}
-  {queryProducto && /^\d+$/.test(queryProducto) && (
-    <div className="max-h-40 overflow-y-auto border rounded bg-white">
-      {productosFiltrados.map((producto) => {
-        const getAvailableStock = (codigo: string) => {
-          const itemEnCarrito = carrito.find(i => i.producto.codigo === codigo);
-          return (producto.stock ?? 0) - (itemEnCarrito?.cantidad ?? 0);
-        };
-        const stockDisponible = getAvailableStock(producto.codigo);
+{queryProducto && /^\d+$/.test(queryProducto) && (
+  <div className="max-h-40 overflow-y-auto border rounded bg-white">
+    {productosFiltrados.map((producto) => {
+      const getAvailableStock = (codigo: string) => {
+        const itemEnCarrito = carrito.find(i => i.producto.codigo === codigo);
+        return (producto.stock ?? 0) - (itemEnCarrito?.cantidad ?? 0);
+      };
+      const stockDisponible = getAvailableStock(producto.codigo);
 
-        return (
-          <div
-            key={producto.codigo}
-            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-sky-100 ${
-              productoSeleccionado?.codigo === producto.codigo
-                ? "bg-sky-200 font-bold"
-                : ""
-            }`}
-            onClick={() => setProductoSeleccionado(producto)}
-          >
-            <div className="flex-1">
-              <span>{producto.nombre}</span>{" "}
-              <span className="text-gray-500">({producto.codigo})</span>
-            </div>
-
-            <div
-              className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
-                stockDisponible > 0
-                  ? "bg-green-100 text-green-700"
-                  : "bg-red-100 text-red-700"
-              }`}
-            >
-              Stock: {stockDisponible}
-            </div>
-
-            <Button
-              style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
-              onClick={() => setModalOpen(true)}
-              disabled={stockDisponible <= 0}
-            >
-              <IoAddCircle className="mr-1" /> Añadir
-            </Button>
+      return (
+        <div
+          key={producto.codigo}
+          className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-sky-100 ${
+            productoSeleccionado?.codigo === producto.codigo
+              ? "bg-sky-200 font-bold"
+              : ""
+          }`}
+          onClick={() => {
+            setProductoSeleccionado(producto);
+            setQueryProducto(""); // 🚀 Limpiar input al seleccionar
+          }}
+        >
+          <div className="flex-1">
+            <span>{producto.nombre}</span>{" "}
+            <span className="text-gray-500">({producto.codigo})</span>
           </div>
-        );
-      })}
 
-      {productosFiltrados.length === 0 && (
-        <p className="px-4 py-2 text-red-500 text-sm">
-          No existe ningún producto con ese código.
-        </p>
-      )}
-    </div>
-  )}
+          <div
+            className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
+              stockDisponible > 0
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+          >
+            Stock: {stockDisponible}
+          </div>
+
+          <Button
+            style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
+            onClick={() => setModalOpen(true)}
+            disabled={stockDisponible <= 0}
+          >
+            <IoAddCircle className="mr-1" /> Añadir
+          </Button>
+        </div>
+      );
+    })}
+
+    {productosFiltrados.length === 0 && (
+      <p className="px-4 py-2 text-red-500 text-sm">
+        No existe ningún producto con ese código.
+      </p>
+    )}
+  </div>
+)}
+
 </div>
 
 

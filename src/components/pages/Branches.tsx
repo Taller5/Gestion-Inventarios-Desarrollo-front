@@ -186,9 +186,12 @@ export default function Branches() {
   const [selectedBranchId, setSelectedBranchId] = useState<number | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [branchToEdit, setBranchToEdit] = useState<Branch | null>(null);
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
+   const [deleteSuccess, setDeleteSuccess] = useState<boolean>(false); 
   const [loading, setLoading] = useState(true);
   const [alert, setAlert] = useState<{
     type: "success" | "error";
+    
     message: string;
   } | null>(null);
   const [form, setForm] = useState({
@@ -275,168 +278,148 @@ export default function Branches() {
     fetchData();
   }, [token]);
   // Form handlers
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-      // Reset canton when province changes
-      ...(name === "provincia" ? { canton: "" } : {}),
-    }));
-  };
+ const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  const { name, value } = e.target;
 
-  // Handle form submission
-  // Handle form submission
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const url = branchToEdit
-        ? `${API_URL}/api/v1/branches/${branchToEdit.sucursal_id}`
-        : `${API_URL}/api/v1/branches`;
-
-
-      const method = branchToEdit ? "PUT" : "POST";
-      const response = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(form),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Error al guardar la sucursal");
-      }
-
-      const data: Branch = await response.json();
-
-      // Enriquecer con el nombre del negocio usando la lista de businesses en el estado
-      const negocio = businesses.find(
-        (b) => b.negocio_id === Number(data.negocio_id)
-      );
-      if (negocio) {
-        data.negocio = { nombre: negocio.nombre_comercial };
-      }
-
-      if (branchToEdit) {
-        setBranches(
-          branches.map((b) =>
-            b.sucursal_id === branchToEdit.sucursal_id ? data : b
-          )
-        );
-        setAlert({
-          type: "success",
-          message: "Sucursal actualizada correctamente",
-        });
-      } else {
-        setBranches([...branches, data]);
-        setAlert({ type: "success", message: "Sucursal creada correctamente" });
-      }
-
-      setShowEditModal(false);
-      setBranchToEdit(null);
-    } catch (error: any) {
-      console.error("Error saving branch:", error);
-      setAlert({
-        type: "error",
-        message: error.message || "Error al procesar la solicitud",
-      });
+  // Validaciones en tiempo real
+  if (name === "nombre") {
+    // Permite letras, números, espacios; no deja empezar con número
+    if (value === "" || /^[A-Za-zÁÉÍÓÚáéíóúÑñ][A-Za-z0-9ÁÉÍÓÚáéíóúÑñ ]*$/.test(value)) {
+      setForm((prev) => ({ ...prev, [name]: value }));
     }
-  };
+    return; // no actualizar si no cumple
+  }
+
+  if (name === "telefono") {
+    // Solo números
+    if (value === "" || /^\d+$/.test(value)) {
+      setForm((prev) => ({ ...prev, [name]: value }));
+    }
+    return;
+  }
+
+  // Para el resto de campos (selects, etc.)
+  setForm((prev) => ({
+    ...prev,
+    [name]: value,
+    ...(name === "provincia" ? { canton: "" } : {}),
+  }));
+};
+
+  // Handle form submission
+
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  // Validaciones
+  const nombreValido = /^[A-Za-zÁÉÍÓÚáéíóúÑñ][A-Za-z0-9ÁÉÍÓÚáéíóúÑñ ]*$/.test(form.nombre);
+  const telefonoValido = /^\d+$/.test(form.telefono);
+
+  if (!nombreValido) {
+    setAlert({ type: "error", message: "El nombre debe comenzar con una letra y no puede ser solo números" });
+    return;
+  }
+
+  if (!telefonoValido) {
+    setAlert({ type: "error", message: "El teléfono solo puede contener números" });
+    return;
+  }
+
+  try {
+    const url = branchToEdit
+      ? `${API_URL}/api/v1/branches/${branchToEdit.sucursal_id}`
+      : `${API_URL}/api/v1/branches`;
+    const method = branchToEdit ? "PUT" : "POST";
+
+    const response = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify(form),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Error al guardar la sucursal");
+    }
+
+    const data: Branch = await response.json();
+
+    const negocio = businesses.find((b) => b.negocio_id === Number(data.negocio_id));
+    if (negocio) data.negocio = { nombre: negocio.nombre_comercial };
+
+    if (branchToEdit) {
+      setBranches(branches.map((b) => (b.sucursal_id === branchToEdit.sucursal_id ? data : b)));
+      setAlert({ type: "success", message: "Sucursal actualizada correctamente" });
+    } else {
+      setBranches([...branches, data]);
+      setAlert({ type: "success", message: "Sucursal creada correctamente" });
+    }
+
+    setShowEditModal(false);
+    setBranchToEdit(null);
+  } catch (error: any) {
+    console.error("Error saving branch:", error);
+    setAlert({ type: "error", message: error.message || "Error al procesar la solicitud" });
+  }
+};
+
 
   // Verificar y eliminar sucursal
-  const handleDelete = async () => {
-    if (!selectedBranchId) return;
+const handleDelete = async () => {
+  if (!selectedBranchId) return;
 
-    try {
-      // Primero verificar si la sucursal tiene bodegas asociadas
-      let warehousesResponse;
-      try {
+  let alertMessage = ""; // mensaje que se mostrará
+  let success = false;
 
-        warehousesResponse = await fetch(
-          `${API_URL}/api/v1/warehouses?branch_id=${selectedBranchId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
+  try {
+    const response = await fetch(`${API_URL}/api/v1/branches/${selectedBranchId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+    });
 
-          }
-        );
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
 
-        if (!warehousesResponse.ok) {
-          throw new Error("Error al verificar bodegas asociadas");
-        }
+      alertMessage = errorData.message || "Error al eliminar la sucursal";
 
-        const warehousesData = await warehousesResponse.json();
-        if (Array.isArray(warehousesData) && warehousesData.length > 0) {
-          // Obtener los códigos de las bodegas para mostrarlos en el mensaje
-          const warehouseCodes = warehousesData
-            .map((w: any) => `"${w.codigo}"`)
-            .join(", ");
-          throw new Error(
-            `No se puede eliminar la sucursal porque tiene ${warehousesData.length} bodega(s) asociada(s): ${warehouseCodes}. ` +
-              "Por favor, elimine primero las bodegas asociadas antes de eliminar la sucursal."
-          );
-        }
-      } catch (error) {
-        if (
-          error instanceof Error &&
-          error.message.includes("No se puede eliminar")
-        ) {
-          throw error; // Re-lanzar el error de bodegas asociadas
-        }
-        console.error("Error al verificar bodegas:", error);
-        throw new Error(
-          "Error al verificar bodegas asociadas. Por favor, intente nuevamente."
-        );
+      // Mensaje más amigable si es error de FK
+      if (alertMessage.includes("FOREIGN KEY") || alertMessage.includes("Constraint")) {
+        alertMessage =
+          "No se puede eliminar la sucursal porque tiene bodegas asociadas. Por favor elimine primero las bodegas.";
       }
 
-      // Si no hay bodegas asociadas, proceder con la eliminación
-      const response = await fetch(
-        `${API_URL}/api/v1/branches/${selectedBranchId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || "Error al procesar la solicitud de eliminación"
-        );
-      }
-
-      setBranches(branches.filter((b) => b.sucursal_id !== selectedBranchId));
-      setShowModal(false);
-      setSelectedBranchId(null);
-      setAlert({
-        type: "success",
-        message: "Sucursal eliminada correctamente",
-      });
-    } catch (error: any) {
-      console.error("Error deleting branch:", error);
-      setAlert({
-        type: "error",
-        message:
-          error.message ||
-          "No se pudo eliminar la sucursal. Por favor, intente nuevamente.",
-      });
-    } finally {
-      setShowModal(false);
+      throw new Error(alertMessage);
     }
-  };
+
+    // Éxito
+    setBranches(branches.filter((b) => b.sucursal_id !== selectedBranchId));
+    alertMessage = "Sucursal eliminada correctamente";
+    success = true;
+  } catch (error: any) {
+    if (!alertMessage) alertMessage = error.message || "No se pudo eliminar la sucursal.";
+  } finally {
+    setShowModal(false);
+    setDeleteMessage(alertMessage);
+    setDeleteSuccess(success);
+
+    setTimeout(() => setDeleteMessage(null), 3000); // se cierra solo
+    setSelectedBranchId(null);
+  }
+};
+
+
+
+
 
   // Get available cantons based on selected province
   const getAvailableCantons = () => {
@@ -535,6 +518,18 @@ export default function Branches() {
                         }
                       }}
                     />
+
+               {deleteMessage && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/30"></div>
+                  <div className={`relative p-6 rounded-lg shadow-lg bg-white w-80 text-center animate-modalShow`}>
+                    <p className={`font-semibold ${deleteSuccess ? "text-green-600" : "text-red-600"}`}>
+                      {deleteMessage}
+                    </p>
+                  </div>
+                </div>
+              )}
+
                   {/* Mostrar alert de búsqueda */}
                   {alert && (
                     <div
