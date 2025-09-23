@@ -19,8 +19,6 @@ type Customer = {
 };
 
 const headers = ["ID", "Nombre", "Cédula", "Teléfono", "Email", "Acciones"];
-
-// ✅ Usamos la variable de entorno
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CustomersPage() {
@@ -31,11 +29,12 @@ export default function CustomersPage() {
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [customerToEdit, setCustomerToEdit] = useState<Customer | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [customerIdToDelete, setCustomerIdToDelete] = useState<number | null>(null);
+  const [customerIdToDelete, setCustomerIdToDelete] = useState<number | null>(
+    null
+  );
 
   const [form, setForm] = useState({
     name: "",
@@ -44,9 +43,12 @@ export default function CustomersPage() {
     identity_number: "",
   });
   const [loadingForm, setLoadingForm] = useState(false);
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
-  // Función para cargar clientes
+  // Cargar clientes
   const fetchClients = async () => {
     setLoading(true);
     try {
@@ -67,7 +69,6 @@ export default function CustomersPage() {
     fetchClients();
   }, []);
 
-  // Inicializar formulario cuando se abre modal
   useEffect(() => {
     if (modalOpen) {
       if (customerToEdit) {
@@ -85,23 +86,71 @@ export default function CustomersPage() {
   }, [modalOpen, customerToEdit]);
 
   const handleDelete = async (id: number) => {
-    await fetch(`${API_URL}/api/v1/customers/${id}`, {
-      method: "DELETE",
-    });
+    await fetch(`${API_URL}/api/v1/customers/${id}`, { method: "DELETE" });
     setCustomers(customers.filter((c) => c.customer_id !== id));
     setFilteredCustomers(filteredCustomers.filter((c) => c.customer_id !== id));
     setDeleteModalOpen(false);
     setCustomerIdToDelete(null);
   };
 
+  // --- VALIDACIÓN EN TIEMPO REAL ---
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+
+    switch (name) {
+      case "name":
+        if (/^[a-zA-Z\s]*$/.test(value)) setForm({ ...form, [name]: value });
+        break;
+      case "identity_number":
+        if (/^\d*$/.test(value)) setForm({ ...form, [name]: value });
+        break;
+      case "phone":
+        if (/^\+?\d*$/.test(value)) setForm({ ...form, [name]: value });
+        break;
+      case "email":
+        setForm({ ...form, [name]: value });
+        break;
+      default:
+        setForm({ ...form, [name]: value });
+    }
   };
 
+  // --- ENVÍO Y VALIDACIÓN FINAL ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoadingForm(true);
     setAlert(null);
+
+    // Validaciones
+    if (!/^[a-zA-Z\s]+$/.test(form.name)) {
+      setAlert({
+        type: "error",
+        message: "El nombre solo puede contener letras y espacios.",
+      });
+      setLoadingForm(false);
+      return;
+    }
+    if (!/^\d+$/.test(form.identity_number)) {
+      setAlert({
+        type: "error",
+        message: "La cédula solo puede contener números.",
+      });
+      setLoadingForm(false);
+      return;
+    }
+    if (form.phone && !/^\+?\d+$/.test(form.phone)) {
+      setAlert({
+        type: "error",
+        message: "El teléfono solo puede contener números y opcionalmente '+'.",
+      });
+      setLoadingForm(false);
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(form.email)) {
+      setAlert({ type: "error", message: "Correo inválido." });
+      setLoadingForm(false);
+      return;
+    }
 
     try {
       const otherCustomers = customerToEdit
@@ -119,45 +168,58 @@ export default function CustomersPage() {
         : false;
 
       if (isDuplicateEmail) {
-        setAlert({ type: "error", message: "Ya existe un cliente con este correo electrónico." });
+        setAlert({
+          type: "error",
+          message: "Ya existe un cliente con este correo electrónico.",
+        });
         setLoadingForm(false);
         return;
       }
       if (isDuplicateId) {
-        setAlert({ type: "error", message: "Ya existe un cliente con esta cédula." });
+        setAlert({
+          type: "error",
+          message: "Ya existe un cliente con esta cédula.",
+        });
         setLoadingForm(false);
         return;
       }
       if (isDuplicatePhone) {
-        setAlert({ type: "error", message: "Ya existe un cliente con este número de teléfono." });
+        setAlert({
+          type: "error",
+          message: "Ya existe un cliente con este número de teléfono.",
+        });
         setLoadingForm(false);
         return;
       }
 
+      // POST / PUT
       if (customerToEdit) {
-        const res = await fetch(`${API_URL}/api/v1/customers/${customerToEdit.customer_id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(form),
-        });
+        const res = await fetch(
+          `${API_URL}/api/v1/customers/${customerToEdit.customer_id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+          }
+        );
         const data = await res.json();
-
         if (res.ok) {
-          setAlert({ type: "success", message: "Cliente editado correctamente." });
-          setCustomers((prev) => prev.map((c) => (c.customer_id === data.customer_id ? data : c)));
+          setAlert({
+            type: "success",
+            message: "Cliente editado correctamente.",
+          });
+          setCustomers((prev) =>
+            prev.map((c) => (c.customer_id === data.customer_id ? data : c))
+          );
           setFilteredCustomers((prev) =>
             prev.map((c) => (c.customer_id === data.customer_id ? data : c))
           );
           setTimeout(() => setModalOpen(false), 1200);
-        } else if (res.status === 409) {
+        } else {
           setAlert({
             type: "error",
-            message: "Error: Ya existe un cliente con la misma cédula o correo.",
+            message: data?.message || "No se pudo editar el cliente.",
           });
-        } else if (data?.message) {
-          setAlert({ type: "error", message: data.message });
-        } else {
-          setAlert({ type: "error", message: "No se pudo editar el cliente." });
         }
       } else {
         const res = await fetch(`${API_URL}/api/v1/customers`, {
@@ -166,21 +228,19 @@ export default function CustomersPage() {
           body: JSON.stringify(form),
         });
         const data = await res.json();
-
         if (res.ok) {
-          setAlert({ type: "success", message: "Cliente agregado correctamente." });
+          setAlert({
+            type: "success",
+            message: "Cliente agregado correctamente.",
+          });
           setCustomers((prev) => [...prev, data]);
           setFilteredCustomers((prev) => [...prev, data]);
           setTimeout(() => setModalOpen(false), 1200);
-        } else if (res.status === 409) {
+        } else {
           setAlert({
             type: "error",
-            message: "Error: Ya existe un cliente con la misma cédula o correo.",
+            message: data?.message || "No se pudo agregar el cliente.",
           });
-        } else if (data?.message) {
-          setAlert({ type: "error", message: data.message });
-        } else {
-          setAlert({ type: "error", message: "No se pudo agregar el cliente." });
         }
       }
     } catch (err: any) {
@@ -230,9 +290,10 @@ export default function CustomersPage() {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-              <h1 className="text-2xl font-bold mb-6 text-left">Clientes y Fidelización</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Clientes y Fidelización
+              </h1>
 
-              {/* Barra de búsqueda y botones */}
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-6">
                 <div className="w-full h-10">
                   <SearchBar<Customer>
@@ -256,7 +317,6 @@ export default function CustomersPage() {
                       }
                     }}
                   />
-
                   {alert && (
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
@@ -279,23 +339,26 @@ export default function CustomersPage() {
                     }}
                   >
                     <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                    <span className="whitespace-nowrap text-base">Añadir Cliente</span>
+                    <span className="whitespace-nowrap text-base">
+                      Añadir Cliente
+                    </span>
                   </Button>
                 </div>
               </div>
 
-              {/* Tabla de clientes */}
               {loading ? (
                 <p>Cargando clientes...</p>
               ) : (
-                <TableInformation headers={headers} tableContent={tableContent} />
+                <TableInformation
+                  headers={headers}
+                  tableContent={tableContent}
+                />
               )}
 
-              {/* Modal de clientes */}
+              {/* Modal */}
               {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-
                   <form
                     onSubmit={handleSubmit}
                     className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto"
@@ -380,8 +443,8 @@ export default function CustomersPage() {
                         {loadingForm
                           ? "Guardando..."
                           : customerToEdit
-                          ? "Guardar cambios"
-                          : "Guardar"}
+                            ? "Guardar cambios"
+                            : "Guardar"}
                       </button>
                       <button
                         type="button"
@@ -395,18 +458,21 @@ export default function CustomersPage() {
                 </div>
               )}
 
-              {/* Modal de confirmación de eliminación */}
               <SimpleModal
                 open={deleteModalOpen}
                 onClose={() => setDeleteModalOpen(false)}
                 title="Confirmar eliminación"
                 className="shadow-2xl"
               >
-                <p className="mb-4">¿Seguro que deseas eliminar este cliente?</p>
+                <p className="mb-4">
+                  ¿Seguro que deseas eliminar este cliente?
+                </p>
                 <div className="flex gap-4 justify-center">
                   <button
                     className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-                    onClick={() => customerIdToDelete && handleDelete(customerIdToDelete)}
+                    onClick={() =>
+                      customerIdToDelete && handleDelete(customerIdToDelete)
+                    }
                   >
                     Eliminar
                   </button>
