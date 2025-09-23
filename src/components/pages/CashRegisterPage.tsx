@@ -143,6 +143,8 @@ export default function CashRegisterPage() {
   const [cashRegisterToClose, setCashRegisterToClose] =
     useState<CashRegister | null>(null);
   const [closingAmount, setClosingAmount] = useState<number | "">("");
+  const [closingError, setClosingError] = useState<string | null>(null);
+
 
   const fetchBranches = async () => {
     try {
@@ -216,44 +218,53 @@ export default function CashRegisterPage() {
     }
   };
 
-  const handleCloseCashRegister = async () => {
-    if (!cashRegisterToClose || closingAmount === "" || closingAmount < 0)
-      return;
-    setLoading(true);
-    setAlert(null);
+const handleCloseCashRegister = async () => {
+  if (!cashRegisterToClose || closingAmount === "" || closingAmount < 0) return;
 
-    try {
-      const res = await fetch(
-        `${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ closing_amount: closingAmount }),
-        }
-      );
-      const data = await res.json();
+  // 🚨 Validación: que el monto de cierre no sea menor que el de apertura
+  if (Number(closingAmount) < Number(cashRegisterToClose.opening_amount)) {
+    setAlert({
+      type: "error",
+      message: "El monto de cierre no puede ser menor al de apertura",
+    });
+    return;
+  }
 
-      if (res.ok) {
-        // Actualizamos la caja en el estado con la respuesta del backend
-        setCashRegisters((prev) =>
-          prev.map((c) => (c.id === cashRegisterToClose.id ? data.data : c))
-        );
+  setLoading(true);
+  setAlert(null);
 
-        setCloseModalOpen(false);
-        setCashRegisterToClose(null);
-        setClosingAmount("");
-      } else {
-        setAlert({
-          type: "error",
-          message: data.message || "Error al cerrar la caja",
-        });
+  try {
+    const res = await fetch(
+      `${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ closing_amount: closingAmount }),
       }
-    } catch (err: any) {
-      setAlert({ type: "error", message: `Error de conexión: ${err.message}` });
-    } finally {
-      setLoading(false);
+    );
+    const data = await res.json();
+
+    if (res.ok) {
+      setCashRegisters((prev) =>
+        prev.map((c) => (c.id === cashRegisterToClose.id ? data.data : c))
+      );
+
+      setCloseModalOpen(false);
+      setCashRegisterToClose(null);
+      setClosingAmount("");
+    } else {
+      setAlert({
+        type: "error",
+        message: data.message || "Error al cerrar la caja",
+      });
     }
-  };
+  } catch (err: any) {
+    setAlert({ type: "error", message: `Error de conexión: ${err.message}` });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const tableContent = cashRegisters.map((c) => ({
     ID: c.id,
@@ -381,13 +392,52 @@ export default function CashRegisterPage() {
               >
                 <div className="flex flex-col gap-4">
                   <label className="font-semibold">Monto de cierre:</label>
-                  <input
-                    type="number"
-                    value={closingAmount}
-                    onChange={(e) => setClosingAmount(Number(e.target.value))}
-                    className="w-full border rounded-lg px-3 py-2"
-                    placeholder="0.00"
-                  />
+ <div className="w-full">
+
+  <input
+    type="number"
+    value={closingAmount}
+    onChange={(e) => {
+      const raw = e.target.value;
+
+      // Si lo borran → quitamos alerta y limpiamos
+      if (raw === "") {
+        setClosingAmount("");
+        setClosingError(null);
+        return;
+      }
+
+      const value = Number(raw);
+
+      // Validar contra apertura
+      if (
+        cashRegisterToClose &&
+        value < Number(cashRegisterToClose.opening_amount)
+      ) {
+        setClosingError(
+          `El monto de cierre no puede ser menor al de apertura (${cashRegisterToClose.opening_amount})`
+        );
+      } else {
+        setClosingError(null);
+      }
+
+      setClosingAmount(value);
+    }}
+    className="w-full border rounded-lg px-3 py-2 [appearance:textfield]" // 👈 sin flechas
+    placeholder="0"
+  />
+
+  {/* Mensaje de error debajo del input */}
+  {closingError && (
+    <p className="text-red-600 text-sm mt-1 font-semibold">{closingError}</p>
+  )}
+</div>
+
+
+
+
+
+
                   <div className="flex gap-4 justify-end mt-4">
                     <Button
                       style="bg-azul-fuerte hover:bg-azul-claro text-white px-6 py-2 rounded"

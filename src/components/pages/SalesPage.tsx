@@ -507,97 +507,91 @@ const guardarEdicion = (idx: number) => {
               <div className="w-3/2 flex flex-col pl-10">
                 <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
 
-                {/* Selector de cliente */}
-                <div className="mb-6">
-                  {/* Input con lupa */}
-                  <div className="relative mb-2">
-                    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
-                    <input
-                      type="text"
-                      placeholder="Buscar cliente por nombre, email o cédula..."
-                      className="border rounded pl-10 pr-3 py-2 w-full"
-                      value={queryCliente}
-                      onChange={(e) => setQueryCliente(e.target.value)}
-                    />
-                  </div>
+         {/* Selector de cliente */}
+<div className="mb-6">
+  {/* Input con lupa */}
+  <div className="relative mb-2">
+    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
+    <input
+      type="text"
+      placeholder="Buscar cliente por cédula..."
+      className="border rounded pl-10 pr-3 py-2 w-full"
+      value={queryCliente}
+      onChange={(e) => setQueryCliente(e.target.value)}
+    />
+  </div>
+<Button
+  style="bg-gray-300 hover:bg-gray-400 text-black font-bold px-3 py-1 rounded mb-2"
+  onClick={() =>
+    setClienteSeleccionado({
+      customer_id: 0,
+      name: "Cliente genérico",
+      identity_number: "N/A",
+    })
+  }
+>
+  Cliente genérico
+</Button>
 
-                  <div className="max-h-40 overflow-y-auto border rounded bg-white">
-                    {/* Cliente genérico */}
-                    <div
-                      className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
-                        clienteSeleccionado?.customer_id === 0
-                          ? "bg-gray-200 font-bold"
-                          : ""
-                      }`}
-                      onClick={() =>
-                        setClienteSeleccionado({
-                          customer_id: 0,
-                          name: "Cliente genérico",
-                          identity_number: "N/A",
-                        })
-                      }
-                    >
-                      Cliente genérico (No registrado)
-                    </div>
+{/* Mostrar dropdown solo si hay texto en el input */}
+{queryCliente && (
+  <div className="max-h-40 overflow-y-auto border rounded bg-white">
+    {/* Lista de clientes filtrados */}
+    {clientesFiltrados
+      .filter((cliente) =>
+        cliente.name.toLowerCase().includes(queryCliente.toLowerCase()) ||
+        (cliente.identity_number ?? "").includes(queryCliente)
+      )
+      .map((cliente) => (
+        <div
+          key={cliente.customer_id}
+          className={`px-4 py-2 cursor-pointer hover:bg-sky-100 ${
+            clienteSeleccionado?.customer_id === cliente.customer_id
+              ? "bg-sky-200 font-bold"
+              : ""
+          }`}
+          onClick={() => setClienteSeleccionado(cliente)}
+        >
+          {cliente.name}
+          {cliente.identity_number && (
+            <span className="text-gray-500 ml-2">
+              Cédula: {cliente.identity_number}
+            </span>
+          )}
+        </div>
+      ))}
 
-                    {/* Lista de clientes */}
-                    {clientesFiltrados.map((cliente) => (
-                      <div
-                        key={cliente.customer_id}
-                        className={`px-4 py-2 cursor-pointer hover:bg-sky-100 ${
-                          clienteSeleccionado?.customer_id ===
-                          cliente.customer_id
-                            ? "bg-sky-200 font-bold"
-                            : ""
-                        }`}
-                        onClick={() => setClienteSeleccionado(cliente)}
-                      >
-                        {cliente.name}
-                        {cliente.identity_number && (
-                          <span className="text-gray-500 ml-2">
-                            Cédula: {cliente.identity_number}
-                          </span>
-                        )}
-                      </div>
-                    ))}
+    {/* Mensaje si no hay clientes */}
+    {clientesFiltrados.filter(
+      (cliente) =>
+        cliente.name.toLowerCase().includes(queryCliente.toLowerCase()) ||
+        (cliente.identity_number ?? "").includes(queryCliente)
+    ).length === 0 && (
+      <p className="px-4 py-2 text-red-500 text-sm">
+        No existe ningún cliente con ese nombre o cédula.
+      </p>
+    )}
+  </div>
+)}
 
-                    {/* Mensaje si no hay clientes */}
-                    {queryCliente && clientesFiltrados.length === 0 && (
-                      <p className="px-4 py-2 text-red-500 text-sm">
-                        No existe ningún cliente con ese dato.
-                      </p>
-                    )}
-                  </div>
 
-                  {clienteSeleccionado && (
-                    <p className="mt-2 font-bold text-blue-700">
-                      Cliente seleccionado: {clienteSeleccionado.name} (
-                      {clienteSeleccionado.identity_number})
-                    </p>
-                  )}
 
-                  <Button
-                    style="bg-green-500 hover:bg-green-700 text-white font-bold px-3 py-1 rounded mt-2 flex items-center"
-                    onClick={() => (window.location.href = "/customer")}
-                  >
-                    <IoPersonAdd className="mr-1" /> Nuevo cliente
-                  </Button>
-                </div>
-                
-                {sucursalSeleccionada && !modalSucursal && (
-                  <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6">
-                    <button
-                      className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shadow transition-colors duration-200"
-                      onClick={() => setModalSucursal(true)}
-                    >
-                      Cambiar sucursal
-                    </button>
-                    <span className="text-gray-700 font-semibold text-left md:text-right">
-                      Sucursal actual: {sucursalSeleccionada.nombre} -
-                      {sucursalSeleccionada.business.nombre_comercial}
-                    </span>
-                  </div>
-                )}
+  {/* Cliente seleccionado */}
+  {clienteSeleccionado && (
+    <p className="mt-2 font-bold text-blue-700">
+      Cliente seleccionado: {clienteSeleccionado.name} (
+      {clienteSeleccionado.identity_number})
+    </p>
+  )}
+
+  <Button
+    style="bg-green-500 hover:bg-green-700 text-white font-bold px-3 py-1 rounded mt-2 flex items-center"
+    onClick={() => (window.location.href = "/customer")}
+  >
+    <IoPersonAdd className="mr-1" /> Nuevo cliente
+  </Button>
+</div>
+
 {/* Navegador de productos */}
 <div className="shadow-md rounded-lg p-4 mb-6">
   <h2 className="text-lg font-bold mb-2">Productos</h2>
@@ -614,63 +608,61 @@ const guardarEdicion = (idx: number) => {
     />
   </div>
 
-  <div className="max-h-40 overflow-y-auto border rounded bg-white">
-    {productosFiltrados.map((producto) => {
-      // Función para calcular stock disponible real
-      const getAvailableStock = (codigo: string) => {
-        const itemEnCarrito = carrito.find(i => i.producto.codigo === codigo);
-        return (producto.stock ?? 0) - (itemEnCarrito?.cantidad ?? 0);
-      };
+  {/* Mostrar dropdown solo si se está digitando un código */}
+  {queryProducto && /^\d+$/.test(queryProducto) && (
+    <div className="max-h-40 overflow-y-auto border rounded bg-white">
+      {productosFiltrados.map((producto) => {
+        const getAvailableStock = (codigo: string) => {
+          const itemEnCarrito = carrito.find(i => i.producto.codigo === codigo);
+          return (producto.stock ?? 0) - (itemEnCarrito?.cantidad ?? 0);
+        };
+        const stockDisponible = getAvailableStock(producto.codigo);
 
-      const stockDisponible = getAvailableStock(producto.codigo);
-
-      return (
-        <div
-          key={producto.codigo}
-          className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-sky-100 ${
-            productoSeleccionado?.codigo === producto.codigo
-              ? "bg-sky-200 font-bold"
-              : ""
-          }`}
-          onClick={() => setProductoSeleccionado(producto)}
-        >
-          {/* Nombre y código */}
-          <div className="flex-1">
-            <span>{producto.nombre}</span>{" "}
-            <span className="text-gray-500">({producto.codigo})</span>
-          </div>
-
-          {/* Stock */}
+        return (
           <div
-            className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
-              stockDisponible > 0
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
+            key={producto.codigo}
+            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-sky-100 ${
+              productoSeleccionado?.codigo === producto.codigo
+                ? "bg-sky-200 font-bold"
+                : ""
             }`}
+            onClick={() => setProductoSeleccionado(producto)}
           >
-            Stock: {stockDisponible}
+            <div className="flex-1">
+              <span>{producto.nombre}</span>{" "}
+              <span className="text-gray-500">({producto.codigo})</span>
+            </div>
+
+            <div
+              className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
+                stockDisponible > 0
+                  ? "bg-green-100 text-green-700"
+                  : "bg-red-100 text-red-700"
+              }`}
+            >
+              Stock: {stockDisponible}
+            </div>
+
+            <Button
+              style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
+              onClick={() => setModalOpen(true)}
+              disabled={stockDisponible <= 0}
+            >
+              <IoAddCircle className="mr-1" /> Añadir
+            </Button>
           </div>
+        );
+      })}
 
-          {/* Botón añadir */}
-          <Button
-            style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
-            onClick={() => setModalOpen(true)}
-            disabled={stockDisponible <= 0}
-          >
-            <IoAddCircle className="mr-1" /> Añadir
-          </Button>
-        </div>
-      );
-    })}
-
-    {/* Mensaje si no hay productos */}
-    {queryProducto && productosFiltrados.length === 0 && (
-      <p className="px-4 py-2 text-red-500 text-sm">
-        No existe ningún producto con ese código o nombre.
-      </p>
-    )}
-  </div>
+      {productosFiltrados.length === 0 && (
+        <p className="px-4 py-2 text-red-500 text-sm">
+          No existe ningún producto con ese código.
+        </p>
+      )}
+    </div>
+  )}
 </div>
+
 
     {/* Tabla carrito */}
 <div className="shadow-md rounded-lg mb-6">
