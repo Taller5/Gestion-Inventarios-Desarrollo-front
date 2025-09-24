@@ -537,9 +537,9 @@ const guardarEdicion = (idx: number) => {
       .map((cliente) => (
         <div
           key={cliente.customer_id}
-          className={`px-4 py-2 cursor-pointer hover:bg-sky-100 ${
+          className={`px-4 py-2 cursor-pointer hover:bg-gris-claro ${
             clienteSeleccionado?.customer_id === cliente.customer_id
-              ? "bg-sky-200 font-bold"
+              ? "bg-gris-oscuro font-bold"
               : ""
           }`}
           onClick={() => {
@@ -576,21 +576,21 @@ const guardarEdicion = (idx: number) => {
 
   {/* Cliente seleccionado */}
   {clienteSeleccionado && (
-    <p className="mt-2 font-bold text-blue-700">
+    <p className="mt-2 font-bold text-azul-hover">
       Cliente seleccionado: {clienteSeleccionado.name} (
       {clienteSeleccionado.identity_number})
     </p>
   )}
 <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
   <Button
-    style="bg-green-500 hover:bg-green-600 text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform hover:scale-105 flex items-center justify-center"
+    style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
     onClick={() => (window.location.href = "/customer")}
   >
     <IoPersonAdd className="mr-2" size={18} /> Nuevo cliente
   </Button>
 
   <Button
-    style="bg-gray-200 hover:bg-gray-300 text-black font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform hover:scale-105 flex items-center justify-center"
+    style="bg-gris-claro hover:bg-gris-oscuro text-black font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
     onClick={() =>
       setClienteSeleccionado({
         customer_id: 0,
@@ -608,12 +608,12 @@ const guardarEdicion = (idx: number) => {
   {sucursalSeleccionada && !modalSucursal && (
     <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6 mt-4">
       <button
-        className="px-4 py-2 bg-sky-700 hover:bg-sky-800 text-white font-bold rounded-lg shadow transition-colors duration-200"
+        className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200"
         onClick={() => setModalSucursal(true)}
       >
         Cambiar sucursal
       </button>
-      <span className="text-gray-700 font-semibold text-left md:text-right">
+      <span className="text-black font-semibold text-left md:text-right">
         Sucursal actual: {sucursalSeleccionada.nombre} - {sucursalSeleccionada.business.nombre_comercial}
       </span>
     </div>
@@ -649,9 +649,9 @@ const guardarEdicion = (idx: number) => {
       return (
         <div
           key={producto.codigo_producto}
-          className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-sky-100 ${
+          className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-claro ${
             productoSeleccionado?.codigo_producto === producto.codigo_producto
-              ? "bg-sky-200 font-bold"
+              ? "bg-gris-oscuro font-bold"
               : ""
           }`}
           onClick={() => {
@@ -667,15 +667,15 @@ const guardarEdicion = (idx: number) => {
           <div
             className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
               stockDisponible > 0
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
+                ? "bg-verde-ultra-claro text-verde-claro"
+                : "bg-rojo-ultra-claro text-rojo-claro"
             }`}
           >
             Stock: {stockDisponible}
           </div>
 
           <Button
-            style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
+            style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
             onClick={() => setModalOpen(true)}
             disabled={stockDisponible <= 0}
           >
@@ -686,7 +686,7 @@ const guardarEdicion = (idx: number) => {
     })}
 
     {productosFiltrados.length === 0 && (
-      <p className="px-4 py-2 text-red-500 text-sm">
+      <p className="px-4 py-2 text-rojo-claro text-sm">
         No existe ningún producto con ese código.
       </p>
     )}
@@ -766,12 +766,12 @@ const guardarEdicion = (idx: number) => {
                   <>
                     <Button
                       text="Guardar"
-                      style="bg-green-500 text-white px-2 py-1 rounded"
+                      style="bg-verde-claro text-white px-2 py-1 rounded"
                       onClick={() => guardarEdicion(idx)}
                     />
                     <Button
                       text="Cancelar"
-                      style="bg-gray-400 text-white px-2 py-1 rounded"
+                      style="bg-gris-claro text-white px-2 py-1 rounded"
                       onClick={() => setEditIdx(null)}
                     />
                   </>
@@ -779,14 +779,14 @@ const guardarEdicion = (idx: number) => {
                   <>
                     <Button
                       text="Editar"
-                      style="bg-yellow-500 text-white px-2 py-1 rounded flex items-center gap-1"
+                      style="bg-amarillo-claro text-white px-2 py-1 rounded flex items-center gap-1"
                       onClick={() => iniciarEdicion(idx)}
                     >
                       <IoPencil />
                     </Button>
                     <Button
                       text="Eliminar"
-                      style="bg-red-500 text-white px-2 py-1 rounded"
+                      style="bg-rojo-claro text-white px-2 py-1 rounded"
                       onClick={() => eliminarDelCarrito(item.producto.codigo_producto)}
                     />
                   </>
@@ -801,7 +801,7 @@ const guardarEdicion = (idx: number) => {
 
   {/* Aplicar mismo descuento a todo */}
   {carrito.length > 0 && (
-    <div className="mt-1  py-5 px-5 flex justify-end gap-2 bg-sky-100">
+    <div className="mt-1  py-5 px-5 flex justify-end gap-2 bg-gris-claro">
       <label className="text-gray-700 font-semibold">Aplicar mismo descuento a todo:</label>
       <select
         onChange={(e) => {
@@ -822,7 +822,7 @@ const guardarEdicion = (idx: number) => {
 
 
 {/* Pie carrito */}
-<div className="flex justify-end items-center bg-sky-700 text-white px-10 py-4 rounded-lg">
+<div className="flex justify-end items-center bg-azul-oscuro text-white px-10 py-4 rounded-lg">
   <div className="flex-1">
     {/* Subtotal */}
     <div>
@@ -878,7 +878,7 @@ const guardarEdicion = (idx: number) => {
 
   <Button
     text="Pagar"
-    style="bg-blue-500 text-white px-8 py-3 rounded text-lg font-bold hover:bg-blue-900 cursor-pointer"
+    style="bg-azul-medio hover:bg-azul-hover text-white px-8 py-3 rounded text-lg font-bold cursor-pointer"
     onClick={() => setFacturaModal(true)}
     disabled={carrito.length === 0 || !clienteSeleccionado}
   />
@@ -925,7 +925,7 @@ const guardarEdicion = (idx: number) => {
 
       <div className="flex justify-end gap-4 mt-6">
         <Button
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-4 py-2 rounded flex items-center gap-1"
+          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded flex items-center gap-1"
           onClick={() => {
             // Llamamos agregarAlCarrito N veces
             for (let i = 0; i < cantidadSeleccionada; i++) {
@@ -939,7 +939,7 @@ const guardarEdicion = (idx: number) => {
           <IoAddCircle /> Agregar
         </Button>
         <Button
-          style="bg-red-500 hover:bg-red-700 text-white font-bold px-4 py-2 rounded"
+          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-4 py-2 rounded"
           onClick={() => {
             setModalOpen(false);
             setCantidadSeleccionada(1); // reset
@@ -966,7 +966,7 @@ const guardarEdicion = (idx: number) => {
                       {sucursales.map((sucursal) => (
                         <button
                           key={sucursal.sucursal_id}
-                          className="w-full px-4 py-2 bg-sky-500 hover:bg-sky-700 text-white rounded font-bold"
+                          className="w-full px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white rounded font-bold"
                           onClick={() => {
                             const user = JSON.parse(
                               localStorage.getItem("user") || "{}"
@@ -996,13 +996,13 @@ const guardarEdicion = (idx: number) => {
                     {/* Botones adicionales */}
                     <div className="flex justify-between mt-6">
                       <button
-                        className="px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white rounded font-bold"
+                        className="px-4 py-2 bg-gris-claro hover:bg-gris-oscuro text-white rounded font-bold"
                         onClick={() => setModalSucursal(false)}
                       >
                         Cancelar
                       </button>
                       <button
-                        className="px-4 py-2 bg-green-500 hover:bg-green-700 text-white rounded font-bold"
+                        className="px-4 py-2 bg-verde-claro hover:bg-verde-oscuro text-white rounded font-bold"
                         onClick={() => (window.location.href = "/Branches")}
                       >
                         Por favor, agrega una sucursal.
@@ -1171,7 +1171,7 @@ const guardarEdicion = (idx: number) => {
 
                           {/* VUELTO */}
                           {mostrarVuelto && (
-                            <div className="mt-4 text-2xl font-extrabold text-green-700">
+                            <div className="mt-4 text-2xl font-extrabold text-verde-claro">
                               <strong>Vuelto:</strong> ₡{vuelto}
                             </div>
                           )}
@@ -1257,7 +1257,7 @@ const guardarEdicion = (idx: number) => {
   <Button
     text="Finalizar"
     type="submit"
-    style="bg-red-600 hover:bg-red-700 text-white font-bold px-8 py-3 rounded text-lg w-36"
+    style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
     disabled={
       (metodoPago === "Efectivo" && (!montoEntregado || montoEntregado <= 0)) ||
       ((metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
@@ -1268,7 +1268,7 @@ const guardarEdicion = (idx: number) => {
   <Button
     text="Cancelar"
     onClick={() => setFacturaModal(false)}
-    style="bg-gray-400 hover:bg-gray-500 text-white font-bold px-8 py-3 rounded text-lg w-36"
+    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
   />
 </div>
 
@@ -1282,8 +1282,8 @@ const guardarEdicion = (idx: number) => {
                 <div
                   className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
                     alert.type === "success"
-                      ? "bg-green-100 text-green-700 border border-green-300"
-                      : "bg-red-100 text-red-700 border border-red-300"
+                      ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                      : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"
                   }`}
                 >
                   {alert.message}

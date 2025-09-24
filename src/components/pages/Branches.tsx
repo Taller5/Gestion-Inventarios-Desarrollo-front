@@ -462,7 +462,7 @@ const handleDelete = async () => {
     Acciones: (
       <div className="flex gap-2">
         <Button
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+          style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
           onClick={() => {
             setBranchToEdit(branch);
             setShowEditModal(true);
@@ -473,7 +473,7 @@ const handleDelete = async () => {
         </Button>
 
         <Button
-          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
           onClick={() => {
             setSelectedBranchId(branch.sucursal_id);
             setShowModal(true);
@@ -523,7 +523,7 @@ const handleDelete = async () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="absolute inset-0 bg-black/30"></div>
                   <div className={`relative p-6 rounded-lg shadow-lg bg-white w-80 text-center animate-modalShow`}>
-                    <p className={`font-semibold ${deleteSuccess ? "text-green-600" : "text-red-600"}`}>
+                    <p className={`font-semibold ${deleteSuccess ? "text-verde-claro" : "text-rojo-claro"}`}>
                       {deleteMessage}
                     </p>
                   </div>
@@ -535,8 +535,8 @@ const handleDelete = async () => {
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                         alert.type === "success"
-                          ? "bg-green-100 text-green-700 border border-green-300"
-                          : "bg-red-100 text-red-700 border border-red-300"
+                          ? "bg-green-100 text-verde-oscuro border-verde-ultra-claro"
+                          : "bg-red-100 text-rojo-oscuro border border-rojo-ultra-claro"
                       }`}
                     >
                       {alert.message}
@@ -544,7 +544,7 @@ const handleDelete = async () => {
                   )}
                 </div>
                 <Button
-                  style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                   onClick={() => {
                     setBranchToEdit(null);
                     setShowEditModal(true);
@@ -559,8 +559,8 @@ const handleDelete = async () => {
                 <div
                   className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
                     alert.type === "success"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-red-100 text-red-700"
+                      ? "bg-green-100 text-verde-claro"
+                      : "bg-red-100 text-rojo-claro"
                   }`}
                 >
                   {alert.message}
@@ -597,14 +597,14 @@ const handleDelete = async () => {
                     <div className="flex justify-end gap-4">
                       <button
                         type="button"
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gris-claro rounded-md hover:bg-gris-oscuro"
                         onClick={() => setShowModal(false)}
                       >
                         Cancelar
                       </button>
                       <button
                         type="button"
-                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                        className="px-4 py-2 text-sm font-medium text-white bg-rojo-claro hover:bg-rojo-oscuro rounded-md"
                         onClick={handleDelete}
                       >
                         Eliminar
@@ -636,8 +636,8 @@ const handleDelete = async () => {
                         <div
                           className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
                             alert.type === "success"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-green-100 text-verde-claro"
+                              : "bg-red-100 text-rojo-claro"
                           }`}
                         >
                           {alert.message}
@@ -746,7 +746,7 @@ const handleDelete = async () => {
                         <div className="flex justify-end gap-4 pt-4">
                           <button
                             type="button"
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 cursor-pointer"
+                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gris-claro hover:bg-gris-oscuro rounded-md cursor-pointer"
                             onClick={() => {
                               setShowEditModal(false);
                               setBranchToEdit(null);
@@ -757,7 +757,7 @@ const handleDelete = async () => {
                           </button>
                           <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer"
+                            className="px-4 py-2 text-sm font-medium text-white bg-azul-medio rounded-md hover:bg-azul-hover cursor-pointer"
                           >
                             {branchToEdit
                               ? "Guardar Cambios"

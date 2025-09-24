@@ -61,7 +61,7 @@ export default function Employees() {
   const getActions = (user: User) => [
     <div className="flex flex-row" key={user.id}>
       <Button
-        style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
+        style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
         onClick={() => {
           setUserToEdit(user);
           setShowEditModal(true);
@@ -72,7 +72,7 @@ export default function Employees() {
       </Button>
 
       <Button
-        style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
+        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
         onClick={() => {
           setSelectedUserId(user.id);
           setShowModal(true);
@@ -151,8 +151,8 @@ export default function Employees() {
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                         alert.type === "success"
-                          ? "bg-green-100 text-green-700 border border-green-300"
-                          : "bg-red-100 text-red-700 border border-red-300"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                          : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
                       }`}
                     >
                       {alert.message}
@@ -161,7 +161,7 @@ export default function Employees() {
                 </div>
                 <Button
                  
-                  style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                   onClick={() => setShowEditModal(true)}
                 > <IoAddCircle className="w-6 h-6 flex-shrink-0" />
                   <span className="whitespace-nowrap text-base">
@@ -194,13 +194,13 @@ export default function Employees() {
                     </p>
                     <div className="flex gap-4">
                       <button
-                        className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
+                        className="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
                         onClick={handleDelete}
                       >
                         Eliminar
                       </button>
                       <button
-                        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
+                        className="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded m-1 cursor-pointer"
                         onClick={() => setShowModal(false)}
                       >
                         Cancelar

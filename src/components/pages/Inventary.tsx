@@ -291,8 +291,8 @@ export default function Inventary() {
                       <div
                         className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                           alert.type === "success"
-                            ? "bg-green-100 text-green-700 border border-green-300"
-                            : "bg-red-100 text-red-700 border border-red-300"
+                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                            : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
                         }`}
                       >
                         {alert.message}
@@ -301,7 +301,7 @@ export default function Inventary() {
                   </div>
                   <div className="flex gap-2">
                     <Button
-                      style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                      style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                       onClick={() => {
                         setEditProductMode(false);
                         setFormProducto({
@@ -397,7 +397,7 @@ export default function Inventary() {
                                  </td>
                               <td className=" flex flex-row py-3 px-3  text-sm gap-2">
                                 <Button
-                                  style="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
                                   onClick={() => {
                                     setEditMode(true);
                                     setFormLote({
@@ -444,7 +444,7 @@ export default function Inventary() {
                                   Editar
                                 </Button>
                                 <Button
-                                  style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
                                   onClick={() => setProductoAEliminar(producto)}
                                 >
                                   <FaTrash />
@@ -468,7 +468,7 @@ export default function Inventary() {
                                       <div className="flex gap-4 justify-center">
                                         <Button
                                           text="Eliminar"
-                                          style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                                           onClick={async () => {
                                             const res = await fetch(
                                               `${API_URL}/api/v1/products/${productoAEliminar.id}`,
@@ -490,7 +490,7 @@ export default function Inventary() {
                                         />
                                         <Button
                                           text="Cancelar"
-                                          style="bg-gray-400 hover:bg-gray-500 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                                           onClick={() =>
                                             setProductoAEliminar(null)
                                           }
@@ -530,7 +530,7 @@ export default function Inventary() {
                                         {/* Botón para ver detalles completos del lote en el modal */}
                                         <div className="ml-auto flex gap-2">
                                           <Button
-                                            style="text-sm cursor-pointer bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded"
+                                            style="text-sm cursor-pointer bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded"
                                             onClick={() => {
                                               setEditMode(false);
                                               setFormLote(lote);
@@ -552,7 +552,7 @@ export default function Inventary() {
                                             Editar
                                           </Button>
                                           <Button
-                                            style="text-sm cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded justify-self-end"
+                                            style="text-sm cursor-pointer bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded justify-self-end"
                                             onClick={() => {
                                               setLoteAEliminar(lote);
                                               setSimpleModal({
@@ -582,7 +582,7 @@ export default function Inventary() {
                                               <p>{simpleModal.message}</p>
                                               <div className="flex justify-end gap-2">
                                                 <button
-                                                  className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded cursor-pointer"
+                                                  className="bg-gris-claro hover:bg-gris-oscuro px-4 py-2 rounded cursor-pointer"
                                                   onClick={() => {
                                                     setSimpleModal({
                                                       ...simpleModal,
@@ -594,7 +594,7 @@ export default function Inventary() {
                                                   Cancelar
                                                 </button>
                                                 <button
-                                                  className="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded cursor-pointer"
+                                                  className="bg-rojo-claro hover:bg-rojo-oscuro text-white px-4 py-2 rounded cursor-pointer"
                                                   onClick={async () => {
                                                     if (!loteAEliminar) return;
                                                     setLoadingForm(true);
@@ -909,7 +909,7 @@ export default function Inventary() {
                         />
                         <Button
                           text="Cerrar"
-                          style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="button"
                           onClick={() => {
                             setModalOpen(false);
@@ -1148,7 +1148,7 @@ export default function Inventary() {
                         />
                         <Button
                           text="Cerrar"
-                          style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="button"
                           onClick={() => {
                             setModalOpen(false);
@@ -1420,7 +1420,7 @@ export default function Inventary() {
                           <Button
                             text="Cerrar"
                             type="button"
-                            style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                            style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                             onClick={() => {
                               setModalOpen(false);
                               setEditMode(false);

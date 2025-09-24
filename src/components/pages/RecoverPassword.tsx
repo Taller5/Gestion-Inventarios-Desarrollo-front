@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRouter } from '@tanstack/react-router';
 import Container from "../ui/Container";
 import emailjs from "@emailjs/browser";
 
@@ -9,6 +10,7 @@ export default function RecoverPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>();
   const [success, setSuccess] = useState(false);
+  const router = useRouter();
 
   const handleRecover = async () => {
     if (!email) {
@@ -35,6 +37,7 @@ export default function RecoverPassword() {
 
       const data = await res.json();
       console.log("Respuesta backend:", data);
+      router.navigate({ to: '/login' });
 
       const tempPassword = data.temporaryPassword;
       const userName = data.name;
