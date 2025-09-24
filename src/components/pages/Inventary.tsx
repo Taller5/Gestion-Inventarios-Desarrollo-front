@@ -18,30 +18,41 @@ const API_URL = import.meta.env.VITE_API_URL;
 type Warehouse = {
   bodega_id: number;
   codigo: string;
+   sucursal_id: number;
+  branch: {
+    nombre: string;
+    business: {
+      nombre_comercial: string;
+    };
+  };
 };
 
 //type producto
 type Producto = {
   id?: number;
-  codigo: string;
-  nombre: string;
+  codigo_producto: string;
+  nombre_producto: string;
+  categoria: string;
+  descripcion?: string;
   stock: number;
-  precio: number;
-  bodega: string;
+  precio_compra: number;
+  precio_venta: number;
+  bodega_id: string;
 };
 
 //type lote
 type Lote = {
   lote_id: number;
-  codigo: string;
+  codigo_producto: string;
   numero_lote: string;
   cantidad: number;
   proveedor: string;
   fecha_entrada: string;
-  fecha_salida: string; // fecha de vencimiento
+  fecha_vencimiento: string; // fecha de vencimiento
   fecha_salida_lote?: string; // fecha de salida del lote
   descripcion: string;
-  nombre: string;
+  nombre_producto: string;
+  nombre?: string;
 };
 
 // type provider
@@ -51,9 +62,24 @@ type Provider = {
   products: { id: number; nombre: string }[];
 };
 
-const headers = ["Código", "Nombre", "Stock", "Precio", "Bodega", "Acciones"];
+const headers = [ "Código", "Nombre", "Categoría", "Descripción", "Stock", "Precio", "Bodega", "Acciones"];
 
 export default function Inventary() {
+  // Tooltip for bodega info on select hover
+  const [tooltip, setTooltip] = useState<{visible: boolean, content: string, position: {x: number, y: number}} | null>(null);
+
+  const handleSelectMouseOver = (event: React.MouseEvent<HTMLSelectElement>) => {
+    const selectedId = formProducto.bodega_id;
+    const bodega = warehouses.find((w) => String(w.bodega_id) === String(selectedId));
+    if (!bodega) return;
+    const rect = event.currentTarget.getBoundingClientRect();
+    setTooltip({
+      visible: true,
+      content: `Sucursal: ${bodega.branch.nombre || "-"}\nNegocio: ${bodega.branch.business.nombre_comercial || "-"}`,
+      position: { x: rect.right + 10, y: rect.top },
+    });
+  };
+  const handleSelectMouseOut = () => setTooltip(null);
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
@@ -68,25 +94,28 @@ export default function Inventary() {
   }, []);
   // Estado para el formulario del modal de producto
   const [formProducto, setFormProducto] = useState<Producto>({
-    codigo: "",
-    nombre: "",
+    codigo_producto: "",
+    nombre_producto: "",
+    categoria: "",
+    descripcion: "",
     stock: 0,
-    precio: 0,
-    bodega: "",
+    precio_compra: 0,
+    precio_venta: 0,
+    bodega_id: "",
   });
   // Estado para el formulario del modal de lote
   const [formLote, setFormLote] = useState<
     Omit<Lote, "lote_id"> & { lote_id?: number }
   >({
-    codigo: "",
+    codigo_producto: "",
     numero_lote: "",
     cantidad: 0,
     proveedor: "",
     fecha_entrada: "",
-    fecha_salida: "",
+    fecha_vencimiento: "",
     fecha_salida_lote: "",
     descripcion: "",
-    nombre: "",
+    nombre_producto: "",
     lote_id: undefined,
   });
   const [simpleModal, setSimpleModal] = useState({
@@ -100,6 +129,7 @@ export default function Inventary() {
   const userRole = user.role || "";
 
   const [lotes, setLotes] = useState<Lote[]>([]);
+  const [loteAEliminar, setLoteAEliminar] = useState<Lote | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [productsFiltered, setProductsFiltered] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,12 +157,12 @@ export default function Inventary() {
 
   // Filtrar proveedores por producto seleccionado en el lote
   useEffect(() => {
-    if (!formLote.codigo) {
+    if (!formLote.codigo_producto) {
       setFilteredProviders([]);
       return;
     }
     // Buscar el producto por código
-    const producto = productos.find((p) => p.codigo === formLote.codigo);
+    const producto = productos.find((p) => p.codigo_producto === formLote.codigo_producto);
     if (!producto) {
       setFilteredProviders([]);
       return;
@@ -142,7 +172,7 @@ export default function Inventary() {
       prov.products.some((prod) => prod.id === producto.id)
     );
     setFilteredProviders(filtered);
-  }, [formLote.codigo, productos, providers]);
+  }, [formLote.codigo_producto, productos, providers]);
 
   // Tipo para proveedor
 
@@ -155,13 +185,13 @@ export default function Inventary() {
 
   // Filtrar proveedores por producto seleccionado en el lote
   useEffect(() => {
-    if (!formLote.codigo) {
+    if (!formLote.codigo_producto) {
       setFilteredProviders([]);
       return;
     }
     // Buscar el producto por código
     const producto = productos.find(
-      (p: Producto) => p.codigo === formLote.codigo
+      (p: Producto) => p.codigo_producto === formLote.codigo_producto
     );
     if (!producto) {
       setFilteredProviders([]);
@@ -172,7 +202,7 @@ export default function Inventary() {
       prov.products.some((prod) => prod.id === producto.id)
     );
     setFilteredProviders(filtered);
-  }, [formLote.codigo, productos, providers]);
+  }, [formLote.codigo_producto, productos, providers]);
 
   useEffect(() => {
     setLoading(true);
@@ -196,15 +226,15 @@ export default function Inventary() {
   const agruparProductos = (productosArr: Producto[], lotesArr: Lote[]) => {
     const lotesPorCodigo = lotesArr.reduce(
       (acc, lote) => {
-        if (!acc[lote.codigo]) acc[lote.codigo] = [];
-        acc[lote.codigo].push(lote);
+        if (!acc[lote.codigo_producto]) acc[lote.codigo_producto] = [];
+        acc[lote.codigo_producto].push(lote);
         return acc;
       },
       {} as Record<string, Lote[]>
     );
 
     return productosArr.map((producto) => {
-      const lotes = lotesPorCodigo[producto.codigo] || [];
+      const lotes = lotesPorCodigo[producto.codigo_producto] || [];
       return {
         ...producto,
         stock: producto.stock, // <-- stock real del producto
@@ -236,8 +266,8 @@ export default function Inventary() {
                   <div className="w-full h-10">
                     <SearchBar<Producto>
                       data={productos}
-                      displayField="codigo"
-                      searchFields={["codigo", "nombre"]}
+                      displayField="codigo_producto"
+                      searchFields={["codigo_producto", "nombre_producto"]}
                       placeholder="Buscar por código o nombre..."
                       onResultsChange={(results) => {
                         setProductsFiltered(results);
@@ -275,11 +305,14 @@ export default function Inventary() {
                       onClick={() => {
                         setEditProductMode(false);
                         setFormProducto({
-                          codigo: "",
-                          nombre: "",
+                          codigo_producto: "",
+                          nombre_producto: "",
+                          categoria: "",
+                          descripcion: "",
                           stock: 0,
-                          precio: 0,
-                          bodega: "",
+                          precio_compra: 0,
+                          precio_venta: 0,
+                          bodega_id: "",
                         });
                         setModalOpen("add-product");
                       }}
@@ -328,48 +361,53 @@ export default function Inventary() {
                       ) : (
                         // Renderiza una fila por producto agrupado
                         productsFiltered.map((producto: any) => (
-                          <React.Fragment key={producto.codigo}>
+                          <React.Fragment key={producto.codigo_producto}>
                             <tr
                               className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
                               onClick={() =>
                                 setExpanded(
-                                  expanded === producto.codigo
+                                  expanded === producto.codigo_producto
                                     ? null
-                                    : producto.codigo
+                                    : producto.codigo_producto
                                 )
                               }
                             >
                               <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.codigo}
-                              </td>
+                                {producto.codigo_producto}
+                                </td>
                               <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.nombre}
-                              </td>
+                                {producto.nombre_producto}
+                                </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.categoria}
+                                </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.descripcion}
+                                </td>
                               <td className="px-3 py-3 text-sm text-gray-600">
                                 {producto.stock}
-                              </td>
-
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                ₡{producto.precio_venta}
+                                </td>
                               <td className="px-3 py-3 text-sm text-gray-600">
-                                ₡{producto.precio}
-                              </td>
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.bodega?.codigo ||
-                                  producto.bodega ||
-                                  ""}
-                              </td>
+                                {producto.bodega_id?.codigo_producto ||
+                                producto.bodega_id ||
+                                 ""}
+                                 </td>
                               <td className=" flex flex-row py-3 px-3  text-sm gap-2">
                                 <Button
                                   style="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
                                   onClick={() => {
                                     setEditMode(true);
                                     setFormLote({
-                                      codigo: producto.codigo,
-                                      nombre: producto.nombre,
+                                      codigo_producto: producto.codigo_producto,
+                                      nombre_producto: producto.nombre_producto,
                                       numero_lote: "",
                                       cantidad: 0,
                                       proveedor: "",
                                       fecha_entrada: "",
-                                      fecha_salida: "",
+                                      fecha_vencimiento: "",
                                       fecha_salida_lote: "",
                                       descripcion: "",
                                       lote_id: undefined,
@@ -388,13 +426,16 @@ export default function Inventary() {
 
                                     setFormProducto({
                                       id: producto.id,
-                                      codigo: producto.codigo,
-                                      nombre: producto.nombre,
+                                      codigo_producto: producto.codigo_producto,
+                                      nombre_producto: producto.nombre_producto,
+                                      categoria: producto.categoria,
+                                      descripcion: producto.descripcion || "",
                                       stock: producto.stock,
-                                      precio: producto.precio,
-                                      bodega: producto.bodega?.bodega_id
-                                        ? producto.bodega.bodega_id
-                                        : producto.bodega,
+                                      precio_compra: producto.precio_compra,
+                                      precio_venta: producto.precio_venta,
+                                      bodega_id: producto.bodega_id?.bodega_id
+                                       ? producto.bodega_id.bodega_id 
+                                       : producto.bodega_id,
                                     });
                                     setModalOpen("add-product");
                                   }}
@@ -422,7 +463,7 @@ export default function Inventary() {
                                       </h2>
                                       <p className="mb-6 text-center">
                                         ¿Seguro que deseas eliminar el producto{" "}
-                                        <b>{productoAEliminar.nombre}</b>?
+                                        <b>{productoAEliminar.nombre_producto}</b>?
                                       </p>
                                       <div className="flex gap-4 justify-center">
                                         <Button
@@ -439,8 +480,8 @@ export default function Inventary() {
                                               setProductos((prev) =>
                                                 prev.filter(
                                                   (p) =>
-                                                    p.codigo !==
-                                                    productoAEliminar.codigo
+                                                    p.codigo_producto !==
+                                                    productoAEliminar.codigo_producto
                                                 )
                                               );
                                             }
@@ -461,7 +502,7 @@ export default function Inventary() {
                               </td>
                             </tr>
                             {/* Fila colapsable con los lotes de ese producto */}
-                            {expanded === producto.codigo && (
+                            {expanded === producto.codigo_producto && (
                               <tr className="bg-gray-100">
                                 <td
                                   colSpan={headers.length}
@@ -480,7 +521,7 @@ export default function Inventary() {
                                         </span>
                                         <span>
                                           <b>Fecha de vencimiento:</b>{" "}
-                                          {lote.fecha_salida}
+                                          {lote.fecha_vencimiento}
                                         </span>
                                         <span>
                                           <b>Productos ingresados por lote:</b>{" "}
@@ -512,7 +553,8 @@ export default function Inventary() {
                                           </Button>
                                           <Button
                                             style="text-sm cursor-pointer bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded justify-self-end"
-                                            onClick={async () => {
+                                            onClick={() => {
+                                              setLoteAEliminar(lote);
                                               setSimpleModal({
                                                 open: true,
                                                 title: "Confirmación",
@@ -527,12 +569,13 @@ export default function Inventary() {
 
                                           <SimpleModal
                                             open={simpleModal.open}
-                                            onClose={() =>
+                                            onClose={() => {
                                               setSimpleModal({
                                                 ...simpleModal,
                                                 open: false,
-                                              })
-                                            }
+                                              });
+                                              setLoteAEliminar(null);
+                                            }}
                                             title={simpleModal.title}
                                           >
                                             <div className="flex flex-col gap-4">
@@ -540,22 +583,24 @@ export default function Inventary() {
                                               <div className="flex justify-end gap-2">
                                                 <button
                                                   className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded cursor-pointer"
-                                                  onClick={() =>
+                                                  onClick={() => {
                                                     setSimpleModal({
                                                       ...simpleModal,
                                                       open: false,
-                                                    })
-                                                  }
+                                                    });
+                                                    setLoteAEliminar(null);
+                                                  }}
                                                 >
                                                   Cancelar
                                                 </button>
                                                 <button
                                                   className="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded cursor-pointer"
                                                   onClick={async () => {
+                                                    if (!loteAEliminar) return;
                                                     setLoadingForm(true);
                                                     try {
                                                       const res = await fetch(
-                                                        `${API_URL}/api/v1/batch/${lote.lote_id}`,
+                                                        `${API_URL}/api/v1/batch/${loteAEliminar.lote_id}`,
                                                         {
                                                           method: "DELETE",
                                                         }
@@ -565,8 +610,22 @@ export default function Inventary() {
                                                           prev.filter(
                                                             (l) =>
                                                               l.lote_id !==
-                                                              lote.lote_id
+                                                              loteAEliminar.lote_id
                                                           )
+                                                        );
+                                                        // Recalcular stock de productos
+                                                        setProductos((prevProductos) =>
+                                                          prevProductos.map((prod) => {
+                                                            if (prod.codigo_producto === loteAEliminar.codigo_producto) {
+                                                              // Sumar cantidades de lotes restantes de este producto
+                                                              const nuevosLotes = Array.isArray((prod as unknown as { lotes: Lote[] }).lotes)
+                                                                ? (prod as unknown as { lotes: Lote[] }).lotes.filter((l: Lote) => l.lote_id !== loteAEliminar.lote_id)
+                                                                : [];
+                                                              const nuevoStock = nuevosLotes.reduce((acc: number, l: Lote) => acc + (l.cantidad || 0), 0);
+                                                              return { ...prod, lotes: nuevosLotes, stock: nuevoStock };
+                                                            }
+                                                            return prod;
+                                                          })
                                                         );
                                                       }
                                                     } finally {
@@ -575,6 +634,7 @@ export default function Inventary() {
                                                         ...simpleModal,
                                                         open: false,
                                                       });
+                                                      setLoteAEliminar(null);
                                                     }
                                                   }}
                                                 >
@@ -611,9 +671,12 @@ export default function Inventary() {
                               method: "PUT",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
-                                nombre: formProducto.nombre,
-                                precio: Number(formProducto.precio),
-                                bodega_id: Number(formProducto.bodega),
+                                nombre_producto: formProducto.nombre_producto,
+                                categoria: formProducto.categoria,
+                                descripcion: formProducto.descripcion,
+                                precio_compra: Number(formProducto.precio_compra),
+                                precio_venta: Number(formProducto.precio_venta),
+                                bodega_id: Number(formProducto.bodega_id),
                               }),
                             }
                           );
@@ -621,7 +684,7 @@ export default function Inventary() {
                             const actualizado = await res.json();
                             setProductos((prev) =>
                               prev.map((p) =>
-                                p.codigo === formProducto.codigo
+                                p.codigo_producto === formProducto.codigo_producto
                                   ? { ...p, ...actualizado }
                                   : p
                               )
@@ -629,8 +692,8 @@ export default function Inventary() {
                             // ACTUALIZA EL NOMBRE EN LOS LOTES RELACIONADOS
                             setLotes((prev) =>
                               prev.map((lote) =>
-                                lote.codigo === formProducto.codigo
-                                  ? { ...lote, nombre: formProducto.nombre }
+                                lote.codigo_producto === formProducto.codigo_producto
+                                  ? { ...lote, nombre_producto: formProducto.nombre_producto }
                                   : lote
                               )
                             );
@@ -643,11 +706,14 @@ export default function Inventary() {
                               method: "POST",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
-                                codigo: formProducto.codigo,
-                                nombre: formProducto.nombre,
+                                codigo_producto: formProducto.codigo_producto,
+                                nombre_producto: formProducto.nombre_producto,
+                                categoria: formProducto.categoria,
+                                descripcion: formProducto.descripcion,
                                 stock: 0,
-                                precio: Number(formProducto.precio),
-                                bodega_id: Number(formProducto.bodega),
+                                precio_compra: Number(formProducto.precio_compra),
+                                precio_venta: Number(formProducto.precio_venta),
+                                bodega_id: Number(formProducto.bodega_id),
                               }),
                             }
                           );
@@ -672,12 +738,12 @@ export default function Inventary() {
                           <label className="font-semibold">
                             Código
                             <input
-                              name="codigo"
-                              value={formProducto.codigo}
+                              name="codigo_producto"
+                              value={formProducto.codigo_producto}
                               onChange={(e) =>
                                 setFormProducto((f) => ({
                                   ...f,
-                                  codigo: e.target.value,
+                                  codigo_producto: e.target.value,
                                 }))
                               }
                               placeholder="Código"
@@ -688,20 +754,125 @@ export default function Inventary() {
                             />
                           </label>
                           <label className="font-semibold">
-                            Nombre
+                            Nombre del producto
                             <input
-                              name="nombre"
-                              value={formProducto.nombre}
+                              name="nombre_producto"
+                              value={formProducto.nombre_producto}
                               onChange={(e) =>
                                 setFormProducto((f) => ({
                                   ...f,
-                                  nombre: e.target.value,
+                                  nombre_producto: e.target.value,
                                 }))
                               }
-                              placeholder="Nombre"
+                              placeholder="Nombre del producto"
                               className="w-full border rounded-lg px-3 py-2"
                               required
                             />
+                          </label>
+                          <label className="font-semibold">
+                            Categoría
+                            <input
+                              name="categoria"
+                              value={formProducto.categoria}
+                              onChange={(e) =>
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  categoria: e.target.value,
+                                }))
+                              }
+                              placeholder="Categoría"
+                              className="w-full border rounded-lg px-3 py-2"
+                              required
+                            />
+                          </label>
+                          <label className="font-semibold">
+                            Descripción
+                            <textarea
+                              name="descripcion"
+                              value={formProducto.descripcion}
+                              onChange={(e) =>
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  descripcion: e.target.value,
+                                }))
+                              }
+                              placeholder="Descripción"
+                              className="w-full border rounded-lg px-3 py-2 min-h-[40px]"
+                            />
+                          </label>
+                          
+                        </div>
+                        <div className="flex flex-col gap-4">
+                          <label className="font-semibold">
+                            Precio de compra
+                            <input
+                              name="precio_compra"
+                              type="number"
+                              value={formProducto.precio_compra}
+                              onChange={(e) =>
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  precio_compra: Number(e.target.value),
+                                }))
+                              }
+                              placeholder="Precio compra"
+                              className="w-full border rounded-lg px-3 py-2"
+                              min={0}
+                              required
+                            />
+                          </label>
+                          <label className="font-semibold">
+                            Precio de venta
+                            <input
+                              name="precio_venta"
+                              type="number"
+                              value={formProducto.precio_venta}
+                              onChange={(e) =>
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  precio_venta: Number(e.target.value),
+                                }))
+                              }
+                              placeholder="Precio de venta"
+                              className="w-full border rounded-lg px-3 py-2"
+                              min={0}
+                              required
+                            />
+                          </label>
+                          <label className="font-semibold">
+                            Bodega
+                            <div className="relative">
+                              <select
+                                name="bodega_id"
+                                value={formProducto.bodega_id}
+                                onChange={(e) =>
+                                  setFormProducto((f) => ({
+                                    ...f,
+                                    bodega_id: e.target.value,
+                                  }))
+                                }
+                                className="w-full border rounded-lg px-3 py-2"
+                                required
+                                onMouseOver={handleSelectMouseOver}
+                                onMouseOut={handleSelectMouseOut}
+                              >
+                                <option value="">Seleccione una bodega</option>
+                                {warehouses.map((w) => (
+                                  <option key={w.bodega_id} value={w.bodega_id}>
+                                    {w.codigo}
+                                  </option>
+                                ))}
+                              </select>
+                              {/* Tooltip for bodega info */}
+                              {tooltip && tooltip.visible && (
+                                <div
+                                  className="fixed bg-gray-900 text-white px-3 py-2 rounded-lg z-[1000] text-sm whitespace-pre-line pointer-events-none shadow-lg"
+                                  style={{ left: tooltip.position.x, top: tooltip.position.y }}
+                                >
+                                  {tooltip.content}
+                                </div>
+                              )}
+                            </div>
                           </label>
                           <label className="font-semibold">
                             Stock
@@ -712,47 +883,6 @@ export default function Inventary() {
                               readOnly
                               className="w-full border rounded-lg px-3 py-2 bg-gray-300"
                             />
-                          </label>
-                        </div>
-                        <div className="flex flex-col gap-4">
-                          <label className="font-semibold">
-                            Precio
-                            <input
-                              name="precio"
-                              type="number"
-                              value={formProducto.precio}
-                              onChange={(e) =>
-                                setFormProducto((f) => ({
-                                  ...f,
-                                  precio: Number(e.target.value),
-                                }))
-                              }
-                              placeholder="Precio"
-                              className="w-full border rounded-lg px-3 py-2"
-                              required
-                            />
-                          </label>
-                          <label className="font-semibold">
-                            Bodega
-                            <select
-                              name="bodega"
-                              value={formProducto.bodega}
-                              onChange={(e) =>
-                                setFormProducto((f) => ({
-                                  ...f,
-                                  bodega: e.target.value,
-                                }))
-                              }
-                              className="w-full border rounded-lg px-3 py-2"
-                              required
-                            >
-                              <option value="">Seleccione una bodega</option>
-                              {warehouses.map((w) => (
-                                <option key={w.bodega_id} value={w.bodega_id}>
-                                  {w.codigo}
-                                </option>
-                              ))}
-                            </select>
                           </label>
                         </div>
                       </div>
@@ -769,10 +899,12 @@ export default function Inventary() {
                           type="submit"
                           disabled={
                             loadingForm ||
-                            !formProducto.codigo ||
-                            !formProducto.nombre ||
-                            !formProducto.precio ||
-                            !formProducto.bodega
+                            !formProducto.codigo_producto ||
+                            !formProducto.nombre_producto ||
+                            !formProducto.categoria ||
+                            !formProducto.precio_compra ||
+                            !formProducto.precio_venta ||
+                            !formProducto.bodega_id
                           }
                         />
                         <Button
@@ -808,15 +940,15 @@ export default function Inventary() {
                             method: "POST",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
-                              codigo: formLote.codigo,
+                              codigo_producto: formLote.codigo_producto,
                               numero_lote: formLote.numero_lote,
                               cantidad: Number(formLote.cantidad),
                               proveedor: formLote.proveedor,
                               fecha_entrada: formLote.fecha_entrada,
-                              fecha_salida: formLote.fecha_salida,
+                              fecha_vencimiento: formLote.fecha_vencimiento,
                               fecha_salida_lote: formLote.fecha_salida_lote,
                               descripcion: formLote.descripcion,
-                              nombre: formLote.nombre,
+                              nombre: formLote.nombre_producto,
                             }),
                           });
 
@@ -868,22 +1000,22 @@ export default function Inventary() {
                             Código de lote
                             <input
                               name="codigo"
-                              value={formLote.codigo}
+                              value={formLote.codigo_producto}
                               disabled
                               readOnly
                               className="w-full border rounded-lg px-3 py-2 bg-gray-300"
                             />
                           </label>
-                          <label className="font-semibold">
-                            Nombre
-                            <input
-                              name="nombre"
-                              value={formLote.nombre}
-                              disabled
-                              readOnly
-                              className="w-full border rounded-lg px-3 py-2 bg-gray-300"
-                            />
-                          </label>
+                            <label className="font-semibold">
+                              Nombre
+                              <input
+                                name="nombre"
+                                value={formLote.nombre || formLote.nombre_producto || ""}
+                                disabled
+                                readOnly
+                                className="w-full border rounded-lg px-3 py-2 bg-gray-300"
+                              />
+                            </label>
                           <label className="font-semibold">
                             Cantidad
                             <input
@@ -967,13 +1099,13 @@ export default function Inventary() {
                           <label className="font-semibold">
                             Fecha de vencimiento
                             <input
-                              name="fecha_salida"
+                              name="fecha_vencimiento"
                               type="date"
-                              value={formLote.fecha_salida}
+                              value={formLote.fecha_vencimiento}
                               onChange={(e) =>
                                 setFormLote((f) => ({
                                   ...f,
-                                  fecha_salida: e.target.value,
+                                  fecha_vencimiento: e.target.value,
                                 }))
                               }
                               placeholder="Fecha de vencimiento"
@@ -1005,13 +1137,13 @@ export default function Inventary() {
                           type="submit"
                           disabled={
                             loadingForm ||
-                            !formLote.codigo ||
-                            !formLote.nombre ||
+                            !formLote.codigo_producto ||
+                            !formLote.nombre_producto ||
                             !formLote.numero_lote ||
                             !formLote.cantidad ||
                             !formLote.proveedor ||
                             !formLote.fecha_entrada ||
-                            !formLote.fecha_salida
+                            !formLote.fecha_vencimiento
                           }
                         />
                         <Button
@@ -1050,15 +1182,15 @@ export default function Inventary() {
                               method: "PUT",
                               headers: { "Content-Type": "application/json" },
                               body: JSON.stringify({
-                                codigo: formLote.codigo,
+                                codigo_producto: formLote.codigo_producto,
                                 numero_lote: formLote.numero_lote,
                                 cantidad: Number(formLote.cantidad),
                                 proveedor: formLote.proveedor,
                                 fecha_entrada: formLote.fecha_entrada,
-                                fecha_salida: formLote.fecha_salida,
+                                fecha_vencimiento: formLote.fecha_vencimiento,
                                 fecha_salida_lote: formLote.fecha_salida_lote,
                                 descripcion: formLote.descripcion,
-                                nombre: formLote.nombre,
+                                nombre: formLote.nombre_producto,
                               }),
                             }
                           );
@@ -1070,6 +1202,21 @@ export default function Inventary() {
                                   ? loteActualizado
                                   : l
                               )
+                            );
+                            // Recalcular stock de productos
+                            setProductos((prevProductos) =>
+                              prevProductos.map((prod) => {
+                                if (prod.codigo_producto === loteActualizado.codigo_producto) {
+                                  const nuevosLotes = Array.isArray((prod as unknown as { lotes: Lote[] }).lotes)
+                                    ? (prod as unknown as { lotes: Lote[] }).lotes.map((l: Lote) =>
+                                        l.lote_id === loteActualizado.lote_id ? loteActualizado : l
+                                      )
+                                    : [];
+                                  const nuevoStock = nuevosLotes.reduce((acc: number, l: Lote) => acc + (l.cantidad || 0), 0);
+                                  return { ...prod, lotes: nuevosLotes, stock: nuevoStock };
+                                }
+                                return prod;
+                              })
                             );
                           }
                           setLoadingForm(false);
@@ -1099,13 +1246,14 @@ export default function Inventary() {
                                 className="w-full border rounded-lg px-3 py-2"
                                 required
                                 readOnly={!editMode}
+                                disabled={!editMode}  
                               />
                             </label>
                             <label className="font-semibold">
                               Código de lote
                               <input
                                 name="codigo"
-                                value={formLote.codigo}
+                                value={formLote.codigo_producto}
                                 disabled
                                 readOnly
                                 className="w-full border rounded-lg px-3 py-2 bg-gray-300"
@@ -1137,6 +1285,7 @@ export default function Inventary() {
                                 className="w-full border rounded-lg px-3 py-2"
                                 required
                                 readOnly={!editMode}
+                                disabled={!editMode}
                               />
                             </label>
                             <label className="font-semibold">
@@ -1155,6 +1304,7 @@ export default function Inventary() {
                                 className="w-full border rounded-lg px-3 py-2"
                                 required
                                 readOnly={!editMode}
+                                disabled={!editMode}
                               />
                             </label>
                             <label className="font-semibold">
@@ -1172,6 +1322,7 @@ export default function Inventary() {
                                 placeholder="Fecha de salida"
                                 className="w-full border rounded-lg px-3 py-2"
                                 readOnly={!editMode}
+                                disabled={!editMode}
                               />
                             </label>
                           </div>
@@ -1212,26 +1363,28 @@ export default function Inventary() {
                                   name="proveedor"
                                   value={formLote.proveedor}
                                   readOnly
-                                  className="w-full border rounded-lg px-3 py-2 bg-gray-300"
+                                  className="w-full border rounded-lg px-3 py-2"
+                                  disabled
                                 />
                               )}
                             </label>
                             <label className="font-semibold">
                               Fecha de vencimiento
                               <input
-                                name="fecha_salida"
+                                name="fecha_vencimiento"
                                 type="date"
-                                value={formLote.fecha_salida}
+                                value={formLote.fecha_vencimiento}
                                 onChange={(e) =>
                                   setFormLote((f) => ({
                                     ...f,
-                                    fecha_salida: e.target.value,
+                                    fecha_vencimiento: e.target.value,
                                   }))
                                 }
                                 placeholder="Fecha de vencimiento"
                                 className="w-full border rounded-lg px-3 py-2"
                                 required
                                 readOnly={!editMode}
+                                disabled={!editMode}
                               />
                             </label>
                             <label className="font-semibold">
@@ -1248,6 +1401,7 @@ export default function Inventary() {
                                 placeholder="Descripción"
                                 className="w-full border rounded-lg px-3 py-2 min-h-[40px]"
                                 readOnly={!editMode}
+                                disabled={!editMode}
                               />
                             </label>
                           </div>

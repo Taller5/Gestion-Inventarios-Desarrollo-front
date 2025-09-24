@@ -12,9 +12,12 @@ import GenerarFactura from "../ui/GenerateInvoice";
 // Tipos
 type Producto = {
   id?: number;
-  codigo: string;
-  nombre: string;
-  precio: number;
+  codigo_producto: string;
+  nombre_producto: string;
+  categoria?: string;
+  descripcion?: string;
+  precio_compra?: number;
+  precio_venta: number;
   bodega?: string;
   bodega_id?: number;
   stock?: number;
@@ -245,8 +248,8 @@ const mostrarAlerta = (type: "success" | "error", message: string) => {
     })
     .filter((producto) =>
       queryProducto.trim()
-        ? producto.nombre.toLowerCase().includes(queryProducto.toLowerCase()) ||
-          producto.codigo.toLowerCase().includes(queryProducto.toLowerCase())
+        ? producto.nombre_producto.toLowerCase().includes(queryProducto.toLowerCase()) ||
+          producto.codigo_producto.toLowerCase().includes(queryProducto.toLowerCase())
         : true
     );
 // Agregar al carrito
@@ -255,22 +258,22 @@ const mostrarAlerta = (type: "success" | "error", message: string) => {
 
 
 const getAvailableStock = (codigo: string) => {
-  const producto = productos.find(p => p.codigo === codigo);
+  const producto = productos.find(p => p.codigo_producto === codigo);
   if (!producto) return 0;
 
-  const enCarrito = carrito.find(item => item.producto.codigo === codigo)?.cantidad ?? 0;
+  const enCarrito = carrito.find(item => item.producto.codigo_producto === codigo)?.cantidad ?? 0;
   return (producto.stock ?? 0) - enCarrito;
 };
 
 const agregarAlCarrito = (producto: Producto) => {
-  const stockDisponible = getAvailableStock(producto.codigo);
+  const stockDisponible = getAvailableStock(producto.codigo_producto);
   if (stockDisponible <= 0) {
    mostrarAlerta("error", "Producto sin stock disponible");
     return;
   }
 
   setCarrito(prevCarrito => {
-    const idx = prevCarrito.findIndex(item => item.producto.codigo === producto.codigo);
+    const idx = prevCarrito.findIndex(item => item.producto.codigo_producto === producto.codigo_producto);
 
     if (idx >= 0) {
       const nuevo = [...prevCarrito];
@@ -281,13 +284,13 @@ const agregarAlCarrito = (producto: Producto) => {
     return [...prevCarrito, { producto, cantidad: 1, descuento: 0 }];
   });
 
-  mostrarAlerta("success", `${producto.nombre} agregado al carrito`);
+  mostrarAlerta("success", `${producto.nombre_producto} agregado al carrito`);
   setModalOpen(false);
 };
 
 // --- ELIMINAR DEL CARRITO ---
 const eliminarDelCarrito = (codigo: string) => {
-  setCarrito(prevCarrito => prevCarrito.filter(item => item.producto.codigo !== codigo));
+  setCarrito(prevCarrito => prevCarrito.filter(item => item.producto.codigo_producto !== codigo));
    mostrarAlerta("success", "Producto eliminado del carrito");
 };
 
@@ -305,7 +308,7 @@ const guardarEdicion = (idx: number) => {
     const item = nuevo[idx];
     if (!item) return prevCarrito;
 
-    const stockDisponible = getAvailableStock(item.producto.codigo) + item.cantidad;
+    const stockDisponible = getAvailableStock(item.producto.codigo_producto) + item.cantidad;
 
     if (editCantidad > stockDisponible) {
         mostrarAlerta("error", "Cantidad excede stock disponible");
@@ -363,13 +366,13 @@ const guardarEdicion = (idx: number) => {
 
       // Calcular totales
       const subtotal = carrito.reduce(
-        (acc, item) => acc + item.producto.precio * item.cantidad,
+        (acc, item) => acc + item.producto.precio_venta * item.cantidad,
         0
       );
       const totalDescuento = carrito.reduce(
         (acc, item) =>
           acc +
-          (item.producto.precio * item.cantidad * (item.descuento || 0)) / 100,
+          (item.producto.precio_venta * item.cantidad * (item.descuento || 0)) / 100,
         0
       );
       const subtotalConDescuento = subtotal - totalDescuento;
@@ -396,11 +399,11 @@ const guardarEdicion = (idx: number) => {
 
       // Preparar productos para la factura
       const productosFactura = carrito.map((item) => ({
-        code: item.producto.codigo,
-        name: item.producto.nombre,
+        code: item.producto.codigo_producto,
+        name: item.producto.nombre_producto,
         quantity: item.cantidad,
         discount: item.descuento || 0,
-        price: item.producto.precio,
+        price: item.producto.precio_venta,
       }));
 
       // Preparar datos de la factura
@@ -638,16 +641,16 @@ const guardarEdicion = (idx: number) => {
   <div className="max-h-40 overflow-y-auto border rounded bg-white">
     {productosFiltrados.map((producto) => {
       const getAvailableStock = (codigo: string) => {
-        const itemEnCarrito = carrito.find(i => i.producto.codigo === codigo);
+        const itemEnCarrito = carrito.find(i => i.producto.codigo_producto === codigo);
         return (producto.stock ?? 0) - (itemEnCarrito?.cantidad ?? 0);
       };
-      const stockDisponible = getAvailableStock(producto.codigo);
+      const stockDisponible = getAvailableStock(producto.codigo_producto);
 
       return (
         <div
-          key={producto.codigo}
+          key={producto.codigo_producto}
           className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-sky-100 ${
-            productoSeleccionado?.codigo === producto.codigo
+            productoSeleccionado?.codigo_producto === producto.codigo_producto
               ? "bg-sky-200 font-bold"
               : ""
           }`}
@@ -657,8 +660,8 @@ const guardarEdicion = (idx: number) => {
           }}
         >
           <div className="flex-1">
-            <span>{producto.nombre}</span>{" "}
-            <span className="text-gray-500">({producto.codigo})</span>
+            <span>{producto.nombre_producto}</span>{" "}
+            <span className="text-gray-500">({producto.codigo_producto})</span>
           </div>
 
           <div
@@ -716,13 +719,13 @@ const guardarEdicion = (idx: number) => {
       ) : (
         carrito.map((item, idx) => {
           const descuentoPct = Math.max(0, Math.min(item.descuento, 100));
-          const totalItem = item.producto.precio * item.cantidad * (1 - descuentoPct / 100);
-          const descuentoColones = Math.round(item.producto.precio * item.cantidad * descuentoPct / 100);
+          const totalItem = item.producto.precio_venta * item.cantidad * (1 - descuentoPct / 100);
+          const descuentoColones = Math.round(item.producto.precio_venta * item.cantidad * descuentoPct / 100);
 
           return (
             <tr key={idx}>
-              <td className="px-3 py-3">{item.producto.codigo}</td>
-              <td className="px-3 py-3">{item.producto.nombre}</td>
+              <td className="px-3 py-3">{item.producto.codigo_producto}</td>
+              <td className="px-3 py-3">{item.producto.nombre_producto}</td>
               <td className="px-3 py-3">
                 {editIdx === idx ? (
                   <input
@@ -740,7 +743,7 @@ const guardarEdicion = (idx: number) => {
                   item.cantidad
                 )}
               </td>
-              <td className="px-3 py-3">{item.producto.precio}</td>
+              <td className="px-3 py-3">{item.producto.precio_venta}</td>
               <td className="px-3 py-3">
                 {editIdx === idx ? (
                   <select
@@ -784,7 +787,7 @@ const guardarEdicion = (idx: number) => {
                     <Button
                       text="Eliminar"
                       style="bg-red-500 text-white px-2 py-1 rounded"
-                      onClick={() => eliminarDelCarrito(item.producto.codigo)}
+                      onClick={() => eliminarDelCarrito(item.producto.codigo_producto)}
                     />
                   </>
                 )}
@@ -825,7 +828,7 @@ const guardarEdicion = (idx: number) => {
     <div>
       Costo antes de descuento: ₡
       {carrito
-        .reduce((acc, item) => acc + item.producto.precio * item.cantidad, 0)
+        .reduce((acc, item) => acc + item.producto.precio_venta * item.cantidad, 0)
         .toLocaleString()}
     </div>
 
@@ -836,7 +839,7 @@ const guardarEdicion = (idx: number) => {
         .reduce(
           (acc, item) =>
             acc +
-            (item.producto.precio * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
+            (item.producto.precio_venta * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
           0
         )
         .toLocaleString()}
@@ -846,11 +849,11 @@ const guardarEdicion = (idx: number) => {
     <div>
       Impuestos: ₡
       {Math.round(
-        (carrito.reduce((acc, item) => acc + item.producto.precio * item.cantidad, 0) -
+        (carrito.reduce((acc, item) => acc + item.producto.precio_venta * item.cantidad, 0) -
           carrito.reduce(
             (acc, item) =>
               acc +
-              (item.producto.precio * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
+              (item.producto.precio_venta * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
             0
           )) *
           0.13
@@ -861,11 +864,11 @@ const guardarEdicion = (idx: number) => {
     <div className="text-lg font-bold">
       Total a pagar: ₡
       {Math.round(
-        (carrito.reduce((acc, item) => acc + item.producto.precio * item.cantidad, 0) -
+        (carrito.reduce((acc, item) => acc + item.producto.precio_venta * item.cantidad, 0) -
           carrito.reduce(
             (acc, item) =>
               acc +
-              (item.producto.precio * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
+              (item.producto.precio_venta * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
             0
           )) *
           1.13
@@ -890,12 +893,12 @@ const guardarEdicion = (idx: number) => {
     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
     <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
       <h2 className="text-xl font-bold mb-4">Añadir producto</h2>
-      <p><strong>Código:</strong> {productoSeleccionado.codigo}</p>
-      <p><strong>Nombre:</strong> {productoSeleccionado.nombre}</p>
-      <p><strong>Precio:</strong> ₡{productoSeleccionado.precio}</p>
+      <p><strong>Código:</strong> {productoSeleccionado.codigo_producto}</p>
+      <p><strong>Nombre:</strong> {productoSeleccionado.nombre_producto}</p>
+      <p><strong>Precio:</strong> ₡{productoSeleccionado.precio_venta}</p>
       <p>
         <strong>Stock disponible:</strong>{" "}
-        {getAvailableStock(productoSeleccionado.codigo)}
+        {getAvailableStock(productoSeleccionado.codigo_producto)}
       </p>
 
       {/* Input cantidad */}
@@ -906,12 +909,12 @@ const guardarEdicion = (idx: number) => {
         <input
           type="number"
           min={1}
-          max={getAvailableStock(productoSeleccionado.codigo)}
+          max={getAvailableStock(productoSeleccionado.codigo_producto)}
           value={cantidadSeleccionada}
           onChange={(e) =>
             setCantidadSeleccionada(
               Math.min(
-                getAvailableStock(productoSeleccionado.codigo),
+                getAvailableStock(productoSeleccionado.codigo_producto),
                 Math.max(1, Number(e.target.value))
               )
             )
@@ -931,7 +934,7 @@ const guardarEdicion = (idx: number) => {
             setModalOpen(false);
             setCantidadSeleccionada(1); // reset
           }}
-          disabled={getAvailableStock(productoSeleccionado.codigo) <= 0}
+          disabled={getAvailableStock(productoSeleccionado.codigo_producto) <= 0}
         >
           <IoAddCircle /> Agregar
         </Button>
@@ -1095,22 +1098,22 @@ const guardarEdicion = (idx: number) => {
                             Math.min(item.descuento || 0, 100)
                           );
                           const subtotalItem =
-                            item.producto.precio *
+                            item.producto.precio_venta *
                             item.cantidad *
                             (1 - descuentoPct / 100);
                           return (
                             <tr key={idx}>
                               <td className="px-2 py-1 border">
-                                {item.producto.codigo}
+                                {item.producto.codigo_producto}
                               </td>
                               <td className="px-2 py-1 border">
-                                {item.producto.nombre}
+                                {item.producto.nombre_producto}
                               </td>
                               <td className="px-2 py-1 border">
                                 {item.cantidad}
                               </td>
                               <td className="px-2 py-1 border">
-                                ₡{item.producto.precio}
+                                ₡{item.producto.precio_venta}
                               </td>
                               <td className="px-2 py-1 border">
                                 {descuentoPct}%
@@ -1128,13 +1131,13 @@ const guardarEdicion = (idx: number) => {
                     {(() => {
                       const subtotal = carrito.reduce(
                         (acc, item) =>
-                          acc + item.producto.precio * item.cantidad,
+                          acc + item.producto.precio_venta * item.cantidad,
                         0
                       );
                       const totalDescuento = carrito.reduce(
                         (acc, item) =>
                           acc +
-                          (item.producto.precio *
+                          (item.producto.precio_venta *
                             item.cantidad *
                             (item.descuento || 0)) /
                             100,
