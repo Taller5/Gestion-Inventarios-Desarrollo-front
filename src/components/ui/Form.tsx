@@ -23,18 +23,18 @@ export default function Form(props: FormProps) {
       }}
       className="max-w-md mx-auto flex flex-col gap-6"
     >
-      <h2 className="text-2xl font-bold text-center text-verde-oscuro">
+      <h2 className="text-2xl font-bold text-center text-gray-700">
         {props.title || "Iniciar sesión"}
       </h2>
 
       {props.error && (
-        <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-center">
+        <div className="p-3 mb-4 bg-rojo-ultra-claro text-rojo-claro rounded-lg text-center">
           {props.error}
         </div>
       )}
       
       {props.successMessage && (
-        <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-lg text-center">
+        <div className="p-3 mb-4 bg-verde-ultra-claro text-verde-claro rounded-lg text-center">
           {props.successMessage}
         </div>
       )}
@@ -68,7 +68,7 @@ export default function Form(props: FormProps) {
           ¿Olvidaste tu contraseña?{" "}
           <a
             href="/recoverPassword"
-            className="text-blue-900 font-medium hover:underline"
+            className="text-azul-oscuro font-medium hover:underline"
           >
             {props.linkText}
           </a>

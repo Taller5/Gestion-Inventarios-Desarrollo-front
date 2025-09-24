@@ -275,7 +275,7 @@ export default function Businesses() {
     Acciones: (
       <div className="flex gap-2">
         <Button
-          style="bg-blue-500 hover:bg-blue-700 text-white py-1 px-2 rounded flex items-center gap-2"
+          style="bg-azul-medio hover:bg-azul-hover text-white py-1 px-2 rounded flex items-center gap-2"
           onClick={() => {
             setBusinessToEdit(b);
             setModalOpen(true);
@@ -284,7 +284,7 @@ export default function Businesses() {
           <RiEdit2Fill /> Editar
         </Button>
         <Button
-          style="bg-red-500 hover:bg-red-700 text-white py-1 px-2 rounded flex items-center gap-2"
+          style="bg-rojo-claro hover:bg-rojo-oscuro text-white py-1 px-2 rounded flex items-center gap-2"
           onClick={() => {
             setBusinessToDelete(b);
             setDeleteModalOpen(true);
@@ -326,14 +326,14 @@ export default function Businesses() {
                   />
                   {alert && (
                     <div
-                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-green-100 text-green-700 border border-green-300" : "bg-red-100 text-red-700 border border-red-300"}`}
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro" : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"}`}
                     >
                       {alert.message}
                     </div>
                   )}
                 </div>
                 <Button
-                  style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                   onClick={() => {
                     setBusinessToEdit(null);
                     setModalOpen(true);
@@ -371,8 +371,8 @@ export default function Businesses() {
                         <div
                           className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
                             alert.type === "success"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-red-100 text-red-700"
+                              ? "bg-verde-ultra-claro text-verde-oscuro"
+                              : "bg-rojo-ultra-claro text-rojo-oscuro"
                           }`}
                         >
                           {alert.message}
@@ -626,7 +626,7 @@ export default function Businesses() {
                         <div className="flex justify-end gap-4 mt-6">
                           <button
                             type="button"
-                            className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
+                            className="px-4 py-2 bg-gris-claro hover:bg-gris-oscuro text-gray-700 rounded"
                             onClick={() => setModalOpen(false)}
                           >
                             Cancelar
@@ -634,7 +634,7 @@ export default function Businesses() {
                           <button
                             type="submit"
                             disabled={loadingForm}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            className="px-4 py-2 bg-azul-medio text-white rounded hover:bg-azul-hover"
                           >
                             {loadingForm
                               ? "Guardando..."
@@ -670,7 +670,7 @@ export default function Businesses() {
                       </button>
                       <button
                         onClick={handleDelete}
-                        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                        className="px-4 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white rounded"
                       >
                         Eliminar
                       </button>

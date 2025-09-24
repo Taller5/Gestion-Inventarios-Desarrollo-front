@@ -60,7 +60,7 @@ export default function Nav({ logo }: NavProps) {
             {user.name && <span className="font-medium">{user.name}</span>}
             <button
               onClick={handleLogout}
-              className="bg-red-500 hover:bg-red-600 cursor-pointer text-white px-3 py-1 rounded ml-2"
+              className="bg-rojo-claro hover:bg-rojo-oscuro cursor-pointer text-white px-3 py-1 rounded ml-2"
             >
               Cerrar sesión
             </button>
@@ -69,7 +69,7 @@ export default function Nav({ logo }: NavProps) {
           !isLoginPage && (
             <button
               onClick={() => (window.location.href = "/login")}
-              className="bg-blue-500 hover:bg-blue-600 cursor-pointer text-white px-3 py-1 rounded"
+              className="bg-azul-medio hover:bg-azul-hover cursor-pointer text-white px-3 py-1 rounded"
             >
               Iniciar sesión
             </button>

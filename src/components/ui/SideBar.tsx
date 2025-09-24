@@ -6,17 +6,20 @@ interface SideBarProps {
 }
 
 export default function SideBar(props: SideBarProps) {
-  const btnInventario = (<Button text="Inventario" style="bg-transparent  font-bold rounded p-1 cursor-pointer w-full text-left" to="/Inventary" />);
-  const btnRegistroIngresos = (<Button text="Registro de Ingresos" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left " to="/finance" />);
-  const btnClientes = (<Button text="Clientes y Fidelización" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/customer" />);
-  const btnPersonal = (<Button text="Personal y Roles" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/employees" />);
-  const btnNegocios = (<Button text="Negocios" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/businesses" />);
-  const btnSucursales = (<Button text="Sucursales" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/branches" />);
-  const btnBodegas = (<Button text="Bodegas" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/warehouses" />);
-  const btnPerfil = (<Button text="Perfil" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/profile" />);
-  const btnSalesPages = (<Button text="Punto de Venta" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/salesPage" />);
-  const btnProvider = (<Button text="Proveedores" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/Provider" />);
-  const btnCashRegisterPage = (<Button text="Control de Caja" style="bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left" to="/cashRegisterPage" />);
+
+  const btnStyle = 'bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left';
+
+  const btnInventario = (<Button text="Inventario" style={btnStyle} to="/Inventary" />);
+  const btnRegistroIngresos = (<Button text="Registro de Ingresos" style={btnStyle} to="/finance" />);
+  const btnClientes = (<Button text="Clientes y Fidelización" style={btnStyle} to="/customer" />);
+  const btnPersonal = (<Button text="Personal y Roles" style={btnStyle} to="/employees" />);
+  const btnNegocios = (<Button text="Negocios" style={btnStyle} to="/businesses" />);
+  const btnSucursales = (<Button text="Sucursales" style={btnStyle} to="/branches" />);
+  const btnBodegas = (<Button text="Bodegas" style={btnStyle} to="/warehouses" />);
+  const btnPerfil = (<Button text="Perfil" style={btnStyle} to="/profile" />);
+  const btnSalesPages = (<Button text="Punto de Venta" style={btnStyle} to="/salesPage" />);
+  const btnProvider = (<Button text="Proveedores" style={btnStyle} to="/Provider" />);
+  const btnCashRegisterPage = (<Button text="Control de Caja" style={btnStyle} to="/cashRegisterPage" />);
 
 
   // Botones base para todos los usuarios
@@ -62,25 +65,25 @@ export default function SideBar(props: SideBarProps) {
   const currentPath = window.location.pathname.toLowerCase();
 
   return (
-    <section className="bg-sky-700 w-1/6 min-w-[200px] min-h-220 flex flex-col pt-4">
-      <div className="pt-10 flex flex-col gap-3">
+    <section className="bg-azul-oscuro w-1/6 min-w-[200px] min-h-220 flex flex-col pt-4">
+      <div className="pt-10 flex items-center duration-700 flex-col gap-3">
         {Array.isArray(sideBarButtons) &&
           sideBarButtons.map((btn, index) => {
             const btnPath = (btn.props.to || "").toLowerCase();
             const isActive = currentPath === btnPath || currentPath.startsWith(btnPath + "/");
             // Mantener los estilos originales y solo agregar el color activo
-            const originalStyle = btn.props.style || "";
-            const activeStyle = isActive ? "bg-sky-200 text-sky-700 font-bold" : "text-white";
+            const originalStyle = 'bg-transparent  font-bold rounded p-1 cursor-pointer w-full text-left';
+            const activeStyle = isActive ? "text-white font-bold" : "text-white";
             return (
               <div
                 key={index}
-                className={`flex items-center gap-2 mb-3 w-full pl-6 duration-300 cursor-pointer 
-                  ${isActive ? "bg-sky-200" : "hover:bg-sky-600"}
+                className={`flex items-center gap-2 mb-3 w-11/12 rounded-xl pl-4 duration-700 cursor-pointer
+                  ${isActive ? "bg-azul-medio" : "hover:bg-azul-hover"}
                 `}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className={`h-7 w-7 flex-shrink-0 ${isActive ? "text-sky-700" : "text-white"}`}
+                  className={`h-7 w-7 flex-shrink-0 text-white`}
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >

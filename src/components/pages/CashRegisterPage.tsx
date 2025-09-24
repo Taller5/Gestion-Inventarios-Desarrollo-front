@@ -276,7 +276,7 @@ const handleCloseCashRegister = async () => {
     Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
     Acciones: !c.closed_at ? (
       <Button
-        style="bg-red-500 hover:bg-red-600 text-white font-bold px-2 py-1 rounded text-sm"
+        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-2 py-1 rounded text-sm"
         onClick={() => {
           setCashRegisterToClose(c);
           setCloseModalOpen(true);
@@ -301,7 +301,7 @@ const handleCloseCashRegister = async () => {
 
               <div className="flex items-center gap-4 mb-6">
                 <Button
-                  style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-4 rounded flex items-center gap-2"
                   onClick={() => setModalOpen(true)}
                 >
                   <IoAddCircle /> Abrir nueva caja
@@ -322,8 +322,8 @@ const handleCloseCashRegister = async () => {
                       <div
                         className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                           alert.type === "success"
-                            ? "bg-green-100 text-green-700 border border-green-300"
-                            : "bg-red-100 text-red-700 border border-red-300"
+                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                            : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
                         }`}
                       >
                         {alert.message}
@@ -368,14 +368,14 @@ const handleCloseCashRegister = async () => {
 
                     <div className="flex justify-end gap-4">
                       <Button
-                        style="bg-azul-fuerte hover:bg-azul-claro text-white font-bold px-6 py-2 rounded"
+                        style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded"
                         onClick={handleOpenCashRegister}
                         disabled={loading}
                       >
                         {loading ? "Abriendo..." : "Abrir Caja"}
                       </Button>
                       <Button
-                        style="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded"
+                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded"
                         onClick={() => setModalOpen(false)}
                       >
                         Cancelar
@@ -429,7 +429,7 @@ const handleCloseCashRegister = async () => {
 
   {/* Mensaje de error debajo del input */}
   {closingError && (
-    <p className="text-red-600 text-sm mt-1 font-semibold">{closingError}</p>
+    <p className="text-rojo-claro text-sm mt-1 font-semibold">{closingError}</p>
   )}
 </div>
 
@@ -440,14 +440,14 @@ const handleCloseCashRegister = async () => {
 
                   <div className="flex gap-4 justify-end mt-4">
                     <Button
-                      style="bg-azul-fuerte hover:bg-azul-claro text-white px-6 py-2 rounded"
+                      style="bg-azul-medio hover:bg-azul-hover text-white px-6 py-2 rounded"
                       onClick={handleCloseCashRegister}
                       disabled={loading}
                     >
                       {loading ? "Cerrando..." : "Cerrar Caja"}
                     </Button>
                     <Button
-                      style="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded"
+                      style="bg-rojo-claro hover:bg-rojo-oscuro text-white px-6 py-2 rounded"
                       onClick={() => setCloseModalOpen(false)}
                     >
                       Cancelar

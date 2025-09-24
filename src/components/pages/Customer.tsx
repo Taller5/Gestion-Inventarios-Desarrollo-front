@@ -262,7 +262,7 @@ export default function CustomersPage() {
     Acciones: (
       <div className="flex gap-2">
         <Button
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+          style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
           onClick={() => {
             setCustomerToEdit(c);
             setModalOpen(true);
@@ -271,7 +271,7 @@ export default function CustomersPage() {
           <RiEdit2Fill /> Editar
         </Button>
         <Button
-          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
           onClick={() => {
             setCustomerIdToDelete(c.customer_id);
             setDeleteModalOpen(true);
@@ -321,8 +321,8 @@ export default function CustomersPage() {
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                         alert.type === "success"
-                          ? "bg-green-100 text-green-700 border border-green-300"
-                          : "bg-red-100 text-red-700 border border-red-300"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                          : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
                       }`}
                     >
                       {alert.message}
@@ -332,7 +332,7 @@ export default function CustomersPage() {
 
                 <div className="flex gap-2">
                   <Button
-                    style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                    style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                     onClick={() => {
                       setCustomerToEdit(null);
                       setModalOpen(true);
@@ -371,8 +371,8 @@ export default function CustomersPage() {
                       <div
                         className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                           alert.type === "success"
-                            ? "bg-green-100 text-green-700 border border-green-300"
-                            : "bg-red-100 text-red-700 border border-red-300"
+                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                            : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
                         }`}
                       >
                         {alert.message}
@@ -438,7 +438,7 @@ export default function CustomersPage() {
                       <button
                         type="submit"
                         disabled={loadingForm}
-                        className="bg-azul-fuerte hover:bg-azul-claro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                        className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       >
                         {loadingForm
                           ? "Guardando..."
@@ -449,7 +449,7 @@ export default function CustomersPage() {
                       <button
                         type="button"
                         onClick={() => setModalOpen(false)}
-                        className="bg-red-500 hover:bg-red-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                        className="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       >
                         Cerrar
                       </button>
@@ -469,7 +469,7 @@ export default function CustomersPage() {
                 </p>
                 <div className="flex gap-4 justify-center">
                   <button
-                    className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-2 px-4 rounded"
                     onClick={() =>
                       customerIdToDelete && handleDelete(customerIdToDelete)
                     }
@@ -477,7 +477,7 @@ export default function CustomersPage() {
                     Eliminar
                   </button>
                   <button
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                    className="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-4 rounded"
                     onClick={() => setDeleteModalOpen(false)}
                   >
                     Cancelar

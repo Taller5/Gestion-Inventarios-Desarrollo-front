@@ -211,11 +211,11 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
 
   return (
     <section className="flex flex-col gap-3">
-      {error && <div className="p-3 bg-red-100 text-red-700 rounded-lg text-center">{error}</div>}
-      {successMessage && <div className="p-3 bg-green-100 text-green-700 rounded-lg text-center">{successMessage}</div>}
+      {error && <div className="p-3 bg-rojo-ultra-claro text-rojo-claro rounded-lg text-center">{error}</div>}
+      {successMessage && <div className="p-3 bg-verde-ultra-claro text-verde-oscuro rounded-lg text-center">{successMessage}</div>}
       <Button
         text={loading ? "Generando..." : buttonText || "Imprimir factura"}
-        style="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3 rounded text-lg"
+        style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-8 py-3 rounded text-lg"
         onClick={generarFactura}
         disabled={disabledPrint}
       />
