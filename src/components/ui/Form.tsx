@@ -78,7 +78,7 @@ export default function Form(props: FormProps) {
       <button
         type="submit"
         disabled={props.loading}
-        className="w-full py-3 bg-azul-fuerte text-white font-bold rounded-2xl hover:bg-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+        className="w-full py-3 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
       >
         {props.loading ? "Ingresando..." : props.buttonText || "Ingresar"}
       </button>
@@ -88,7 +88,7 @@ export default function Form(props: FormProps) {
           type="button"
           onClick={() => window.history.back()}
           disabled={props.loading}
-          className="w-full py-3 bg-azul-fuerte text-white font-bold rounded-2xl hover:bg-azul-oscuro transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+          className="w-full py-3 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-2xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         >
           {props.buttonText2}
         </button>
