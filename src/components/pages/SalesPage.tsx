@@ -996,7 +996,7 @@ const guardarEdicion = (idx: number) => {
                     {/* Botones adicionales */}
                     <div className="flex justify-between mt-6">
                       <button
-                        className="px-4 py-2 bg-gris-claro hover:bg-gris-oscuro text-white rounded font-bold"
+                        className="px-4 py-2 bg-gris-oscuro hover:bg-gris-ultra-oscuro text-white rounded font-bold"
                         onClick={() => setModalSucursal(false)}
                       >
                         Cancelar

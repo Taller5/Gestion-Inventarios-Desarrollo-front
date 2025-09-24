@@ -18,11 +18,8 @@
   --color-amarillo-oscuro: #BCB350;
   
   --color-gris-claro: #E5E7EB;
-  --color-gris-oscuro: #D1D5DB;
-  --color-blanco: #BECED6;
-  --color-azul-fuerte: #007799;
-  --color-gris-claro: #E8E8E8;
-  --color-gris-oscuro: #D9D9D9;
+  --color-gris-oscuro: #B8BCC2;
+  --color-gris-ultra-oscuro: #8F9296;
 } 
 @layer utilities{  /* esta clase está hecha para añadir clases personalizadas de css, yo imagino que se puede usar para neumorphismo
   o para otras herramientas que no usen directamente tailwind, ejemplo: */
