@@ -31,8 +31,8 @@ const headers = ["id", "name", "contact", "email", "phone", "state", "products",
 // Productos reales del inventario
 type Product = {
   id: number;
-  codigo: string;
-  nombre: string;
+  codigo_producto: string;
+  nombre_producto: string;
   stock: number;
   precio: number;
   bodega?: string;
@@ -185,7 +185,7 @@ export default function Providers() {
     phone: prov.phone,
     state: prov.state,
     products: prov.products && Array.isArray(prov.products)
-      ? prov.products.map((p) => p.nombre).join(", ")
+      ? prov.products.map((p) => p.nombre_producto).join(", ")
       : "",
     actions: getActions(prov),
   }));
@@ -194,7 +194,7 @@ export default function Providers() {
   // Convierte los nombres de productos seleccionados a IDs
   const getProductIdsFromNames = (names: string[]) => {
     return products
-      .filter((p) => names.includes(p.nombre))
+      .filter((p) => names.includes(p.nombre_producto))
       .map((p) => p.id);
   };
 
@@ -237,7 +237,7 @@ export default function Providers() {
           email: providerToEdit.email,
           phone: providerToEdit.phone,
           state: providerToEdit.state,
-          products: providerToEdit.products.map((p) => p.nombre),
+          products: providerToEdit.products.map((p) => p.nombre_producto),
         });
       } else {
         setFormData({
@@ -311,11 +311,11 @@ export default function Providers() {
           <label key={product.id} className="flex items-center gap-2 mb-1 cursor-pointer">
             <input
               type="checkbox"
-              checked={formData.products.includes(product.nombre)}
-              onChange={() => toggleProduct(product.nombre)}
+              checked={formData.products.includes(product.nombre_producto)}
+              onChange={() => toggleProduct(product.nombre_producto)}
               className="accent-sky-500"
             />
-            {product.nombre}
+            {product.nombre_producto}
           </label>
         ))}
       </div>

@@ -134,7 +134,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       carrito.forEach((item, index) => {
         x = padding;
         const descuentoPct = Math.max(0, Math.min(item.descuento || 0, 100));
-        const subtotalItem = (item.producto.precio || 0) * (item.cantidad || 0);
+        const subtotalItem = (item.producto.precio_venta || 0) * (item.cantidad || 0);
         const descuentoItem = subtotalItem * (descuentoPct / 100);
 
         subtotal += subtotalItem;
@@ -146,10 +146,10 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
         }
 
         const row = [
-          item.producto.codigo || "-",
-          item.producto.nombre || "-",
+          item.producto.codigo_producto || "-",
+          item.producto.nombre_producto || "-",
           (item.cantidad || 0).toString(),
-          formatNumber(item.producto.precio || 0),
+          formatNumber(item.producto.precio_venta || 0),
           `${descuentoPct}%`,
           formatNumber(Math.round(subtotalItem - descuentoItem)),
         ];
