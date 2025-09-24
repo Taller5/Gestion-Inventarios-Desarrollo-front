@@ -155,7 +155,7 @@ export default function Providers() {
   const getActions = (provider: Provider) => [
     <div className="flex flex-row" key={provider.id}>
       <Button
-        style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
+        style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
         onClick={() => {
           setProviderToEdit(provider);
           setShowEditModal(true);
@@ -165,7 +165,7 @@ export default function Providers() {
         Editar
       </Button>
       <Button
-        style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
+        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
         onClick={() => {
           setSelectedProviderId(provider.id);
           setShowModal(true);
@@ -313,7 +313,7 @@ export default function Providers() {
               type="checkbox"
               checked={formData.products.includes(product.nombre_producto)}
               onChange={() => toggleProduct(product.nombre_producto)}
-              className="accent-sky-500"
+              className="accent-azul-medio"
             />
             {product.nombre_producto}
           </label>
@@ -327,8 +327,8 @@ export default function Providers() {
 
 
             <div className="flex justify-end gap-4 mt-4">
-              <button type="button" className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded" onClick={()=>{setShowEditModal(false); setProviderToEdit(null)}}>Cancelar</button>
-              <button type="submit" className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">{providerToEdit ? "Guardar" : "Añadir"}</button>
+              <button type="button" className="bg-gris-claro hover:bg-gris-oscuro text-black font-bold py-2 px-4 rounded" onClick={()=>{setShowEditModal(false); setProviderToEdit(null)}}>Cancelar</button>
+              <button type="submit" className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-2 px-4 rounded">{providerToEdit ? "Guardar" : "Añadir"}</button>
             </div>
           </form>
         </div>
@@ -355,9 +355,9 @@ export default function Providers() {
                     onSelect={(item)=>setProvidersFiltered([item])}
                     onNotFound={(q)=>{if(q==="")setAlert(null); else{setProvidersFiltered([]); setAlert({type:"error",message:`No existe ningún proveedor con el criterio "${q}".`})}}}
                   />
-                  {alert && <div className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type==="success"?"bg-green-100 text-green-700 border border-green-300":"bg-red-100 text-red-700 border border-red-300"}`}>{alert.message}</div>}
+                  {alert && <div className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type==="success"?"bg-verde-ultra-claro text-verde-oscuro border-verde-claro boder":"bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"}`}>{alert.message}</div>}
                 </div>
-                <Button style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2" onClick={()=>setShowEditModal(true)}>
+                <Button style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2" onClick={()=>setShowEditModal(true)}>
                   <IoAddCircle className="w-6 h-6 flex-shrink-0"/>
                   <span className="whitespace-nowrap text-base">Añadir proveedor</span>
                 </Button>
@@ -373,8 +373,8 @@ export default function Providers() {
                   <div className="relative bg-white p-6 rounded shadow-lg pointer-events-auto animate-modalShow transition-all duration-300" style={{boxShadow:"0 8px 32px rgba(0,0,0,0.15)"}}>
                     <p className="mb-4">¿Seguro que deseas eliminar este proveedor?</p>
                     <div className="flex gap-4">
-                      <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer" onClick={handleDelete}>Eliminar</button>
-                      <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer" onClick={()=>setShowModal(false)}>Cancelar</button>
+                      <button className="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded m-1 cursor-pointer" onClick={handleDelete}>Eliminar</button>
+                      <button className="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded m-1 cursor-pointer" onClick={()=>setShowModal(false)}>Cancelar</button>
                     </div>
                   </div>
                 </div>

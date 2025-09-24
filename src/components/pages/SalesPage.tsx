@@ -667,8 +667,8 @@ const guardarEdicion = (idx: number) => {
           <div
             className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
               stockDisponible > 0
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
+                ? "bg-verde-ultra-claro text-verde-claro"
+                : "bg-rojo-ultra-claro text-rojo-claro"
             }`}
           >
             Stock: {stockDisponible}
@@ -700,7 +700,7 @@ const guardarEdicion = (idx: number) => {
 <div className="shadow-md rounded-lg mb-6">
   <table className="min-w-full divide-y divide-gray-200">
     <thead className="bg-gray-100">
-      <tr>  
+      <tr>
         <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Código</th>
         <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Nombre</th>
         <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Cantidad</th>
@@ -1171,7 +1171,7 @@ const guardarEdicion = (idx: number) => {
 
                           {/* VUELTO */}
                           {mostrarVuelto && (
-                            <div className="mt-4 text-2xl font-extrabold text-green-700">
+                            <div className="mt-4 text-2xl font-extrabold text-verde-claro">
                               <strong>Vuelto:</strong> ₡{vuelto}
                             </div>
                           )}
@@ -1282,8 +1282,8 @@ const guardarEdicion = (idx: number) => {
                 <div
                   className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
                     alert.type === "success"
-                      ? "bg-green-100 text-green-700 border border-green-300"
-                      : "bg-red-100 text-red-700 border border-red-300"
+                      ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                      : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"
                   }`}
                 >
                   {alert.message}

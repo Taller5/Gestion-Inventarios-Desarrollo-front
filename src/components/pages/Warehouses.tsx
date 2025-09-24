@@ -165,7 +165,7 @@ export default function Warehouses() {
     Acciones: (
       <div className="flex">
         <Button
-          style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
+          style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
           onClick={() => {
             setWarehouseToEdit(warehouse);
             setShowEditModal(true);
@@ -176,7 +176,7 @@ export default function Warehouses() {
         </Button>
 
         <Button
-          style="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
+          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded m-1 cursor-pointer flex items-center gap-2"
           onClick={() => {
             setSelectedWarehouseId(warehouse.bodega_id);
             setShowModal(true);
@@ -189,7 +189,7 @@ export default function Warehouses() {
     ),
   }));
 
-  if (error) return <div className="text-red-500 p-4">{error}</div>;
+  if (error) return <div className="text-rojo-claro p-4">{error}</div>;
 
   // Get user role for protected route
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -232,8 +232,8 @@ export default function Warehouses() {
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                         alert.type === "success"
-                          ? "bg-green-100 text-green-700 border border-green-300"
-                          : "bg-red-100 text-red-700 border border-red-300"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                          : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"
                       }`}
                     >
                       {alert.message}
@@ -242,7 +242,7 @@ export default function Warehouses() {
                 </div>
                 <div className="relative group">
                   <Button
-                    style="bg-sky-500 hover:bg-azul-claro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                    style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                     onClick={() => {
                       setWarehouseToEdit(null);
                       setShowEditModal(true);
@@ -295,14 +295,14 @@ export default function Warehouses() {
                       <div className="flex justify-end gap-4">
                         <button
                           type="button"
-                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gris-claro hover:bg-gris-oscuro rounded-md"
                           onClick={() => setShowModal(false)}
                         >
                           Cancelar
                         </button>
                         <button
                           type="button"
-                          className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700"
+                          className="px-4 py-2 text-sm font-medium text-white bg-rojo-claro hover:bg-rojo-oscuro rounded-md"
                           onClick={handleDelete}
                         >
                           Eliminar
@@ -330,7 +330,7 @@ export default function Warehouses() {
                         {warehouseToEdit ? "Editar Bodega" : "Nueva Bodega"}
                       </h2>
                       {error && (
-                        <div className="mb-4 px-4 py-2 rounded text-center font-semibold bg-red-100 text-red-700">
+                        <div className="mb-4 px-4 py-2 rounded text-center font-semibold bg-rojo-ultra-claro text-rojo-claro">
                           {error}
                         </div>
                       )}
@@ -384,7 +384,7 @@ export default function Warehouses() {
                           </button>
                           <button
                             type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 cursor-pointer"
+                            className="px-4 py-2 text-sm font-medium text-white bg-azul-medio hover:bg-azul-hover rounded-md cursor-pointer"
                           >
                             {warehouseToEdit
                               ? "Guardar Cambios"

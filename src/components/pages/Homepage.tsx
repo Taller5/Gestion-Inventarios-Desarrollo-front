@@ -116,7 +116,7 @@ export default function Homepage() {
           rel="noopener noreferrer"
           className="flex flex-col items-center transition-transform duration-300 hover:scale-110"
         >
-          <CiFacebook className="w-10 h-10 text-blue-600" />
+          <CiFacebook className="w-10 h-10 text-azul-medio" />
           <span className="text-sm font-medium mt-1">Facebook</span>
         </a>,
         <a

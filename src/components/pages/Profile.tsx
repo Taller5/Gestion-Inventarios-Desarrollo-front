@@ -226,8 +226,8 @@ export default function Profile(props: ProfileProps) {
                   <div
                     className={`mb-4 px-4 py-2 rounded w-full text-center font-semibold ${
                       alert.type === "success"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+                        ? "bg-verde-ultra-claro text-verde-claro"
+                        : "bg-rojo-ultra-claro text-rojo-claro"
                     }`}
                   >
                     {alert.message}
@@ -239,7 +239,7 @@ export default function Profile(props: ProfileProps) {
                     <p>{props.textSection}</p>
                   </div>
                   <button
-                    className="bg-sky-500 hover:bg-sky-800 text-white px-4 py-2 rounded ml-2 cursor-pointer"
+                    className="bg-azul-medio hover:bg-azul-hover text-white px-4 py-2 rounded ml-2 cursor-pointer"
                     onClick={handleSave}
                     disabled={saving}
                   >
@@ -257,7 +257,7 @@ export default function Profile(props: ProfileProps) {
                           src={profilePhotoUrl}
                           alt="Profile"
                         />
-                        <label className="bg-sky-500 hover:bg-sky-800 text-white py-2 px-4 rounded cursor-pointer">
+                        <label className="bg-azul-medio hover:bg-azul-hover text-white py-2 px-4 rounded cursor-pointer">
                           <input
                             type="file"
                             className="hidden"
@@ -324,7 +324,7 @@ export default function Profile(props: ProfileProps) {
                           />
                         </label>
                         {newPasswordFocused && (
-                          <ul className="text-sm text-red-700 list-disc pl-5 mt-2">
+                          <ul className="text-sm text-rojo-oscuro list-disc pl-5 mt-2">
                             {getPasswordErrors(newPassword).slice(0, 1).map((error, index) => (
                               <li
                                 key={index}
@@ -354,7 +354,7 @@ export default function Profile(props: ProfileProps) {
                       </div>
                       <button
                         type="submit"
-                        className="bg-sky-500 hover:bg-sky-800 text-white px-4 py-2 rounded ml-2 cursor-pointer"
+                        className="bg-azul-medio hover:bg-azul-hover text-white px-4 py-2 rounded ml-2 cursor-pointer"
                         disabled={changing}
                       >
                         {changing ? "Cambiando..." : "Cambiar contraseña"}
