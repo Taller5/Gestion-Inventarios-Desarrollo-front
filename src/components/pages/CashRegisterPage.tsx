@@ -368,14 +368,14 @@ const handleCloseCashRegister = async () => {
 
                     <div className="flex justify-end gap-4">
                       <Button
-                        style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded"
+                        style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                         onClick={handleOpenCashRegister}
                         disabled={loading}
                       >
                         {loading ? "Abriendo..." : "Abrir Caja"}
                       </Button>
                       <Button
-                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded"
+                        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                         onClick={() => setModalOpen(false)}
                       >
                         Cancelar
@@ -440,14 +440,14 @@ const handleCloseCashRegister = async () => {
 
                   <div className="flex gap-4 justify-end mt-4">
                     <Button
-                      style="bg-azul-medio hover:bg-azul-hover text-white px-6 py-2 rounded"
+                      style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       onClick={handleCloseCashRegister}
                       disabled={loading}
                     >
                       {loading ? "Cerrando..." : "Cerrar Caja"}
                     </Button>
                     <Button
-                      style="bg-rojo-claro hover:bg-rojo-oscuro text-white px-6 py-2 rounded"
+                      style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       onClick={() => setCloseModalOpen(false)}
                     >
                       Cancelar

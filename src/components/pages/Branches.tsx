@@ -597,17 +597,18 @@ const handleDelete = async () => {
                     <div className="flex justify-end gap-4">
                       <button
                         type="button"
-                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-gris-claro rounded-md hover:bg-gris-oscuro"
-                        onClick={() => setShowModal(false)}
-                      >
-                        Cancelar
-                      </button>
-                      <button
-                        type="button"
-                        className="px-4 py-2 text-sm font-medium text-white bg-rojo-claro hover:bg-rojo-oscuro rounded-md"
+                        className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
                         onClick={handleDelete}
                       >
                         Eliminar
+                      </button>
+                      
+                      <button
+                        type="button"
+                        className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                        onClick={() => setShowModal(false)}
+                      >
+                        Cancelar
                       </button>
                     </div>
                   </div>
@@ -745,8 +746,16 @@ const handleDelete = async () => {
 
                         <div className="flex justify-end gap-4 pt-4">
                           <button
+                            type="submit"
+                            className="px-6 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg cursor-pointer"
+                          >
+                            {branchToEdit
+                              ? "Guardar Cambios"
+                              : "Crear Sucursal"}
+                          </button>
+                          <button
                             type="button"
-                            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gris-claro hover:bg-gris-oscuro rounded-md cursor-pointer"
+                            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                             onClick={() => {
                               setShowEditModal(false);
                               setBranchToEdit(null);
@@ -754,14 +763,6 @@ const handleDelete = async () => {
                             }}
                           >
                             Cancelar
-                          </button>
-                          <button
-                            type="submit"
-                            className="px-4 py-2 text-sm font-medium text-white bg-azul-medio rounded-md hover:bg-azul-hover cursor-pointer"
-                          >
-                            {branchToEdit
-                              ? "Guardar Cambios"
-                              : "Crear Sucursal"}
                           </button>
                         </div>
                       </form>

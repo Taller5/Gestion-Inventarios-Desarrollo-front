@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { IoEyeOutline } from 'react-icons/io5';
+import { IoEyeOffOutline } from 'react-icons/io5';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -30,6 +32,7 @@ export default function Modal({
     const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
     const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     // Inicializa el formulario con los datos del usuario a editar
     useEffect(() => {
@@ -60,11 +63,28 @@ export default function Modal({
     if (!open) return null;
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
+        
+        const { name, value } = e.target;
+        
+        if (name === "phone") {
+        // Solo números
+        if (value === "" || /^\d+$/.test(value)) {
+        setForm((prev) => ({ ...prev, [name]: value }));
+        }
+        return;
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const invalidPhone = /^\d+$/.test(form.phone);
+
+        if (!invalidPhone) {
+        setAlert({ type: "error", message: "El teléfono solo puede contener números" });
+        return;
+  }
+
         if (!isEditMode && form.password.length < 6) {
             setAlert({ type: "error", message: "La contraseña debe tener al menos 6 caracteres." });
             return;
@@ -209,7 +229,7 @@ export default function Modal({
                         <label className="mb-2 font-semibold text-gray-700">Contraseña</label>
                         <input
                             name="password"
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             value={form.password}
                             onChange={handleChange}
                             className="border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -219,6 +239,7 @@ export default function Modal({
                             onFocus={() => setNewPasswordFocused(true)}
                             onBlur={() => setNewPasswordFocused(false)}
                         />
+                        <div className="absolute right-11 translate-y-10 text-gray-600 cursor-pointer" onMouseDown={() => setShowPassword(true)} onMouseUp={() => setShowPassword(false)}>{showPassword ? <IoEyeOutline className="w-6 h-6" /> :  <IoEyeOffOutline className="w-6 h-6"/> }</div>
                         {newPasswordFocused && (
                             <ul className="text-sm text-red-700 list-disc pl-5 mt-2">
                                 {getPasswordErrors(form.password).slice(0, 1).map((error, index) => (
@@ -264,16 +285,16 @@ export default function Modal({
                     <button
                         type="submit"
                         disabled={loading}
-                        className={`w-40 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-1 cursor-pointer mt-2`}
+                        className={`bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer`}
                     >
                         {loading ? "Guardando..." : isEditMode ? "Guardar cambios" : "Guardar"}
                     </button>
                     <button
                         type="button"
-                        className="w-40 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded m-1 cursor-pointer mt-2"
+                        className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                         onClick={onClose}
                     >
-                        Cerrar
+                        Cancelar
                     </button>
                 </div>
             </form>

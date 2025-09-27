@@ -275,7 +275,7 @@ export default function Businesses() {
     Acciones: (
       <div className="flex gap-2">
         <Button
-          style="bg-azul-medio hover:bg-azul-hover text-white py-1 px-2 rounded flex items-center gap-2"
+          style="bg-azul-medio hover:bg-azul-hover text-white py-1 px-2 rounded flex items-center gap-2 font-bold"
           onClick={() => {
             setBusinessToEdit(b);
             setModalOpen(true);
@@ -284,7 +284,7 @@ export default function Businesses() {
           <RiEdit2Fill /> Editar
         </Button>
         <Button
-          style="bg-rojo-claro hover:bg-rojo-oscuro text-white py-1 px-2 rounded flex items-center gap-2"
+          style="bg-rojo-claro hover:bg-rojo-oscuro text-white py-1 px-2 rounded flex items-center gap-2 font-bold"
           onClick={() => {
             setBusinessToDelete(b);
             setDeleteModalOpen(true);
@@ -625,22 +625,22 @@ export default function Businesses() {
 
                         <div className="flex justify-end gap-4 mt-6">
                           <button
-                            type="button"
-                            className="px-4 py-2 bg-gris-claro hover:bg-gris-oscuro text-gray-700 rounded"
-                            onClick={() => setModalOpen(false)}
-                          >
-                            Cancelar
-                          </button>
-                          <button
                             type="submit"
                             disabled={loadingForm}
-                            className="px-4 py-2 bg-azul-medio text-white rounded hover:bg-azul-hover"
+                            className="px-6 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg cursor-pointer"
                           >
                             {loadingForm
                               ? "Guardando..."
                               : businessToEdit
                                 ? "Guardar"
                                 : "Crear"}
+                          </button>
+                          <button
+                            type="button"
+                            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                            onClick={() => setModalOpen(false)}
+                          >
+                            Cancelar
                           </button>
                         </div>
                       </form>
@@ -663,16 +663,16 @@ export default function Businesses() {
                     </p>
                     <div className="flex justify-end gap-4">
                       <button
-                        onClick={() => setDeleteModalOpen(false)}
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300"
-                      >
-                        Cancelar
-                      </button>
-                      <button
                         onClick={handleDelete}
-                        className="px-4 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white rounded"
+                        className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
                       >
                         Eliminar
+                      </button>
+                       <button
+                        onClick={() => setDeleteModalOpen(false)}
+                        className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                      >
+                        Cancelar
                       </button>
                     </div>
                   </div>

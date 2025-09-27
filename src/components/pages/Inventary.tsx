@@ -420,7 +420,7 @@ export default function Inventary() {
                                 </Button>
                                 {/* Botón Editar Producto */}
                                 <Button
-                                  style="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
                                   onClick={() => {
                                     setEditProductMode(true);
 
@@ -468,7 +468,7 @@ export default function Inventary() {
                                       <div className="flex gap-4 justify-center">
                                         <Button
                                           text="Eliminar"
-                                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                          style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
                                           onClick={async () => {
                                             const res = await fetch(
                                               `${API_URL}/api/v1/products/${productoAEliminar.id}`,
@@ -541,7 +541,7 @@ export default function Inventary() {
                                             Detalles
                                           </Button>
                                           <Button
-                                            style="text-sm cursor-pointer bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded"
+                                            style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
                                             onClick={() => {
                                               setEditMode(true);
                                               setFormLote(lote);
@@ -582,19 +582,7 @@ export default function Inventary() {
                                               <p>{simpleModal.message}</p>
                                               <div className="flex justify-end gap-2">
                                                 <button
-                                                  className="bg-gris-claro hover:bg-gris-oscuro px-4 py-2 rounded cursor-pointer"
-                                                  onClick={() => {
-                                                    setSimpleModal({
-                                                      ...simpleModal,
-                                                      open: false,
-                                                    });
-                                                    setLoteAEliminar(null);
-                                                  }}
-                                                >
-                                                  Cancelar
-                                                </button>
-                                                <button
-                                                  className="bg-rojo-claro hover:bg-rojo-oscuro text-white px-4 py-2 rounded cursor-pointer"
+                                                  className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
                                                   onClick={async () => {
                                                     if (!loteAEliminar) return;
                                                     setLoadingForm(true);
@@ -639,6 +627,18 @@ export default function Inventary() {
                                                   }}
                                                 >
                                                   Eliminar
+                                                </button>
+                                                <button
+                                                  className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                                  onClick={() => {
+                                                    setSimpleModal({
+                                                      ...simpleModal,
+                                                      open: false,
+                                                    });
+                                                    setLoteAEliminar(null);
+                                                  }}
+                                                >
+                                                  Cancelar
                                                 </button>
                                               </div>
                                             </div>
@@ -895,7 +895,7 @@ export default function Inventary() {
                                 ? "Guardar cambios"
                                 : "Guardar"
                           }
-                          style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="submit"
                           disabled={
                             loadingForm ||
@@ -908,8 +908,8 @@ export default function Inventary() {
                           }
                         />
                         <Button
-                          text="Cerrar"
-                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          text="Cancelar"
+                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="button"
                           onClick={() => {
                             setModalOpen(false);
@@ -1133,7 +1133,7 @@ export default function Inventary() {
                       <div className="flex gap-4 justify-end mt-6">
                         <Button
                           text={loadingForm ? "Guardando..." : "Guardar"}
-                          style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="submit"
                           disabled={
                             loadingForm ||
@@ -1147,8 +1147,8 @@ export default function Inventary() {
                           }
                         />
                         <Button
-                          text="Cerrar"
-                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          text="Cancelar"
+                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="button"
                           onClick={() => {
                             setModalOpen(false);
@@ -1412,15 +1412,15 @@ export default function Inventary() {
                               text={
                                 loadingForm ? "Guardando..." : "Guardar cambios"
                               }
-                              style="bg-blue-500 hover:bg-blue-700 text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                              style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                               type="submit"
                               disabled={loadingForm}
                             />
                           )}
                           <Button
-                            text="Cerrar"
+                            text="Cancelar"
                             type="button"
-                            style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                            style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                             onClick={() => {
                               setModalOpen(false);
                               setEditMode(false);

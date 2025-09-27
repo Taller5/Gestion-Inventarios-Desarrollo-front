@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import SideBar from "../ui/SideBar";
 import Container from "../ui/Container";
 import { LoginService } from "../services/LoginService";
+import { IoEyeOutline } from 'react-icons/io5';
+import { IoEyeOffOutline } from 'react-icons/io5';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -36,6 +38,10 @@ export default function Profile(props: ProfileProps) {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changing, setChanging] = useState(false);
   const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+  
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Validaciones de contraseña
   const passwordValidations = [
@@ -239,7 +245,7 @@ export default function Profile(props: ProfileProps) {
                     <p>{props.textSection}</p>
                   </div>
                   <button
-                    className="bg-azul-medio hover:bg-azul-hover text-white px-4 py-2 rounded ml-2 cursor-pointer"
+                    className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                     onClick={handleSave}
                     disabled={saving}
                   >
@@ -257,7 +263,7 @@ export default function Profile(props: ProfileProps) {
                           src={profilePhotoUrl}
                           alt="Profile"
                         />
-                        <label className="bg-azul-medio hover:bg-azul-hover text-white py-2 px-4 rounded cursor-pointer">
+                        <label className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer">
                           <input
                             type="file"
                             className="hidden"
@@ -301,27 +307,30 @@ export default function Profile(props: ProfileProps) {
                     <h2 className="text-lg font-bold ml-4 mb-10 mt-2">{props.labelChangePassword}</h2>
                     <form className="flex flex-col gap-4 px-8 mb-6" onSubmit={handleChangePassword}>
                       <div>
-                        <label className="flex flex-col text-lg font-bold">{props.labelCurrentPassword}
+                        <label className="flex flex-col text-lg font-bold relative">{props.labelCurrentPassword}
                           <input 
                             className="bg-white pl-2 py-1 mt-2 font-normal text-base"
-                            type="password" 
+                            type={showCurrentPassword ? "text" : "password"} 
                             required
                             value={currentPassword}
                             onChange={e => setCurrentPassword(e.target.value)}
                           />
+                          <div className="absolute right-3 bottom-1 text-gray-600 cursor-pointer" onMouseDown={() => setShowCurrentPassword(true)} onMouseUp={() => setShowCurrentPassword(false)}>{showCurrentPassword ? <IoEyeOutline className="w-6 h-6" /> :  <IoEyeOffOutline className="w-6 h-6"/> }</div>
+                                    
                         </label>
                       </div>
                       <div>
-                        <label className="flex flex-col text-lg font-bold">{props.labelNewPassword}
+                        <label className="flex flex-col text-lg font-bold relative">{props.labelNewPassword}
                           <input 
                             className="bg-white pl-2 py-1 mt-2 font-normal text-base"
-                            type="password"
+                            type={showNewPassword ? "text" : "password"}
                             required 
                             value={newPassword}
                             onChange={e => setNewPassword(e.target.value)}
                             onFocus={() => setNewPasswordFocused(true)}
                             onBlur={() => setNewPasswordFocused(false)}
                           />
+                          <div className="absolute right-3 bottom-1 text-gray-600 cursor-pointer" onMouseDown={() => setShowNewPassword(true)} onMouseUp={() => setShowNewPassword(false)}>{ showNewPassword ? <IoEyeOutline className="w-6 h-6" /> :  <IoEyeOffOutline className="w-6 h-6"/> }</div>
                         </label>
                         {newPasswordFocused && (
                           <ul className="text-sm text-rojo-oscuro list-disc pl-5 mt-2">
@@ -340,21 +349,22 @@ export default function Profile(props: ProfileProps) {
                         )}
                       </div>
                       <div>
-                        <label className="flex flex-col text-lg font-bold">{props.labelConfirmPassword}
+                        <label className="flex flex-col text-lg font-bold relative">{props.labelConfirmPassword}
                           <input 
                             className="bg-white pl-2 py-1 mt-2 font-normal text-base"
-                            type="password"
+                            type={ showConfirmPassword ? "text" : "password"}
                             required 
                             value={confirmPassword}
                             onChange={e => setConfirmPassword(e.target.value)}
                             onFocus={() => setNewPasswordFocused(true)}
                             onBlur={() => setNewPasswordFocused(false)}
                           />
+                          <div className="absolute right-3 bottom-1 text-gray-600 cursor-pointer" onMouseDown={() => setShowConfirmPassword(true)} onMouseUp={() => setShowConfirmPassword(false)}>{ showConfirmPassword ? <IoEyeOutline className="w-6 h-6" /> :  <IoEyeOffOutline className="w-6 h-6"/> }</div>
                         </label>
                       </div>
                       <button
                         type="submit"
-                        className="bg-azul-medio hover:bg-azul-hover text-white px-4 py-2 rounded ml-2 cursor-pointer"
+                        className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                         disabled={changing}
                       >
                         {changing ? "Cambiando..." : "Cambiar contraseña"}
