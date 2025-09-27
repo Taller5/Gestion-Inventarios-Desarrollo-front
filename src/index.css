@@ -17,8 +17,8 @@
   --color-amarillo-claro: #D6CA4E;
   --color-amarillo-oscuro: #BCB350;
   
-  --color-gris-claro: #E5E7EB;
-  --color-gris-oscuro: #B8BCC2;
+  --color-gris-claro: #A2A6AB;
+  --color-gris-oscuro: #8A8D91;
   --color-gris-ultra-oscuro: #8F9296;
 } 
 @layer utilities{  /* esta clase está hecha para añadir clases personalizadas de css, yo imagino que se puede usar para neumorphismo

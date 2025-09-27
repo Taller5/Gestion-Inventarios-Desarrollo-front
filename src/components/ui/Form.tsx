@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { IoEyeOutline } from 'react-icons/io5';
+import { IoEyeOffOutline } from 'react-icons/io5';
+
 interface FormProps {
   email: string;
   password: string;
@@ -14,6 +18,9 @@ interface FormProps {
   successMessage?: string;
 }
 export default function Form(props: FormProps) {
+
+  const [showPassword, setShowPassword] = useState(false);
+
   return (
     <section className="flex-grow flex items-center justify-center">
     <form
@@ -28,7 +35,7 @@ export default function Form(props: FormProps) {
       </h2>
 
       {props.error && (
-        <div className="p-3 mb-4 bg-rojo-ultra-claro text-rojo-claro rounded-lg text-center">
+        <div className="p-3 mb-4 bg-rojo-ultra-claro text-white rounded-lg text-center">
           {props.error}
         </div>
       )}
@@ -53,14 +60,21 @@ export default function Form(props: FormProps) {
       {!props.hidePasswordField && (
         <div className="flex flex-col gap-1">
           <label className="font-medium text-gray-700">Contraseña:</label>
-          <input
-            type="password"
+          
+          <div className="relative">
+
+            <input
+            type={showPassword ? "text" : "password"}
             value={props.password}
             onChange={(e) => props.onPasswordChange(e.target.value)}
             required
             className="w-full p-5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-oscuro"
           />
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 cursor-pointer" onMouseDown={() => setShowPassword(true)} onMouseUp={() => setShowPassword(false)}>{showPassword ? <IoEyeOutline className="w-6 h-6" /> :  <IoEyeOffOutline className="w-6 h-6"/> }</div>
+          </div>
+
         </div>
+
       )}
 
       {props.linkText && (

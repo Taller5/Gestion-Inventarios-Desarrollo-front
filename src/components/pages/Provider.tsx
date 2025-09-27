@@ -327,8 +327,8 @@ export default function Providers() {
 
 
             <div className="flex justify-end gap-4 mt-4">
-              <button type="button" className="bg-gris-claro hover:bg-gris-oscuro text-black font-bold py-2 px-4 rounded" onClick={()=>{setShowEditModal(false); setProviderToEdit(null)}}>Cancelar</button>
-              <button type="submit" className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-2 px-4 rounded">{providerToEdit ? "Guardar" : "Añadir"}</button>
+              <button type="submit" className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer">{providerToEdit ? "Guardar" : "Añadir"}</button>
+              <button type="button" className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer" onClick={()=>{setShowEditModal(false); setProviderToEdit(null)}}>Cancelar</button>
             </div>
           </form>
         </div>
@@ -373,8 +373,8 @@ export default function Providers() {
                   <div className="relative bg-white p-6 rounded shadow-lg pointer-events-auto animate-modalShow transition-all duration-300" style={{boxShadow:"0 8px 32px rgba(0,0,0,0.15)"}}>
                     <p className="mb-4">¿Seguro que deseas eliminar este proveedor?</p>
                     <div className="flex gap-4">
-                      <button className="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded m-1 cursor-pointer" onClick={handleDelete}>Eliminar</button>
-                      <button className="bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded m-1 cursor-pointer" onClick={()=>setShowModal(false)}>Cancelar</button>
+                      <button className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer" onClick={handleDelete}>Eliminar</button>
+                      <button className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer" onClick={()=>setShowModal(false)}>Cancelar</button>
                     </div>
                   </div>
                 </div>

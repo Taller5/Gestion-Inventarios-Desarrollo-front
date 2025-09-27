@@ -590,7 +590,7 @@ const guardarEdicion = (idx: number) => {
   </Button>
 
   <Button
-    style="bg-gris-claro hover:bg-gris-oscuro text-black font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
+    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
     onClick={() =>
       setClienteSeleccionado({
         customer_id: 0,
@@ -996,13 +996,13 @@ const guardarEdicion = (idx: number) => {
                     {/* Botones adicionales */}
                     <div className="flex justify-between mt-6">
                       <button
-                        className="px-4 py-2 bg-gris-oscuro hover:bg-gris-ultra-oscuro text-white rounded font-bold"
+                        className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                         onClick={() => setModalSucursal(false)}
                       >
                         Cancelar
                       </button>
                       <button
-                        className="px-4 py-2 bg-verde-claro hover:bg-verde-oscuro text-white rounded font-bold"
+                        className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-4 py-2 rounded-lg shadow-md transition cursor-pointer"
                         onClick={() => (window.location.href = "/Branches")}
                       >
                         Por favor, agrega una sucursal.
