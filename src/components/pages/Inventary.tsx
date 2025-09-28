@@ -11,6 +11,7 @@ import { FaTrash } from "react-icons/fa";
 import { IoAddCircle } from "react-icons/io5";
 import { CgDetailsMore } from "react-icons/cg";
 import { RiEdit2Fill } from "react-icons/ri";
+import { FaSearch } from 'react-icons/fa';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -291,8 +292,8 @@ export default function Inventary() {
                       <div
                         className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                           alert.type === "success"
-                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
-                            : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
+                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                            : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
                         }`}
                       >
                         {alert.message}
@@ -301,7 +302,7 @@ export default function Inventary() {
                   </div>
                   <div className="flex gap-2">
                     <Button
-                      style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                      style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center"
                       onClick={() => {
                         setEditProductMode(false);
                         setFormProducto({
@@ -320,6 +321,12 @@ export default function Inventary() {
                       <IoAddCircle className="w-6 h-6 flex-shrink-0" />
                       <span className="whitespace-nowrap text-base">
                         Agregar Producto
+                      </span>
+                    </Button>
+                    <Button to="/iaprediction" style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2">
+                      <FaSearch/>
+                      <span className="whitespace-nowrap text-base">
+                        Ver predicciones
                       </span>
                     </Button>
                   </div>

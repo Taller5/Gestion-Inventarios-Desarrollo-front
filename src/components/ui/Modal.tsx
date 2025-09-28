@@ -66,12 +66,19 @@ export default function Modal({
         
         const { name, value } = e.target;
         
-        if (name === "phone") {
-        // Solo números
-        if (value === "" || /^\d+$/.test(value)) {
-        setForm((prev) => ({ ...prev, [name]: value }));
-        }
-        return;
+        switch(name){
+
+            case "name":
+                if (/^[a-zA-Z\s]*$/.test(value)) setForm((prev) => ({ ...prev, [name]: value }));
+                break;
+            case "email":
+                setForm((prev) => ({ ...prev, [name]: value }));
+                break;
+            case "phone":
+                if (/^\+?\d*$/.test(value)) setForm((prev) => ({ ...prev, [name]: value }));
+                break;
+            default:
+                setForm((prev) => ({ ...prev, [name]: value }));
         }
     };
 

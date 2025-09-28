@@ -233,7 +233,7 @@ export default function Warehouses() {
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                         alert.type === "success"
                           ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                          : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"
+                          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
                       }`}
                     >
                       {alert.message}
@@ -330,7 +330,7 @@ export default function Warehouses() {
                         {warehouseToEdit ? "Editar Bodega" : "Nueva Bodega"}
                       </h2>
                       {error && (
-                        <div className="mb-4 px-4 py-2 rounded text-center font-semibold bg-rojo-ultra-claro text-rojo-claro">
+                        <div className="mb-4 px-4 py-2 rounded text-center font-semibold bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border">
                           {error}
                         </div>
                       )}

@@ -321,8 +321,8 @@ export default function CustomersPage() {
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                         alert.type === "success"
-                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
-                          : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
                       }`}
                     >
                       {alert.message}
@@ -371,8 +371,8 @@ export default function CustomersPage() {
                       <div
                         className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
                           alert.type === "success"
-                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
-                            : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
+                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                            : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
                         }`}
                       >
                         {alert.message}

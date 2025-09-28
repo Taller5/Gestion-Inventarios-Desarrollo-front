@@ -232,8 +232,8 @@ export default function Profile(props: ProfileProps) {
                   <div
                     className={`mb-4 px-4 py-2 rounded w-full text-center font-semibold ${
                       alert.type === "success"
-                        ? "bg-verde-ultra-claro text-verde-claro"
-                        : "bg-rojo-ultra-claro text-rojo-claro"
+                        ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                        : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
                     }`}
                   >
                     {alert.message}
