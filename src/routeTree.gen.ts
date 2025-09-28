@@ -16,6 +16,7 @@ import { Route as ProviderRouteImport } from './routes/provider'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventaryRouteImport } from './routes/inventary'
+import { Route as IapredictionRouteImport } from './routes/iaprediction'
 import { Route as HomepageRouteImport } from './routes/homepage'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as EmployeesRouteImport } from './routes/employees'
@@ -58,6 +59,11 @@ const LoginRoute = LoginRouteImport.update({
 const InventaryRoute = InventaryRouteImport.update({
   id: '/inventary',
   path: '/inventary',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IapredictionRoute = IapredictionRouteImport.update({
+  id: '/iaprediction',
+  path: '/iaprediction',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomepageRoute = HomepageRouteImport.update({
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/homepage': typeof HomepageRoute
+  '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/homepage': typeof HomepageRoute
+  '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/homepage': typeof HomepageRoute
+  '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
     | '/employees'
     | '/finance'
     | '/homepage'
+    | '/iaprediction'
     | '/inventary'
     | '/login'
     | '/profile'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/employees'
     | '/finance'
     | '/homepage'
+    | '/iaprediction'
     | '/inventary'
     | '/login'
     | '/profile'
@@ -198,6 +209,7 @@ export interface FileRouteTypes {
     | '/employees'
     | '/finance'
     | '/homepage'
+    | '/iaprediction'
     | '/inventary'
     | '/login'
     | '/profile'
@@ -216,6 +228,7 @@ export interface RootRouteChildren {
   EmployeesRoute: typeof EmployeesRoute
   FinanceRoute: typeof FinanceRoute
   HomepageRoute: typeof HomepageRoute
+  IapredictionRoute: typeof IapredictionRoute
   InventaryRoute: typeof InventaryRoute
   LoginRoute: typeof LoginRoute
   ProfileRoute: typeof ProfileRoute
@@ -274,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/inventary'
       fullPath: '/inventary'
       preLoaderRoute: typeof InventaryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/iaprediction': {
+      id: '/iaprediction'
+      path: '/iaprediction'
+      fullPath: '/iaprediction'
+      preLoaderRoute: typeof IapredictionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/homepage': {
@@ -344,6 +364,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployeesRoute: EmployeesRoute,
   FinanceRoute: FinanceRoute,
   HomepageRoute: HomepageRoute,
+  IapredictionRoute: IapredictionRoute,
   InventaryRoute: InventaryRoute,
   LoginRoute: LoginRoute,
   ProfileRoute: ProfileRoute,
