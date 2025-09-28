@@ -326,7 +326,7 @@ export default function Businesses() {
                   />
                   {alert && (
                     <div
-                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro" : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"}`}
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro" : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"}`}
                     >
                       {alert.message}
                     </div>
@@ -371,8 +371,8 @@ export default function Businesses() {
                         <div
                           className={`mb-4 px-4 py-2 rounded text-center font-semibold ${
                             alert.type === "success"
-                              ? "bg-verde-ultra-claro text-verde-oscuro"
-                              : "bg-rojo-ultra-claro text-rojo-oscuro"
+                              ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                              : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
                           }`}
                         >
                           {alert.message}

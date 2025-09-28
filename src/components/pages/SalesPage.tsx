@@ -16,11 +16,11 @@ type Producto = {
   nombre_producto: string;
   categoria?: string;
   descripcion?: string;
+  stock?: number;
   precio_compra?: number;
   precio_venta: number;
   bodega?: string;
   bodega_id?: number;
-  stock?: number;
 };
 
 type Lote = {
@@ -649,9 +649,9 @@ const guardarEdicion = (idx: number) => {
       return (
         <div
           key={producto.codigo_producto}
-          className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-claro ${
+          className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-oscuro ${
             productoSeleccionado?.codigo_producto === producto.codigo_producto
-              ? "bg-gris-oscuro font-bold"
+              ? "bg-gris-claro font-bold"
               : ""
           }`}
           onClick={() => {
@@ -667,8 +667,8 @@ const guardarEdicion = (idx: number) => {
           <div
             className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
               stockDisponible > 0
-                ? "bg-verde-ultra-claro text-verde-claro"
-                : "bg-rojo-ultra-claro text-rojo-claro"
+                ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
             }`}
           >
             Stock: {stockDisponible}
@@ -1283,7 +1283,7 @@ const guardarEdicion = (idx: number) => {
                   className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
                     alert.type === "success"
                       ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                      : "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"
+                      : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
                   }`}
                 >
                   {alert.message}

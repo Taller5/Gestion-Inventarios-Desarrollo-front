@@ -355,7 +355,7 @@ export default function Providers() {
                     onSelect={(item)=>setProvidersFiltered([item])}
                     onNotFound={(q)=>{if(q==="")setAlert(null); else{setProvidersFiltered([]); setAlert({type:"error",message:`No existe ningún proveedor con el criterio "${q}".`})}}}
                   />
-                  {alert && <div className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type==="success"?"bg-verde-ultra-claro text-verde-oscuro border-verde-claro boder":"bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro border"}`}>{alert.message}</div>}
+                  {alert && <div className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type==="success"?"bg-verde-ultra-claro text-verde-oscuro border-verde-claro boder":"bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"}`}>{alert.message}</div>}
                 </div>
                 <Button style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2" onClick={()=>setShowEditModal(true)}>
                   <IoAddCircle className="w-6 h-6 flex-shrink-0"/>
