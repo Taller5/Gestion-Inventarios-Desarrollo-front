@@ -6,7 +6,6 @@ import Container from "../ui/Container";
 import { IoAddCircle, IoPersonAdd, IoPencil, IoSearch } from "react-icons/io5";
 import GenerarFactura from "../ui/GenerateInvoice";
 
-
 // Para React + TypeScript
 
 // Tipos
@@ -64,17 +63,17 @@ export default function SalesPage() {
   const [total, setTotal] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [facturaModal, setFacturaModal] = useState(false);
- // Hook de estado
-const [alert, setAlert] = useState<{
-  type: "success" | "error";
-  message: string;
-} | null>(null);
+  // Hook de estado
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
-// Función auxiliar
-const mostrarAlerta = (type: "success" | "error", message: string) => {
-  setAlert({ type, message });
-  setTimeout(() => setAlert(null), 2000); // Ocultar la alerta despues de 2 segundos
-};
+  // Función auxiliar
+  const mostrarAlerta = (type: "success" | "error", message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 2000); // Ocultar la alerta despues de 2 segundos
+  };
 
   // Estados búsqueda y edición
   const [queryCliente, setQueryCliente] = useState("");
@@ -248,87 +247,95 @@ const mostrarAlerta = (type: "success" | "error", message: string) => {
     })
     .filter((producto) =>
       queryProducto.trim()
-        ? producto.nombre_producto.toLowerCase().includes(queryProducto.toLowerCase()) ||
-          producto.codigo_producto.toLowerCase().includes(queryProducto.toLowerCase())
+        ? producto.nombre_producto
+            .toLowerCase()
+            .includes(queryProducto.toLowerCase()) ||
+          producto.codigo_producto
+            .toLowerCase()
+            .includes(queryProducto.toLowerCase())
         : true
     );
-// Agregar al carrito
-// --- FUNCIONES DEL CARRITO ---
-// --- AGREGAR AL CARRITO ---
+  // Agregar al carrito
+  // --- FUNCIONES DEL CARRITO ---
+  // --- AGREGAR AL CARRITO ---
 
+  const getAvailableStock = (codigo: string) => {
+    const producto = productos.find((p) => p.codigo_producto === codigo);
+    if (!producto) return 0;
 
-const getAvailableStock = (codigo: string) => {
-  const producto = productos.find(p => p.codigo_producto === codigo);
-  if (!producto) return 0;
+    const enCarrito =
+      carrito.find((item) => item.producto.codigo_producto === codigo)
+        ?.cantidad ?? 0;
+    return (producto.stock ?? 0) - enCarrito;
+  };
 
-  const enCarrito = carrito.find(item => item.producto.codigo_producto === codigo)?.cantidad ?? 0;
-  return (producto.stock ?? 0) - enCarrito;
-};
+  const agregarAlCarrito = (producto: Producto) => {
+    const stockDisponible = getAvailableStock(producto.codigo_producto);
+    if (stockDisponible <= 0) {
+      mostrarAlerta("error", "Producto sin stock disponible");
+      return;
+    }
 
-const agregarAlCarrito = (producto: Producto) => {
-  const stockDisponible = getAvailableStock(producto.codigo_producto);
-  if (stockDisponible <= 0) {
-   mostrarAlerta("error", "Producto sin stock disponible");
-    return;
-  }
+    setCarrito((prevCarrito) => {
+      const idx = prevCarrito.findIndex(
+        (item) => item.producto.codigo_producto === producto.codigo_producto
+      );
 
-  setCarrito(prevCarrito => {
-    const idx = prevCarrito.findIndex(item => item.producto.codigo_producto === producto.codigo_producto);
+      if (idx >= 0) {
+        const nuevo = [...prevCarrito];
+        nuevo[idx] = { ...nuevo[idx], cantidad: nuevo[idx].cantidad + 1 };
+        return nuevo;
+      }
 
-    if (idx >= 0) {
+      return [...prevCarrito, { producto, cantidad: 1, descuento: 0 }];
+    });
+
+    mostrarAlerta("success", `${producto.nombre_producto} agregado al carrito`);
+    setModalOpen(false);
+  };
+
+  // --- ELIMINAR DEL CARRITO ---
+  const eliminarDelCarrito = (codigo: string) => {
+    setCarrito((prevCarrito) =>
+      prevCarrito.filter((item) => item.producto.codigo_producto !== codigo)
+    );
+    mostrarAlerta("success", "Producto eliminado del carrito");
+  };
+
+  // --- INICIAR EDICIÓN ---
+  const iniciarEdicion = (idx: number) => {
+    setEditIdx(idx);
+    setEditCantidad(carrito[idx].cantidad);
+    setEditDescuento(carrito[idx].descuento);
+  };
+
+  // --- GUARDAR EDICIÓN ---
+  const guardarEdicion = (idx: number) => {
+    setCarrito((prevCarrito) => {
       const nuevo = [...prevCarrito];
-      nuevo[idx] = { ...nuevo[idx], cantidad: nuevo[idx].cantidad + 1 };
-      return nuevo;
-    }
+      const item = nuevo[idx];
+      if (!item) return prevCarrito;
 
-    return [...prevCarrito, { producto, cantidad: 1, descuento: 0 }];
-  });
+      const stockDisponible =
+        getAvailableStock(item.producto.codigo_producto) + item.cantidad;
 
-  mostrarAlerta("success", `${producto.nombre_producto} agregado al carrito`);
-  setModalOpen(false);
-};
-
-// --- ELIMINAR DEL CARRITO ---
-const eliminarDelCarrito = (codigo: string) => {
-  setCarrito(prevCarrito => prevCarrito.filter(item => item.producto.codigo_producto !== codigo));
-   mostrarAlerta("success", "Producto eliminado del carrito");
-};
-
-// --- INICIAR EDICIÓN ---
-const iniciarEdicion = (idx: number) => {
-  setEditIdx(idx);
-  setEditCantidad(carrito[idx].cantidad);
-  setEditDescuento(carrito[idx].descuento);
-};
-
-// --- GUARDAR EDICIÓN ---
-const guardarEdicion = (idx: number) => {
-  setCarrito(prevCarrito => {
-    const nuevo = [...prevCarrito];
-    const item = nuevo[idx];
-    if (!item) return prevCarrito;
-
-    const stockDisponible = getAvailableStock(item.producto.codigo_producto) + item.cantidad;
-
-    if (editCantidad > stockDisponible) {
+      if (editCantidad > stockDisponible) {
         mostrarAlerta("error", "Cantidad excede stock disponible");
-      return prevCarrito;
-    }
+        return prevCarrito;
+      }
 
-    item.cantidad = editCantidad;
-    item.descuento = editDescuento;
-    return nuevo;
-  });
+      item.cantidad = editCantidad;
+      item.descuento = editDescuento;
+      return nuevo;
+    });
 
-  setEditIdx(null);
-};
-
-
+    setEditIdx(null);
+  };
 
   const finalizarVenta = async (e: React.FormEvent) => {
     e.preventDefault();
 
-   if (!clienteSeleccionado || !sucursalSeleccionada || carrito.length === 0) {
+    if (!clienteSeleccionado || !sucursalSeleccionada || carrito.length === 0) {
       mostrarAlerta(
         "error",
         "Seleccione cliente, sucursal y agregue productos al carrito."
@@ -339,20 +346,20 @@ const guardarEdicion = (idx: number) => {
     try {
       // Validaciones de pago
       if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
-            mostrarAlerta("error", "Ingrese el monto entregado");
+        mostrarAlerta("error", "Ingrese el monto entregado");
         return;
       }
       if (
         (metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
         !comprobante.trim()
       ) {
-       mostrarAlerta(
+        mostrarAlerta(
           "error",
           "Debe ingresar el comprobante para el método de pago seleccionado."
-       );
+        );
         return;
       }
-// Quitar la alerta después de 10 segundos
+      // Quitar la alerta después de 10 segundos
 
       // Mapear método de pago al backend
       const metodoPagoBackend =
@@ -372,7 +379,8 @@ const guardarEdicion = (idx: number) => {
       const totalDescuento = carrito.reduce(
         (acc, item) =>
           acc +
-          (item.producto.precio_venta * item.cantidad * (item.descuento || 0)) / 100,
+          (item.producto.precio_venta * item.cantidad * (item.descuento || 0)) /
+            100,
         0
       );
       const subtotalConDescuento = subtotal - totalDescuento;
@@ -387,8 +395,7 @@ const guardarEdicion = (idx: number) => {
       // Validar monto suficiente si es pago en efectivo
       if (metodoPago === "Efectivo" && (montoEntregado || 0) < totalAPagar) {
         setFacturaModal(false);
-           mostrarAlerta(
-            
+        mostrarAlerta(
           "error",
           `El monto entregado es menor al total a pagar. Faltan ₡${(
             totalAPagar - (montoEntregado || 0)
@@ -467,15 +474,13 @@ const guardarEdicion = (idx: number) => {
 
       // Devuelve stock disponible real: stock del producto menos lo que hay en carrito
 
-
       // Mensaje de éxito
-    mostrarAlerta(
-  "success",
-  `Factura #${responseData?.id} creada exitosamente. ${
-    vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ""
-  }`
-);
-
+      mostrarAlerta(
+        "success",
+        `Factura #${responseData?.id} creada exitosamente. ${
+          vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ""
+        }`
+      );
 
       // Limpiar estados
       setCarrito([]);
@@ -490,13 +495,12 @@ const guardarEdicion = (idx: number) => {
         (res) => res.json()
       );
       setProductos(updatedProducts);
-     } catch (error: any) {
+    } catch (error: any) {
       console.error("Error en finalizarVenta:", error);
       mostrarAlerta(
         "error",
         "Ocurrió un error al procesar la venta. Por favor intente nuevamente."
       );
-    
     }
   };
 
@@ -510,449 +514,552 @@ const guardarEdicion = (idx: number) => {
               <div className="w-3/2 flex flex-col pl-10">
                 <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
 
-         {/* Selector de cliente */}
-<div className="mb-6">
-  {/* Input con lupa */}
-  <div className="relative mb-2">
-    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
-    <input
-      type="text"
-      placeholder="Buscar cliente por cédula..."
-      className="border rounded pl-10 pr-3 py-2 w-full"
-      value={queryCliente}
-      onChange={(e) => setQueryCliente(e.target.value)}
-    />
-  </div>
-
-
-{/* Mostrar dropdown solo si hay texto en el input */}
-{queryCliente && (
-  <div className="max-h-40 overflow-y-auto border rounded bg-white">
-    {/* Lista de clientes filtrados */}
-    {clientesFiltrados
-      .filter((cliente) =>
-        cliente.name.toLowerCase().includes(queryCliente.toLowerCase()) ||
-        (cliente.identity_number ?? "").includes(queryCliente)
-      )
-      .map((cliente) => (
-        <div
-          key={cliente.customer_id}
-          className={`px-4 py-2 cursor-pointer hover:bg-gris-claro ${
-            clienteSeleccionado?.customer_id === cliente.customer_id
-              ? "bg-gris-oscuro font-bold"
-              : ""
-          }`}
-          onClick={() => {
-            setClienteSeleccionado(cliente);
-            setQueryCliente(""); // 🚀 Limpiar input al seleccionar
-          }}
-        >
-          {cliente.name}
-          {cliente.identity_number && (
-            <span className="text-gray-500 ml-2">
-              Cédula: {cliente.identity_number}
-            </span>
-          )}
-        </div>
-      ))}
-
-    {/* Mensaje si no hay clientes */}
-    {clientesFiltrados.filter(
-      (cliente) =>
-        cliente.name.toLowerCase().includes(queryCliente.toLowerCase()) ||
-        (cliente.identity_number ?? "").includes(queryCliente)
-    ).length === 0 && (
-      <p className="px-4 py-2 text-red-500 text-sm">
-        No existe ningún cliente con ese nombre o cédula.
-      </p>
-    )}
-
-
-    
-  </div>
-)}
-
-
-
-  {/* Cliente seleccionado */}
-  {clienteSeleccionado && (
-    <p className="mt-2 font-bold text-azul-hover">
-      Cliente seleccionado: {clienteSeleccionado.name} (
-      {clienteSeleccionado.identity_number})
-    </p>
-  )}
-<div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
-  <Button
-    style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
-    onClick={() => (window.location.href = "/customer")}
-  >
-    <IoPersonAdd className="mr-2" size={18} /> Nuevo cliente
-  </Button>
-
-  <Button
-    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
-    onClick={() =>
-      setClienteSeleccionado({
-        customer_id: 0,
-        name: "Cliente genérico",
-        identity_number: "N/A",
-      })
-    }
-  >
-    Cliente genérico
-  </Button>
-</div>
-
-
-  {/* Botón para cambiar sucursal */}
-  {sucursalSeleccionada && !modalSucursal && (
-    <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6 mt-4">
-      <button
-        className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200"
-        onClick={() => setModalSucursal(true)}
-      >
-        Cambiar sucursal
-      </button>
-      <span className="text-black font-semibold text-left md:text-right">
-        Sucursal actual: {sucursalSeleccionada.nombre} - {sucursalSeleccionada.business.nombre_comercial}
-      </span>
-    </div>
-  )}
-</div>
-
-{/* Navegador de productos */}
-<div className="shadow-md rounded-lg p-4 mb-6">
-  <h2 className="text-lg font-bold mb-2">Productos</h2>
-
-  {/* Input con lupa */}
-  <div className="relative mb-2">
-    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
-    <input
-      type="text"
-      placeholder="Buscar producto por código o nombre..."
-      className="border rounded pl-10 pr-3 py-2 w-full"
-      value={queryProducto}
-      onChange={(e) => setQueryProducto(e.target.value)}
-    />
-  </div>
-
-  {/* Mostrar dropdown solo si se está digitando un código */}
-{queryProducto && /^\d+$/.test(queryProducto) && (
-  <div className="max-h-40 overflow-y-auto border rounded bg-white">
-    {productosFiltrados.map((producto) => {
-      const getAvailableStock = (codigo: string) => {
-        const itemEnCarrito = carrito.find(i => i.producto.codigo_producto === codigo);
-        return (producto.stock ?? 0) - (itemEnCarrito?.cantidad ?? 0);
-      };
-      const stockDisponible = getAvailableStock(producto.codigo_producto);
-
-      return (
-        <div
-          key={producto.codigo_producto}
-          className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-oscuro ${
-            productoSeleccionado?.codigo_producto === producto.codigo_producto
-              ? "bg-gris-claro font-bold"
-              : ""
-          }`}
-          onClick={() => {
-            setProductoSeleccionado(producto);
-            setQueryProducto(""); // 🚀 Limpiar input al seleccionar
-          }}
-        >
-          <div className="flex-1">
-            <span>{producto.nombre_producto}</span>{" "}
-            <span className="text-gray-500">({producto.codigo_producto})</span>
-          </div>
-
-          <div
-            className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
-              stockDisponible > 0
-                ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-            }`}
-          >
-            Stock: {stockDisponible}
-          </div>
-
-          <Button
-            style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
-            onClick={() => setModalOpen(true)}
-            disabled={stockDisponible <= 0}
-          >
-            <IoAddCircle className="mr-1" /> Añadir
-          </Button>
-        </div>
-      );
-    })}
-
-    {productosFiltrados.length === 0 && (
-      <p className="px-4 py-2 text-rojo-claro text-sm">
-        No existe ningún producto con ese código.
-      </p>
-    )}
-  </div>
-)}
-
-</div>
-
-
-    {/* Tabla carrito */}
-<div className="shadow-md rounded-lg mb-6">
-  <table className="min-w-full divide-y divide-gray-200">
-    <thead className="bg-gray-100">
-      <tr>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Código</th>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Nombre</th>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Cantidad</th>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Precio</th>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Descuento %</th>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Descuento ₡</th>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Total</th>
-        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">Acciones</th>
-      </tr>
-    </thead>
-    <tbody className="bg-white divide-y divide-gray-200">
-      {carrito.length === 0 ? (
-        <tr>
-          <td colSpan={8} className="text-center py-4">Sin productos</td>
-        </tr>
-      ) : (
-        carrito.map((item, idx) => {
-          const descuentoPct = Math.max(0, Math.min(item.descuento, 100));
-          const totalItem = item.producto.precio_venta * item.cantidad * (1 - descuentoPct / 100);
-          const descuentoColones = Math.round(item.producto.precio_venta * item.cantidad * descuentoPct / 100);
-
-          return (
-            <tr key={idx}>
-              <td className="px-3 py-3">{item.producto.codigo_producto}</td>
-              <td className="px-3 py-3">{item.producto.nombre_producto}</td>
-              <td className="px-3 py-3">
-                {editIdx === idx ? (
-                  <input
-                    type="number"
-                    min={1}
-                    value={editCantidad}
-                    onChange={(e) => {
-                        const value = Math.max(1, Number(e.target.value));
-                        setEditCantidad(value);
-                      }}
-
-                    className="border rounded px-2 py-1 w-16"
-                  />
-                ) : (
-                  item.cantidad
-                )}
-              </td>
-              <td className="px-3 py-3">{item.producto.precio_venta}</td>
-              <td className="px-3 py-3">
-                {editIdx === idx ? (
-                  <select
-                    value={editDescuento}
-                    onChange={(e) => setEditDescuento(Number(e.target.value))}
-                    className="border rounded px-2 py-1 w-20"
-                  >
-                    {Array.from({ length: 21 }, (_, i) => i * 5).map(pct => (
-                      <option key={pct} value={pct}>{pct}%</option>
-                    ))}
-                  </select>
-                ) : (
-                  `${descuentoPct}%`
-                )}
-              </td>
-              <td className="px-3 py-3">₡{descuentoColones.toLocaleString()}</td>
-              <td className="px-3 py-3">{Math.round(totalItem)}</td>
-              <td className="px-3 py-3 flex gap-2">
-                {editIdx === idx ? (
-                  <>
-                    <Button
-                      text="Guardar"
-                      style="bg-verde-claro text-white px-2 py-1 rounded"
-                      onClick={() => guardarEdicion(idx)}
+                {/* Selector de cliente */}
+                <div className="mb-6">
+                  {/* Input con lupa */}
+                  <div className="relative mb-2">
+                    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
+                    <input
+                      type="text"
+                      placeholder="Buscar cliente por cédula..."
+                      className="border rounded pl-10 pr-3 py-2 w-full"
+                      value={queryCliente}
+                      onChange={(e) => setQueryCliente(e.target.value)}
                     />
+                  </div>
+
+                  {/* Mostrar dropdown solo si hay texto en el input */}
+                  {queryCliente && (
+                    <div className="max-h-40 overflow-y-auto border rounded bg-white">
+                      {/* Lista de clientes filtrados */}
+                      {clientesFiltrados
+                        .filter(
+                          (cliente) =>
+                            cliente.name
+                              .toLowerCase()
+                              .includes(queryCliente.toLowerCase()) ||
+                            (cliente.identity_number ?? "").includes(
+                              queryCliente
+                            )
+                        )
+                        .map((cliente) => (
+                          <div
+                            key={cliente.customer_id}
+                            className={`px-4 py-2 cursor-pointer hover:bg-gris-claro ${
+                              clienteSeleccionado?.customer_id ===
+                              cliente.customer_id
+                                ? "bg-gris-oscuro font-bold"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setClienteSeleccionado(cliente);
+                              setQueryCliente(""); // 🚀 Limpiar input al seleccionar
+                            }}
+                          >
+                            {cliente.name}
+                            {cliente.identity_number && (
+                              <span className="text-gray-500 ml-2">
+                                Cédula: {cliente.identity_number}
+                              </span>
+                            )}
+                          </div>
+                        ))}
+
+                      {/* Mensaje si no hay clientes */}
+                      {clientesFiltrados.filter(
+                        (cliente) =>
+                          cliente.name
+                            .toLowerCase()
+                            .includes(queryCliente.toLowerCase()) ||
+                          (cliente.identity_number ?? "").includes(queryCliente)
+                      ).length === 0 && (
+                        <p className="px-4 py-2 text-red-500 text-sm">
+                          No existe ningún cliente con ese nombre o cédula.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Cliente seleccionado */}
+                  {clienteSeleccionado && (
+                    <p className="mt-2 font-bold text-azul-hover">
+                      Cliente seleccionado: {clienteSeleccionado.name} (
+                      {clienteSeleccionado.identity_number})
+                    </p>
+                  )}
+                  <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
                     <Button
-                      text="Cancelar"
-                      style="bg-gris-claro text-white px-2 py-1 rounded"
-                      onClick={() => setEditIdx(null)}
-                    />
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      text="Editar"
-                      style="bg-amarillo-claro text-white px-2 py-1 rounded flex items-center gap-1"
-                      onClick={() => iniciarEdicion(idx)}
+                      style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
+                      onClick={() => (window.location.href = "/customer")}
                     >
-                      <IoPencil />
+                      <IoPersonAdd className="mr-2" size={18} /> Nuevo cliente
                     </Button>
+
                     <Button
-                      text="Eliminar"
-                      style="bg-rojo-claro text-white px-2 py-1 rounded"
-                      onClick={() => eliminarDelCarrito(item.producto.codigo_producto)}
+                      style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
+                      onClick={() =>
+                        setClienteSeleccionado({
+                          customer_id: 0,
+                          name: "Cliente genérico",
+                          identity_number: "N/A",
+                        })
+                      }
+                    >
+                      Cliente genérico
+                    </Button>
+                  </div>
+
+                  {/* Botón para cambiar sucursal */}
+                  {sucursalSeleccionada && !modalSucursal && (
+                    <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6 mt-4">
+                      <button
+                        className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200"
+                        onClick={() => setModalSucursal(true)}
+                      >
+                        Cambiar sucursal
+                      </button>
+                      <span className="text-black font-semibold text-left md:text-right">
+                        Sucursal actual: {sucursalSeleccionada.nombre} -{" "}
+                        {sucursalSeleccionada.business.nombre_comercial}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Navegador de productos */}
+                <div className="shadow-md rounded-lg p-4 mb-6">
+                  <h2 className="text-lg font-bold mb-2">Productos</h2>
+
+                  {/* Input con lupa */}
+                  <div className="relative mb-2">
+                    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
+                    <input
+                      type="text"
+                      placeholder="Buscar producto por código o nombre..."
+                      className="border rounded pl-10 pr-3 py-2 w-full"
+                      value={queryProducto}
+                      onChange={(e) => setQueryProducto(e.target.value)}
                     />
-                  </>
-                )}
-              </td>
-            </tr>
-          );
-        })
-      )}
-    </tbody>
-  </table>
+                  </div>
 
-  {/* Aplicar mismo descuento a todo */}
-  {carrito.length > 0 && (
-    <div className="mt-1  py-5 px-5 flex justify-end gap-2 bg-gris-claro">
-      <label className="text-gray-700 font-semibold">Aplicar mismo descuento a todo:</label>
-      <select
-        onChange={(e) => {
-          const pct = Number(e.target.value);
-          setCarrito(prev => prev.map(item => ({ ...item, descuento: pct })));
-        }}
-        className="border rounded px-2 py-1 w-20"
-        defaultValue={0}
-      >
-        {Array.from({ length: 21 }, (_, i) => i * 5).map(pct => (
-          <option key={pct} value={pct}>{pct}%</option>
-        ))}
-      </select>
-    </div>
-  )}
-</div>
+                  {/* Mostrar dropdown solo si se está digitando un código */}
+                  {queryProducto && /^\d+$/.test(queryProducto) && (
+                    <div className="max-h-40 overflow-y-auto border rounded bg-white">
+                      {productosFiltrados.map((producto) => {
+                        const getAvailableStock = (codigo: string) => {
+                          const itemEnCarrito = carrito.find(
+                            (i) => i.producto.codigo_producto === codigo
+                          );
+                          return (
+                            (producto.stock ?? 0) -
+                            (itemEnCarrito?.cantidad ?? 0)
+                          );
+                        };
+                        const stockDisponible = getAvailableStock(
+                          producto.codigo_producto
+                        );
 
+                        return (
+                          <div
+                            key={producto.codigo_producto}
+                            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-oscuro ${
+                              productoSeleccionado?.codigo_producto ===
+                              producto.codigo_producto
+                                ? "bg-gris-claro font-bold"
+                                : ""
+                            }`}
+                            onClick={() => {
+                              setProductoSeleccionado(producto);
+                              setQueryProducto(""); // 🚀 Limpiar input al seleccionar
+                            }}
+                          >
+                            <div className="flex-1">
+                              <span>{producto.nombre_producto}</span>{" "}
+                              <span className="text-gray-500">
+                                ({producto.codigo_producto})
+                              </span>
+                            </div>
 
+                            <div
+                              className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
+                                stockDisponible > 0
+                                  ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                                  : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+                              }`}
+                            >
+                              Stock: {stockDisponible}
+                            </div>
 
-{/* Pie carrito */}
-<div className="flex justify-end items-center bg-azul-oscuro text-white px-10 py-4 rounded-lg">
-  <div className="flex-1">
-    {/* Subtotal */}
-    <div>
-      Costo antes de descuento: ₡
-      {carrito
-        .reduce((acc, item) => acc + item.producto.precio_venta * item.cantidad, 0)
-        .toLocaleString()}
-    </div>
+                            <Button
+                              style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
+                              onClick={() => setModalOpen(true)}
+                              disabled={stockDisponible <= 0}
+                            >
+                              <IoAddCircle className="mr-1" /> Añadir
+                            </Button>
+                          </div>
+                        );
+                      })}
 
-    {/* Descuento total en colones */}
-    <div>
-      Descuento total: ₡
-      {carrito
-        .reduce(
-          (acc, item) =>
-            acc +
-            (item.producto.precio_venta * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
-          0
-        )
-        .toLocaleString()}
-    </div>
+                      {productosFiltrados.length === 0 && (
+                        <p className="px-4 py-2 text-rojo-claro text-sm">
+                          No existe ningún producto con ese código.
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
 
-    {/* Impuestos calculados al 13% */}
-    <div>
-      Impuestos: ₡
-      {Math.round(
-        (carrito.reduce((acc, item) => acc + item.producto.precio_venta * item.cantidad, 0) -
-          carrito.reduce(
-            (acc, item) =>
-              acc +
-              (item.producto.precio_venta * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
-            0
-          )) *
-          0.13
-      ).toLocaleString()}
-    </div>
+                {/* Tabla carrito */}
+                <div className="shadow-md rounded-lg mb-6">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Código
+                        </th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Nombre
+                        </th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Cantidad
+                        </th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Precio
+                        </th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Descuento %
+                        </th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Descuento ₡
+                        </th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Total
+                        </th>
+                        <th className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase">
+                          Acciones
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {carrito.length === 0 ? (
+                        <tr>
+                          <td colSpan={8} className="text-center py-4">
+                            Sin productos
+                          </td>
+                        </tr>
+                      ) : (
+                        carrito.map((item, idx) => {
+                          const descuentoPct = Math.max(
+                            0,
+                            Math.min(item.descuento, 100)
+                          );
+                          const totalItem =
+                            item.producto.precio_venta *
+                            item.cantidad *
+                            (1 - descuentoPct / 100);
+                          const descuentoColones = Math.round(
+                            (item.producto.precio_venta *
+                              item.cantidad *
+                              descuentoPct) /
+                              100
+                          );
 
-    {/* Total a pagar */}
-    <div className="text-lg font-bold">
-      Total a pagar: ₡
-      {Math.round(
-        (carrito.reduce((acc, item) => acc + item.producto.precio_venta * item.cantidad, 0) -
-          carrito.reduce(
-            (acc, item) =>
-              acc +
-              (item.producto.precio_venta * item.cantidad * Math.max(0, Math.min(item.descuento, 100))) / 100,
-            0
-          )) *
-          1.13
-      ).toLocaleString()}
-    </div>
-  </div>
+                          return (
+                            <tr key={idx}>
+                              <td className="px-3 py-3">
+                                {item.producto.codigo_producto}
+                              </td>
+                              <td className="px-3 py-3">
+                                {item.producto.nombre_producto}
+                              </td>
+                              <td className="px-3 py-3">
+                                {editIdx === idx ? (
+                                  <input
+                                    type="number"
+                                    min={1}
+                                    value={editCantidad}
+                                    onChange={(e) => {
+                                      const value = Math.max(
+                                        1,
+                                        Number(e.target.value)
+                                      );
+                                      setEditCantidad(value);
+                                    }}
+                                    className="border rounded px-2 py-1 w-16"
+                                  />
+                                ) : (
+                                  item.cantidad
+                                )}
+                              </td>
+                              <td className="px-3 py-3">
+                                {item.producto.precio_venta}
+                              </td>
+                              <td className="px-3 py-3">
+                                {editIdx === idx ? (
+                                  <select
+                                    value={editDescuento}
+                                    onChange={(e) =>
+                                      setEditDescuento(Number(e.target.value))
+                                    }
+                                    className="border rounded px-2 py-1 w-20"
+                                  >
+                                    {Array.from(
+                                      { length: 21 },
+                                      (_, i) => i * 5
+                                    ).map((pct) => (
+                                      <option key={pct} value={pct}>
+                                        {pct}%
+                                      </option>
+                                    ))}
+                                  </select>
+                                ) : (
+                                  `${descuentoPct}%`
+                                )}
+                              </td>
+                              <td className="px-3 py-3">
+                                ₡{descuentoColones.toLocaleString()}
+                              </td>
+                              <td className="px-3 py-3">
+                                {Math.round(totalItem)}
+                              </td>
+                              <td className="px-3 py-3 flex gap-2">
+                                {editIdx === idx ? (
+                                  <>
+                                    <Button
+                                      text="Guardar"
+                                      style="bg-verde-claro text-white px-2 py-1 rounded"
+                                      onClick={() => guardarEdicion(idx)}
+                                    />
+                                    <Button
+                                      text="Cancelar"
+                                      style="bg-gris-claro text-white px-2 py-1 rounded"
+                                      onClick={() => setEditIdx(null)}
+                                    />
+                                  </>
+                                ) : (
+                                  <>
+                                    <Button
+                                      text="Editar"
+                                      style="bg-amarillo-claro text-white px-2 py-1 rounded flex items-center gap-1"
+                                      onClick={() => iniciarEdicion(idx)}
+                                    >
+                                      <IoPencil />
+                                    </Button>
+                                    <Button
+                                      text="Eliminar"
+                                      style="bg-rojo-claro text-white px-2 py-1 rounded"
+                                      onClick={() =>
+                                        eliminarDelCarrito(
+                                          item.producto.codigo_producto
+                                        )
+                                      }
+                                    />
+                                  </>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                      )}
+                    </tbody>
+                  </table>
 
-  <Button
-    text="Pagar"
-    style="bg-azul-medio hover:bg-azul-hover text-white px-8 py-3 rounded text-lg font-bold cursor-pointer"
-    onClick={() => setFacturaModal(true)}
-    disabled={carrito.length === 0 || !clienteSeleccionado}
-  />
-</div>
+                  {/* Aplicar mismo descuento a todo */}
+                  {carrito.length > 0 && (
+                    <div className="mt-1  py-5 px-5 flex justify-end gap-2 bg-gris-claro">
+                      <label className="text-gray-700 font-semibold">
+                        Aplicar mismo descuento a todo:
+                      </label>
+                      <select
+                        onChange={(e) => {
+                          const pct = Number(e.target.value);
+                          setCarrito((prev) =>
+                            prev.map((item) => ({ ...item, descuento: pct }))
+                          );
+                        }}
+                        className="border rounded px-2 py-1 w-20"
+                        defaultValue={0}
+                      >
+                        {Array.from({ length: 21 }, (_, i) => i * 5).map(
+                          (pct) => (
+                            <option key={pct} value={pct}>
+                              {pct}%
+                            </option>
+                          )
+                        )}
+                      </select>
+                    </div>
+                  )}
+                </div>
 
+                {/* Pie carrito */}
+                <div className="flex justify-end items-center bg-azul-oscuro text-white px-10 py-4 rounded-lg">
+                  <div className="flex-1">
+                    {/* Subtotal */}
+                    <div>
+                      Costo antes de descuento: ₡
+                      {carrito
+                        .reduce(
+                          (acc, item) =>
+                            acc + item.producto.precio_venta * item.cantidad,
+                          0
+                        )
+                        .toLocaleString()}
+                    </div>
+
+                    {/* Descuento total en colones */}
+                    <div>
+                      Descuento total: ₡
+                      {carrito
+                        .reduce(
+                          (acc, item) =>
+                            acc +
+                            (item.producto.precio_venta *
+                              item.cantidad *
+                              Math.max(0, Math.min(item.descuento, 100))) /
+                              100,
+                          0
+                        )
+                        .toLocaleString()}
+                    </div>
+
+                    {/* Impuestos calculados al 13% */}
+                    <div>
+                      Impuestos: ₡
+                      {Math.round(
+                        (carrito.reduce(
+                          (acc, item) =>
+                            acc + item.producto.precio_venta * item.cantidad,
+                          0
+                        ) -
+                          carrito.reduce(
+                            (acc, item) =>
+                              acc +
+                              (item.producto.precio_venta *
+                                item.cantidad *
+                                Math.max(0, Math.min(item.descuento, 100))) /
+                                100,
+                            0
+                          )) *
+                          0.13
+                      ).toLocaleString()}
+                    </div>
+
+                    {/* Total a pagar */}
+                    <div className="text-lg font-bold">
+                      Total a pagar: ₡
+                      {Math.round(
+                        (carrito.reduce(
+                          (acc, item) =>
+                            acc + item.producto.precio_venta * item.cantidad,
+                          0
+                        ) -
+                          carrito.reduce(
+                            (acc, item) =>
+                              acc +
+                              (item.producto.precio_venta *
+                                item.cantidad *
+                                Math.max(0, Math.min(item.descuento, 100))) /
+                                100,
+                            0
+                          )) *
+                          1.13
+                      ).toLocaleString()}
+                    </div>
+                  </div>
+
+                  <Button
+                    text="Pagar"
+                    style="bg-azul-medio hover:bg-azul-hover text-white px-8 py-3 rounded text-lg font-bold cursor-pointer"
+                    onClick={() => setFacturaModal(true)}
+                    disabled={carrito.length === 0 || !clienteSeleccionado}
+                  />
+                </div>
               </div>
 
               <div className="w-1/3"></div>
 
-{modalOpen && productoSeleccionado && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center">
-    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
-    <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-      <h2 className="text-xl font-bold mb-4">Añadir producto</h2>
-      <p><strong>Código:</strong> {productoSeleccionado.codigo_producto}</p>
-      <p><strong>Nombre:</strong> {productoSeleccionado.nombre_producto}</p>
-      <p><strong>Precio:</strong> ₡{productoSeleccionado.precio_venta}</p>
-      <p>
-        <strong>Stock disponible:</strong>{" "}
-        {getAvailableStock(productoSeleccionado.codigo_producto)}
-      </p>
+              {modalOpen && productoSeleccionado && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                  <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+                    <h2 className="text-xl font-bold mb-4">Añadir producto</h2>
+                    <p>
+                      <strong>Código:</strong>{" "}
+                      {productoSeleccionado.codigo_producto}
+                    </p>
+                    <p>
+                      <strong>Nombre:</strong>{" "}
+                      {productoSeleccionado.nombre_producto}
+                    </p>
+                    <p>
+                      <strong>Precio:</strong> ₡
+                      {productoSeleccionado.precio_venta}
+                    </p>
+                    <p>
+                      <strong>Stock disponible:</strong>{" "}
+                      {getAvailableStock(productoSeleccionado.codigo_producto)}
+                    </p>
 
-      {/* Input cantidad */}
-      <div className="mt-4">
-        <label className="block text-sm font-medium text-gray-700">
-          Cantidad:
-        </label>
-        <input
-          type="number"
-          min={1}
-          max={getAvailableStock(productoSeleccionado.codigo_producto)}
-          value={cantidadSeleccionada}
-          onChange={(e) =>
-            setCantidadSeleccionada(
-              Math.min(
-                getAvailableStock(productoSeleccionado.codigo_producto),
-                Math.max(1, Number(e.target.value))
-              )
-            )
-          }
-          className="border rounded px-3 py-2 w-24 mt-1"
-        />
-      </div>
+                    {/* Input cantidad */}
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Cantidad:
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        max={getAvailableStock(
+                          productoSeleccionado.codigo_producto
+                        )}
+                        value={cantidadSeleccionada}
+                        onChange={(e) =>
+                          setCantidadSeleccionada(
+                            Math.min(
+                              getAvailableStock(
+                                productoSeleccionado.codigo_producto
+                              ),
+                              Math.max(1, Number(e.target.value))
+                            )
+                          )
+                        }
+                        className="border rounded px-3 py-2 w-24 mt-1"
+                      />
+                    </div>
 
-      <div className="flex justify-end gap-4 mt-6">
-        <Button
-          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded flex items-center gap-1"
-          onClick={() => {
-            // Llamamos agregarAlCarrito N veces
-            for (let i = 0; i < cantidadSeleccionada; i++) {
-              agregarAlCarrito(productoSeleccionado);
-            }
-            setModalOpen(false);
-            setCantidadSeleccionada(1); // reset
-          }}
-          disabled={getAvailableStock(productoSeleccionado.codigo_producto) <= 0}
-        >
-          <IoAddCircle /> Agregar
-        </Button>
-        <Button
-          style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-4 py-2 rounded"
-          onClick={() => {
-            setModalOpen(false);
-            setCantidadSeleccionada(1); // reset
-          }}
-        >
-          Cancelar
-        </Button>
-      </div>
-    </div>
-  </div>
-)}
-
-
+                    <div className="flex justify-end gap-4 mt-6">
+                      <Button
+                        style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded flex items-center gap-1"
+                        onClick={() => {
+                          // Llamamos agregarAlCarrito N veces
+                          for (let i = 0; i < cantidadSeleccionada; i++) {
+                            agregarAlCarrito(productoSeleccionado);
+                          }
+                          setModalOpen(false);
+                          setCantidadSeleccionada(1); // reset
+                        }}
+                        disabled={
+                          getAvailableStock(
+                            productoSeleccionado.codigo_producto
+                          ) <= 0
+                        }
+                      >
+                        <IoAddCircle /> Agregar
+                      </Button>
+                      <Button
+                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-4 py-2 rounded"
+                        onClick={() => {
+                          setModalOpen(false);
+                          setCantidadSeleccionada(1); // reset
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {modalSucursal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -1178,101 +1285,101 @@ const guardarEdicion = (idx: number) => {
                         </div>
                       );
                     })()}
-{/* MÉTODO DE PAGO Y COMPROBANTE - Apilado */}
-<div className="flex flex-col gap-4 mb-6">
-  {/* Método de Pago */}
-  <div className="flex flex-col">
-    <label className="font-semibold mb-1">Método de Pago</label>
-    <select
-      className="w-full border rounded px-3 py-2"
-      value={metodoPago}
-      onChange={(e) => setMetodoPago(e.target.value)}
-    >
-      <option value="Efectivo">Efectivo</option>
-      <option value="Tarjeta">Tarjeta</option>
-      <option value="SINPE">SINPE</option>
-    </select>
-  </div>
+                    {/* MÉTODO DE PAGO Y COMPROBANTE - Apilado */}
+                    <div className="flex flex-col gap-4 mb-6">
+                      {/* Método de Pago */}
+                      <div className="flex flex-col">
+                        <label className="font-semibold mb-1">
+                          Método de Pago
+                        </label>
+                        <select
+                          className="w-full border rounded px-3 py-2"
+                          value={metodoPago}
+                          onChange={(e) => setMetodoPago(e.target.value)}
+                        >
+                          <option value="Efectivo">Efectivo</option>
+                          <option value="Tarjeta">Tarjeta</option>
+                          <option value="SINPE">SINPE</option>
+                        </select>
+                      </div>
 
-  {/* Monto entregado o Comprobante */}
-  {metodoPago === "Efectivo" && (
-    <div className="flex flex-col">
-      <label className="font-semibold mb-1">Monto entregado</label>
-      <input
-        type="number"
-        className="w-full border rounded px-3 py-2"
-        value={montoEntregado}
-        onChange={(e) => setMontoEntregado(Number(e.target.value))}
-        placeholder="Ingrese el monto entregado"
-      />
-    </div>
-  )}
+                      {/* Monto entregado o Comprobante */}
+                      {metodoPago === "Efectivo" && (
+                        <div className="flex flex-col">
+                          <label className="font-semibold mb-1">
+                            Monto entregado
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full border rounded px-3 py-2"
+                            value={montoEntregado}
+                            onChange={(e) =>
+                              setMontoEntregado(Number(e.target.value))
+                            }
+                            placeholder="Ingrese el monto entregado"
+                          />
+                        </div>
+                      )}
 
-  {(metodoPago === "Tarjeta" || metodoPago === "SINPE") && (
-    <div className="flex flex-col">
-      <label className="font-semibold mb-1">
-        {metodoPago === "Tarjeta"
-          ? "Comprobante / Voucher de tarjeta"
-          : "Comprobante de transferencia / SINPE"}
-      </label>
-      <input
-        type="text"
-        className="w-full border rounded px-3 py-2"
-        value={comprobante}
-        onChange={(e) => setComprobante(e.target.value)}
-        placeholder={
-          metodoPago === "Tarjeta"
-            ? "Ingrese el voucher o comprobante de la tarjeta"
-            : "Ingrese el comprobante de la transferencia o SINPE"
-        }
-      />
-    </div>
-  )}
-</div>
+                      {(metodoPago === "Tarjeta" || metodoPago === "SINPE") && (
+                        <div className="flex flex-col">
+                          <label className="font-semibold mb-1">
+                            {metodoPago === "Tarjeta"
+                              ? "Comprobante / Voucher de tarjeta"
+                              : "Comprobante de transferencia / SINPE"}
+                          </label>
+                          <input
+                            type="text"
+                            className="w-full border rounded px-3 py-2"
+                            value={comprobante}
+                            onChange={(e) => setComprobante(e.target.value)}
+                            placeholder={
+                              metodoPago === "Tarjeta"
+                                ? "Ingrese el voucher o comprobante de la tarjeta"
+                                : "Ingrese el comprobante de la transferencia o SINPE"
+                            }
+                          />
+                        </div>
+                      )}
+                    </div>
 
+                    {/* BOTONES */}
+                    <div className="flex justify-end gap-4">
+                      {/* Botón para generar PDF */}
+                      {sucursalSeleccionada &&
+                        clienteSeleccionado &&
+                        carrito.length > 0 && (
+                          <GenerarFactura
+                            sucursalSeleccionada={sucursalSeleccionada}
+                            clienteSeleccionado={clienteSeleccionado}
+                            carrito={carrito}
+                            user={user}
+                            metodoPago={metodoPago}
+                            montoEntregado={montoEntregado}
+                            comprobante={comprobante}
+                            buttonText="Generar Factura PDF"
+                          />
+                        )}
 
+                      <Button
+                        text="Finalizar"
+                        type="submit"
+                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
+                        disabled={
+                          (metodoPago === "Efectivo" &&
+                            (!montoEntregado || montoEntregado <= 0)) ||
+                          ((metodoPago === "Tarjeta" ||
+                            metodoPago === "SINPE") &&
+                            (!comprobante || comprobante.trim() === ""))
+                        }
+                      />
 
-
-
-
-
-                
-{/* BOTONES */}
-<div className="flex justify-end gap-4">
-  {/* Botón para generar PDF */}
-  {sucursalSeleccionada && clienteSeleccionado && carrito.length > 0 && (
-    <GenerarFactura
-      sucursalSeleccionada={sucursalSeleccionada}
-      clienteSeleccionado={clienteSeleccionado}
-      carrito={carrito}
-      user={user}
-      metodoPago={metodoPago}
-      montoEntregado={montoEntregado}
-      comprobante={comprobante}
-      buttonText="Generar Factura PDF"
-     
-    />
-  )}
-
-  <Button
-    text="Finalizar"
-    type="submit"
-    style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
-    disabled={
-      (metodoPago === "Efectivo" && (!montoEntregado || montoEntregado <= 0)) ||
-      ((metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
-        (!comprobante || comprobante.trim() === ""))
-    }
-  />
-
-  <Button
-    text="Cancelar"
-    onClick={() => setFacturaModal(false)}
-    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
-  />
-</div>
-
-
+                      <Button
+                        text="Cancelar"
+                        onClick={() => setFacturaModal(false)}
+                        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
+                      />
+                    </div>
                   </form>
                 </div>
               )}

@@ -19,14 +19,24 @@ type Provider = {
   products: Product[]; // productos asociados (del backend)
 };
 
-
 // Para el formulario, products es string[] (nombres) y el id es opcional
-type ProviderForm = Omit<Provider, 'products'> & { id?: number; products: string[] };
+type ProviderForm = Omit<Provider, "products"> & {
+  id?: number;
+  products: string[];
+};
 // Para el backend, products es number[]
-type ProviderPayload = Omit<Provider, 'products'> & { products: number[] };
+type ProviderPayload = Omit<Provider, "products"> & { products: number[] };
 
-const headers = ["id", "name", "contact", "email", "phone", "state", "products", "actions"];
-
+const headers = [
+  "id",
+  "name",
+  "contact",
+  "email",
+  "phone",
+  "state",
+  "products",
+  "actions",
+];
 
 // Productos reales del inventario
 type Product = {
@@ -39,7 +49,6 @@ type Product = {
 };
 
 export default function Providers() {
-  
   const API_URL = import.meta.env.VITE_API_URL;
   // Estado para productos del inventario
   const [products, setProducts] = useState<Product[]>([]);
@@ -61,16 +70,18 @@ export default function Providers() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [providersFiltered, setProvidersFiltered] = useState<Provider[]>([]);
   const [showModal, setShowModal] = useState(false);
-  const [selectedProviderId, setSelectedProviderId] = useState<number | null>(null);
+  const [selectedProviderId, setSelectedProviderId] = useState<number | null>(
+    null
+  );
   const [showEditModal, setShowEditModal] = useState(false);
   const [providerToEdit, setProviderToEdit] = useState<Provider | null>(null);
-
-
-
 
   // Obtener todos los proveedores
   const fetchProviders = async () => {
@@ -87,7 +98,6 @@ export default function Providers() {
   useEffect(() => {
     fetchProviders();
   }, []);
-
 
   // Eliminar proveedor
   const handleDelete = async () => {
@@ -107,7 +117,10 @@ export default function Providers() {
       });
       if (res.ok) {
         fetchProviders();
-        setAlert({ type: "success", message: "Proveedor creado correctamente" });
+        setAlert({
+          type: "success",
+          message: "Proveedor creado correctamente",
+        });
       } else {
         setAlert({ type: "error", message: "Error al crear proveedor" });
       }
@@ -126,7 +139,10 @@ export default function Providers() {
       });
       if (res.ok) {
         fetchProviders();
-        setAlert({ type: "success", message: "Proveedor actualizado correctamente" });
+        setAlert({
+          type: "success",
+          message: "Proveedor actualizado correctamente",
+        });
       } else {
         setAlert({ type: "error", message: "Error al actualizar proveedor" });
       }
@@ -143,7 +159,10 @@ export default function Providers() {
       });
       if (res.ok) {
         fetchProviders();
-        setAlert({ type: "success", message: "Proveedor eliminado correctamente" });
+        setAlert({
+          type: "success",
+          message: "Proveedor eliminado correctamente",
+        });
       } else {
         setAlert({ type: "error", message: "Error al eliminar proveedor" });
       }
@@ -184,12 +203,12 @@ export default function Providers() {
     email: prov.email,
     phone: prov.phone,
     state: prov.state,
-    products: prov.products && Array.isArray(prov.products)
-      ? prov.products.map((p) => p.nombre_producto).join(", ")
-      : "",
+    products:
+      prov.products && Array.isArray(prov.products)
+        ? prov.products.map((p) => p.nombre_producto).join(", ")
+        : "",
     actions: getActions(prov),
   }));
-
 
   // Convierte los nombres de productos seleccionados a IDs
   const getProductIdsFromNames = (names: string[]) => {
@@ -206,7 +225,9 @@ export default function Providers() {
     setProviderToEdit(null);
   };
 
-  const handleProviderEdited = async (updatedProv: ProviderForm & { id: number }) => {
+  const handleProviderEdited = async (
+    updatedProv: ProviderForm & { id: number }
+  ) => {
     const productIds = getProductIdsFromNames(updatedProv.products);
     const payload: ProviderPayload = { ...updatedProv, products: productIds };
     await updateProvider(updatedProv.id, payload);
@@ -217,7 +238,9 @@ export default function Providers() {
   // ---------------------- Modal de Proveedor ----------------------
 
   const ProviderModal = () => {
-  const [emailError, setEmailError] = useState<string>("");
+    const [nameError, setNameError] = useState<string>("");
+    const [emailError, setEmailError] = useState<string>("");
+
     const [formData, setFormData] = useState<ProviderForm>({
       id: 0,
       name: "",
@@ -263,21 +286,31 @@ export default function Providers() {
       }));
     };
 
-
-
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
+
       const emailRegex = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i;
-      if (!emailRegex.test(formData.email)) {
-        setEmailError("Debe ingresar un email con dominio válido, por ejemplo: usuario@dominio.com");
+      const nameRegex = /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/;
+
+      // Validación contacto
+      if (!nameRegex.test(formData.contact)) {
+        setNameError("El contacto solo puede contener letras y espacios.");
         return;
-      } else {
-        setEmailError("");
       }
+
+      // Validación email
+      if (!emailRegex.test(formData.email)) {
+        setEmailError(
+          "Debe ingresar un email con dominio válido, por ejemplo: usuario@dominio.com"
+        );
+        return;
+      }
+
+      setEmailError("");
+
       if (providerToEdit) {
         await handleProviderEdited(formData);
       } else {
-        // No enviar el id en el create
         const { id, ...rest } = formData;
         await handleProviderAdded(rest as ProviderForm);
       }
@@ -287,48 +320,116 @@ export default function Providers() {
       <div className="fixed inset-0 z-50 flex items-center justify-center">
         <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
         <div className="relative bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
-          <h2 className="text-xl font-bold mb-4">{providerToEdit ? "Editar Proveedor" : "Añadir Proveedor"}</h2>
+          <h2 className="text-xl font-bold mb-4">
+            {providerToEdit ? "Editar Proveedor" : "Añadir Proveedor"}
+          </h2>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <input className="border p-2 rounded" type="text" placeholder="Nombre del proveedor" value={formData.name} onChange={(e)=>setFormData({...formData, name:e.target.value})} required/>
-            <input className="border p-2 rounded" type="text" title="Persona encargada del proveedor" placeholder="Contacto de la persona encargada del proveedor" value={formData.contact} onChange={(e)=>setFormData({...formData, contact:e.target.value})} required/>
-            <input className="border p-2 rounded" type="email" placeholder="Email" 
-                        title="Debe tener un dominio válido, por ejemplo: usuario@dominio.com" value={formData.email} onChange={(e)=>setFormData({...formData, email:e.target.value})} required/>
-                        {emailError && <span className="text-red-500 text-sm">{emailError}</span>}
-            <input className="border p-2 rounded" type="text" placeholder="Teléfono" value={formData.phone} onChange={(e) => {
-                        const onlyNums = e.target.value.replace(/[^0-9]/g, "");
-                        setFormData({ ...formData, phone: onlyNums });
-              }} required/>
-            <select className="border p-2 rounded" value={formData.state} onChange={(e)=>setFormData({...formData, state:e.target.value})}>
+            <input
+              className="border p-2 rounded"
+              type="text"
+              placeholder="Nombre del proveedor"
+              value={formData.name}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
+            />
+
+            <input
+              className="border p-2 rounded"
+              title="Persona encargada del proveedor"
+              type="text"
+              placeholder="Nombre de la persona encargada del proveedor"
+              value={formData.contact}
+              onChange={(e) => {
+                const onlyLetters = e.target.value.replace(
+                  /[^A-Za-zÁÉÍÓÚáéíóúÑñ\s]/g,
+                  ""
+                );
+                setFormData({ ...formData, contact: onlyLetters });
+              }}
+              required
+            />
+            {nameError && (
+              <span className="text-red-500 text-sm">{nameError}</span>
+            )}
+            <input
+              className="border p-2 rounded"
+              type="email"
+              placeholder="Email"
+              title="Debe tener un dominio válido, por ejemplo: usuario@dominio.com"
+              value={formData.email}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
+              required
+            />
+            {emailError && (
+              <span className="text-red-500 text-sm">{emailError}</span>
+            )}
+            <input
+              className="border p-2 rounded"
+              type="text"
+              placeholder="Teléfono"
+              value={formData.phone}
+              onChange={(e) => {
+                const onlyNums = e.target.value.replace(/[^0-9]/g, "");
+                setFormData({ ...formData, phone: onlyNums });
+              }}
+              required
+            />
+            <select
+              className="border p-2 rounded"
+              value={formData.state}
+              onChange={(e) =>
+                setFormData({ ...formData, state: e.target.value })
+              }
+            >
               <option value="Activo">Activo</option>
               <option value="Inactivo">Inactivo</option>
             </select>
 
-
-    <div>
-      <p className="font-semibold mb-2">Productos que distribuye:</p>
-      <div className="border rounded max-h-40 overflow-y-auto p-2">
-        {products.map((product) => (
-          <label key={product.id} className="flex items-center gap-2 mb-1 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={formData.products.includes(product.nombre_producto)}
-              onChange={() => toggleProduct(product.nombre_producto)}
-              className="accent-azul-medio"
-            />
-            {product.nombre_producto}
-          </label>
-        ))}
-      </div>
-      <p className="text-sm text-gray-500 mt-1">
-        Marca los productos que distribuye el proveedor.
-      </p>
-    </div>
-
-
+            <div>
+              <p className="font-semibold mb-2">Productos que distribuye:</p>
+              <div className="border rounded max-h-40 overflow-y-auto p-2">
+                {products.map((product) => (
+                  <label
+                    key={product.id}
+                    className="flex items-center gap-2 mb-1 cursor-pointer"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formData.products.includes(
+                        product.nombre_producto
+                      )}
+                      onChange={() => toggleProduct(product.nombre_producto)}
+                      className="accent-azul-medio"
+                    />
+                    {product.nombre_producto}
+                  </label>
+                ))}
+              </div>
+              <p className="text-sm text-gray-500 mt-1">
+                Marca los productos que distribuye el proveedor.
+              </p>
+            </div>
 
             <div className="flex justify-end gap-4 mt-4">
-              <button type="submit" className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer">{providerToEdit ? "Guardar" : "Añadir"}</button>
-              <button type="button" className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer" onClick={()=>{setShowEditModal(false); setProviderToEdit(null)}}>Cancelar</button>
+              <button
+                type="submit"
+                className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+              >
+                {providerToEdit ? "Guardar" : "Añadir"}
+              </button>
+              <button
+                type="button"
+                className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                onClick={() => {
+                  setShowEditModal(false);
+                  setProviderToEdit(null);
+                }}
+              >
+                Cancelar
+              </button>
             </div>
           </form>
         </div>
@@ -337,7 +438,7 @@ export default function Providers() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["administrador","supervisor"]}>
+    <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
           <div className="flex">
@@ -349,32 +450,70 @@ export default function Providers() {
                   <SearchBar<Provider>
                     data={providers}
                     displayField="id"
-                    searchFields={["id","name","contact"]}
+                    searchFields={["id", "name", "contact"]}
                     placeholder="Buscar por ID, nombre o contacto..."
-                    onResultsChange={(results)=>{setProvidersFiltered(results); if(results.length>0||!results)setAlert(null)}}
-                    onSelect={(item)=>setProvidersFiltered([item])}
-                    onNotFound={(q)=>{if(q==="")setAlert(null); else{setProvidersFiltered([]); setAlert({type:"error",message:`No existe ningún proveedor con el criterio "${q}".`})}}}
+                    onResultsChange={(results) => {
+                      setProvidersFiltered(results);
+                      if (results.length > 0 || !results) setAlert(null);
+                    }}
+                    onSelect={(item) => setProvidersFiltered([item])}
+                    onNotFound={(q) => {
+                      if (q === "") setAlert(null);
+                      else {
+                        setProvidersFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ningún proveedor con el criterio "${q}".`,
+                        });
+                      }
+                    }}
                   />
-                  {alert && <div className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type==="success"?"bg-verde-ultra-claro text-verde-oscuro border-verde-claro boder":"bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"}`}>{alert.message}</div>}
+                  {alert && (
+                    <div
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro boder" : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"}`}
+                    >
+                      {alert.message}
+                    </div>
+                  )}
                 </div>
-                <Button style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2" onClick={()=>setShowEditModal(true)}>
-                  <IoAddCircle className="w-6 h-6 flex-shrink-0"/>
-                  <span className="whitespace-nowrap text-base">Añadir proveedor</span>
+                <Button
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                  onClick={() => setShowEditModal(true)}
+                >
+                  <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                  <span className="whitespace-nowrap text-base">
+                    Añadir proveedor
+                  </span>
                 </Button>
               </div>
-              <TableInformation tableContent={tableContent} headers={headers}/>
-              
+              <TableInformation tableContent={tableContent} headers={headers} />
+
               {/* Modal dentro del mismo archivo */}
               <ProviderModal />
 
               {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
-                  <div className="relative bg-white p-6 rounded shadow-lg pointer-events-auto animate-modalShow transition-all duration-300" style={{boxShadow:"0 8px 32px rgba(0,0,0,0.15)"}}>
-                    <p className="mb-4">¿Seguro que deseas eliminar este proveedor?</p>
+                  <div
+                    className="relative bg-white p-6 rounded shadow-lg pointer-events-auto animate-modalShow transition-all duration-300"
+                    style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}
+                  >
+                    <p className="mb-4">
+                      ¿Seguro que deseas eliminar este proveedor?
+                    </p>
                     <div className="flex gap-4">
-                      <button className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer" onClick={handleDelete}>Eliminar</button>
-                      <button className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer" onClick={()=>setShowModal(false)}>Cancelar</button>
+                      <button
+                        className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
+                        onClick={handleDelete}
+                      >
+                        Eliminar
+                      </button>
+                      <button
+                        className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                        onClick={() => setShowModal(false)}
+                      >
+                        Cancelar
+                      </button>
                     </div>
                   </div>
                 </div>
