@@ -144,6 +144,7 @@ export default function CashRegisterPage() {
     useState<CashRegister | null>(null);
   const [closingAmount, setClosingAmount] = useState<number | "">("");
   const [closingError, setClosingError] = useState<string | null>(null);
+  const MAX_AMOUNT = 99999999.99; // límite por DECIMAL(10,2);
 
   const fetchBranches = async () => {
     try {
@@ -219,7 +220,7 @@ export default function CashRegisterPage() {
     if (!cashRegisterToClose || closingAmount === "" || closingAmount < 0)
       return;
 
-    // 🚨 Validación: que el monto de cierre no sea menor que el de apertura
+    //  Validación: que el monto de cierre no sea menor que el de apertura
     if (Number(closingAmount) < Number(cashRegisterToClose.opening_amount)) {
       setAlert({
         type: "error",
@@ -351,13 +352,50 @@ export default function CashRegisterPage() {
                         <label className="block font-semibold mb-1">
                           Monto de apertura
                         </label>
+
                         <input
                           type="number"
                           value={openingAmount}
-                          onChange={(e) =>
-                            setOpeningAmount(Number(e.target.value))
-                          }
+                          onChange={(e) => {
+                            const raw = e.target.value;
+
+                            // Evitar caracteres inválidos
+                            if (/[^0-9.]$/.test(raw)) return;
+
+                            if (raw === "") {
+                              setOpeningAmount("");
+                              setAlert(null); // limpia alerta si borran
+                              return;
+                            }
+
+                            const value = Number(raw);
+
+                            if (value > MAX_AMOUNT) {
+                              setAlert({
+                                type: "error",
+                                message: `El monto no puede poseer más de 8 dígitos`,
+                              });
+                              return; // bloquea el ingreso
+                            }
+
+                            // si el valor vuelve a estar bien, limpiamos la alerta
+                            setAlert(null);
+                            setOpeningAmount(value);
+                          }}
+                          onKeyDown={(e) => {
+                            // Bloquear e, +, - y cualquier tecla no numérica (excepto backspace y punto)
+                            if (
+                              ["e", "E", "+", "-"].includes(e.key) ||
+                              (!/[0-9.]/.test(e.key) &&
+                                e.key !== "Backspace" &&
+                                e.key !== "Delete")
+                            ) {
+                              e.preventDefault();
+                            }
+                          }}
                           placeholder="0.00"
+                          max={MAX_AMOUNT}
+                          step="0.01"
                           className="w-full border rounded-lg px-3 py-2"
                         />
                       </div>
@@ -391,41 +429,58 @@ export default function CashRegisterPage() {
                   <label className="font-semibold">Monto de cierre:</label>
                   <div className="w-full">
                     <input
-                      type="number"
+                      type="text" // ✅ tipo texto para bloquear "e" y otros símbolos
                       value={closingAmount}
                       onChange={(e) => {
                         const raw = e.target.value;
 
-                        // Si lo borran → quitamos alerta y limpiamos
+                        // Permitir solo dígitos y un punto decimal
+                        if (!/^\d*\.?\d*$/.test(raw)) return;
+
                         if (raw === "") {
                           setClosingAmount("");
-                          setClosingError(null);
+                          setClosingError(null); // limpiar si borran
                           return;
                         }
 
                         const value = Number(raw);
 
-                        // Validar contra apertura
+                        // Validar contra máximo
+                        if (value > MAX_AMOUNT) {
+                          setClosingError(
+                            `El monto no puede poseer más de 8 dígitos`
+                          );
+                          return; // bloquea sin actualizar el estado
+                        }
+
+                        // Validar que no sea menor que apertura
                         if (
                           cashRegisterToClose &&
                           value < Number(cashRegisterToClose.opening_amount)
                         ) {
                           setClosingError(
-                            `El monto de cierre no puede ser menor al de apertura (${cashRegisterToClose.opening_amount})`
+                            `El monto de cierre no puede ser menor al de apertura ₡${cashRegisterToClose.opening_amount.toLocaleString(
+                              "es-CR",
+                              {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2,
+                              }
+                            )}`
                           );
                         } else {
-                          setClosingError(null);
+                          setClosingError(null); // limpiar si todo está bien
                         }
 
                         setClosingAmount(value);
                       }}
-                      className="w-full border rounded-lg px-3 py-2 [appearance:textfield]" // 👈 sin flechas
-                      placeholder="0"
+                      placeholder="0.00"
+                      className={`w-full border rounded-lg px-3 py-2 [appearance:textfield] ${
+                        closingError ? "border-red-500" : "border-gray-300"
+                      }`}
                     />
 
-                    {/* Mensaje de error debajo del input */}
                     {closingError && (
-                      <p className="text-rojo-claro text-sm mt-1 font-semibold">
+                      <p className="text-red-500 text-sm mt-1 font-medium">
                         {closingError}
                       </p>
                     )}
