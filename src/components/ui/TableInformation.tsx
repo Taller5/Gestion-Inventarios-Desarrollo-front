@@ -17,7 +17,9 @@ const headerMap: Record<string, string> = {
 export default function TableInformation(props: TableInformationProps) {
   return (
     <main className="w-full pl-1 md:pl-4 pt-8">
-      <div className="overflow-x-auto shadow-md rounded-lg max-w-[95%] ml-0">
+      <div className="  overflow-x-auto overflow-y-auto
+          shadow-md rounded-lg max-w-[95%] ml-0
+          max-h-[500px]   /*  altura máxima de la tabla */">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>

@@ -1,6 +1,7 @@
 @import "tailwindcss"; 
 
 @theme{
+  
   --color-azul-claro: #5DA5F5;
   --color-azul-medio: #369FF5;
   --color-azul-hover: #4274AD;

@@ -662,10 +662,10 @@ export default function SalesPage() {
                         return (
                           <div
                             key={producto.codigo_producto}
-                            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-oscuro ${
+                            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-claro ${
                               productoSeleccionado?.codigo_producto ===
                               producto.codigo_producto
-                                ? "bg-gris-claro font-bold"
+                                ? "bg-white font-bold"
                                 : ""
                             }`}
                             onClick={() => {
