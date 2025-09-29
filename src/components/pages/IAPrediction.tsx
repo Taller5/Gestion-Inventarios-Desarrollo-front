@@ -9,7 +9,6 @@ import {
   FaCheckCircle,
   FaRobot,
 } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
 import Button from "../ui/Button";
 
 // --- Tipos de Datos del Formulario ---
@@ -116,7 +115,7 @@ export const IAPrediction = () => {
           {loading && (
             <div className="flex items-center justify-center h-full">
               <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-sky-500"></div>
-              <p className="ml-3 text-blue-700">Calculando demanda...</p>
+              <p className="ml-3 text-azul-medio">Calculando demanda...</p>
             </div>
           )}
 
@@ -170,7 +169,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
           name="id_products"
           value={formData.id_products}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-azul-medio focus:border-azul-medio focus:border-2 text-sm"
           min="1"
           required
         />
@@ -186,7 +185,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
           name="fecha_prediccion"
           value={formData.fecha_prediccion}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 blue-sky-500 blue-sky-700 text-sm"
+          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-azul-medio focus:border-azul-medio focus:border-2 text-sm"
           required
         />
       </div>
@@ -201,7 +200,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
           name="precio_de_venta_esperado"
           value={formData.precio_de_venta_esperado}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-azul-medio focus:border-azul-medio focus:border-2 text-sm"
           step="0.01"
           min="0"
           required
@@ -217,7 +216,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
           name="promocion_activa"
           value={formData.promocion_activa}
           onChange={handleChange}
-          className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-azul-medio focus:border-azul-medio focus:border-2 text-sm"
         >
           <option value="0">No (0)</option>
           <option value="1">Sí (1)</option>
@@ -226,7 +225,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
 
       {/* Mensaje de Error (Si lo hay) */}
       {error && (
-        <div className="bg-red-100 text-red-700 border border-red-400 px-4 py-2 rounded-lg text-sm font-semibold">
+        <div className="bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro px-4 py-2 rounded-lg text-sm font-semibold">
           Error: {error}
         </div>
       )}
@@ -293,8 +292,8 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ type, message }) => (
   <div
     className={`flex items-center p-4 rounded-lg ${
       type === "error"
-        ? "bg-red-100 border-red-400 text-red-700"
-        : "bg-green-100 border-green-400 text-green-700"
+        ? "bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro"
+        : "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
     } border`}
     role="alert"
   >
