@@ -434,8 +434,9 @@ export default function CashRegisterPage() {
                       onChange={(e) => {
                         const raw = e.target.value;
 
-                        // Permitir solo dígitos y un punto decimal
-                        if (!/^\d*\.?\d*$/.test(raw)) return;
+                   // Permitir solo números con un punto decimal opcional, hasta 2 decimales
+                    if (!/^\d{0,8}(\.\d{0,2})?$/.test(raw)) return;
+
 
                         if (raw === "") {
                           setClosingAmount("");
