@@ -429,29 +429,31 @@ export default function CashRegisterPage() {
                   <label className="font-semibold">Monto de cierre:</label>
                   <div className="w-full">
                     <input
-                      type="text" // ✅ tipo texto para bloquear "e" y otros símbolos
+                      type="text" // tipo texto para bloquear "e" y otros símbolos
                       value={closingAmount}
                       onChange={(e) => {
                         const raw = e.target.value;
 
-                   // Permitir solo números con un punto decimal opcional, hasta 2 decimales
-                    if (!/^\d{0,8}(\.\d{0,2})?$/.test(raw)) return;
-
+                        // Permitir solo números con un punto decimal opcional, hasta 2 decimales
+                        const validPattern = /^\d{0,8}(\.\d{0,2})?$/;
+                        if (!validPattern.test(raw)) {
+                          return;
+                        }
 
                         if (raw === "") {
                           setClosingAmount("");
                           setClosingError(null); // limpiar si borran
-                          return;
+                          return; // salir si está vacío
                         }
 
                         const value = Number(raw);
 
-                        // Validar contra máximo
+                        // Validar contra máximo (8 dígitos)
                         if (value > MAX_AMOUNT) {
                           setClosingError(
                             `El monto no puede poseer más de 8 dígitos`
                           );
-                          return; // bloquea sin actualizar el estado
+                          return;
                         }
 
                         // Validar que no sea menor que apertura
@@ -460,19 +462,19 @@ export default function CashRegisterPage() {
                           value < Number(cashRegisterToClose.opening_amount)
                         ) {
                           setClosingError(
-                            `El monto de cierre no puede ser menor al de apertura ₡${cashRegisterToClose.opening_amount.toLocaleString(
-                              "es-CR",
-                              {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              }
-                            )}`
+                            `El monto de cierre no puede ser menor al de apertura ₡${Number(
+                              cashRegisterToClose.opening_amount
+                            ).toLocaleString("es-CR", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}`
                           );
                         } else {
                           setClosingError(null); // limpiar si todo está bien
                         }
 
-                        setClosingAmount(value);
+                        // Guardar como string para no mezclar number/string en el estado
+                        setClosingAmount(raw === "" ? "" : Number(raw));
                       }}
                       placeholder="0.00"
                       className={`w-full border rounded-lg px-3 py-2 [appearance:textfield] ${
