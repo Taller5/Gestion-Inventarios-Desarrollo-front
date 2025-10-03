@@ -165,7 +165,7 @@ export default function Inventary() {
   const [loading, setLoading] = useState(true);
   const [categorySearch, setCategorySearch] = useState("");
   const [suggestedPrice, setSuggestedPrice] = useState<number>(0);
-  const [useSuggestedPrice, setUseSuggestedPrice] = useState(true);
+  const [, setUseSuggestedPrice] = useState(true);
 
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryEditMode, setCategoryEditMode] = useState(false);
