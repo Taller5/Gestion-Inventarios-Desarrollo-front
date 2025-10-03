@@ -255,8 +255,8 @@ export default function SalesPage() {
             .includes(queryProducto.toLowerCase())
         : true
     );
-  // Agregar al carrito
-  // --- FUNCIONES DEL CARRITO ---
+
+
   // --- AGREGAR AL CARRITO ---
 
   const getAvailableStock = (codigo: string) => {
