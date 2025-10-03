@@ -165,7 +165,7 @@ export default function Inventary() {
   const [loading, setLoading] = useState(true);
   const [categorySearch, setCategorySearch] = useState("");
   const [suggestedPrice, setSuggestedPrice] = useState<number>(0);
-  const [, setUseSuggestedPrice] = useState(true);
+  const [useSuggestedPrice, setUseSuggestedPrice] = useState(true);
 
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryEditMode, setCategoryEditMode] = useState(false);
@@ -198,17 +198,21 @@ export default function Inventary() {
     return parseFloat(business.margen_ganancia || "0.25") || 0.25;
   };
 
-  useEffect(() => {
+useEffect(() => {
   if (!formProducto.precio_compra || !formProducto.bodega_id) return;
 
   const margin = getBusinessMargin(formProducto.bodega_id);
   const precioOpcional = formProducto.precio_compra * (1 + margin);
-  setSuggestedPrice(Number(precioOpcional.toFixed(2)));
 
-  // No actualizar el input automáticamente
-  // setFormProducto(...) queda solo en el botón
-}, [formProducto.precio_compra, formProducto.bodega_id]);
+  // Guardamos solo dos decimales
+  const precioRedondeado = Number(precioOpcional.toFixed(2));
+  setSuggestedPrice(precioRedondeado);
 
+  // Solo si ya se aceptó el sugerido
+  if (useSuggestedPrice) {
+    setFormProducto((f) => ({ ...f, precio_venta: precioRedondeado }));
+  }
+}, [formProducto.precio_compra, formProducto.bodega_id, useSuggestedPrice]);
 
   // Abrir modal para editar
   const openEditCategory = (cat: { nombre: string; descripcion?: string }) => {
@@ -1363,10 +1367,10 @@ export default function Inventary() {
         ...f,
         precio_venta: Number(e.target.value),
       }));
-      setUseSuggestedPrice(false); // Desactiva el precio sugerido si escribe
+      setUseSuggestedPrice(false); // Desactiva el precio sugerido si el usuario escribe
     }}
     placeholder="Ingrese el precio de venta"
-    className="w-full border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-azul-medio transition mt-2"
+    className="w-full border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-azul-medio transition mt-1"
     min={0}
     required
   />
@@ -1389,6 +1393,7 @@ export default function Inventary() {
     Puedes aceptar el precio sugerido o ingresar uno propio.
   </p>
 </label>
+
 
 
                           <label className="font-semibold">
