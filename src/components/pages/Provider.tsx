@@ -8,6 +8,7 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
+import Select from "react-select";
 
 type Provider = {
   id: number;
@@ -277,15 +278,6 @@ export default function Providers() {
 
     if (!showEditModal) return null;
 
-    const toggleProduct = (product: string) => {
-      setFormData((prev) => ({
-        ...prev,
-        products: prev.products.includes(product)
-          ? prev.products.filter((p) => p !== product)
-          : [...prev.products, product],
-      }));
-    };
-
     const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
 
@@ -389,27 +381,29 @@ export default function Providers() {
             </select>
 
             <div>
-              <p className="font-semibold mb-2">Productos que distribuye:</p>
-              <div className="border rounded max-h-40 overflow-y-auto p-2">
-                {products.map((product) => (
-                  <label
-                    key={product.id}
-                    className="flex items-center gap-2 mb-1 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={formData.products.includes(
-                        product.nombre_producto
-                      )}
-                      onChange={() => toggleProduct(product.nombre_producto)}
-                      className="accent-azul-medio"
-                    />
-                    {product.nombre_producto}
-                  </label>
-                ))}
-              </div>
+              <label className="font-semibold mb-2 block">
+                Productos que distribuye:
+              </label>
+              <Select
+                options={products.map((p) => ({
+                  value: p.nombre_producto,
+                  label: p.nombre_producto,
+                }))}
+                isMulti
+                value={formData.products.map((p) => ({ value: p, label: p }))}
+                onChange={(selectedOptions) =>
+                  setFormData({
+                    ...formData,
+                    products: selectedOptions
+                      ? selectedOptions.map((opt) => opt.value)
+                      : [],
+                  })
+                }
+                className="basic-multi-select"
+                classNamePrefix="select"
+              />
               <p className="text-sm text-gray-500 mt-1">
-                Marca los productos que distribuye el proveedor.
+                Selecciona los productos que distribuye el proveedor.
               </p>
             </div>
 
