@@ -5,7 +5,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; connect-src 'self' https://gestion-inventarios-desarrollo-back.vercel.app http://localhost:8000 ws: https://res.cloudinary.com; img-src 'self' https://res.cloudinary.com data:; font-src 'self' https:;"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; connect-src 'self' https://gestion-inventarios-desarrollo-back.vercel.app http://localhost:8000 ws: wss: https://res.cloudinary.com; img-src 'self' https://res.cloudinary.com data:; font-src 'self' https:;"
         }
       ]
     }
