@@ -705,7 +705,7 @@ useEffect(() => {
                                           className={`font-bold px-6 py-2 rounded-lg shadow-md transition ${
                                             categoryEditMode
                                               ? "bg-amarillo-oscuro hover:bg-orange-600 text-white"
-                                              : "bg-blue-500 hover:bg-blue-600 text-white"
+                                              : "bg-azul-medio hover:bg-azul-hover text-white"
                                           }`}
                                         >
                                           {categoryLoadingForm
@@ -729,7 +729,7 @@ useEffect(() => {
                                         {categoryEditMode && (
                                           <button
                                             type="button"
-                                            className="bg-green-500 hover:bg-green-600 text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+                                            className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
                                             onClick={() => {
                                               setCategoryForm({
                                                 nombre: "",
@@ -1377,7 +1377,7 @@ useEffect(() => {
   {formProducto.precio_compra > 0 && (
     <button
       type="button"
-      className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm mt-2 shadow-md transition w-full"
+      className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg text-sm mt-2 shadow-md transition w-full"
       onClick={() => {
         setFormProducto((f) => ({
           ...f,
@@ -1386,7 +1386,7 @@ useEffect(() => {
         setUseSuggestedPrice(true);
       }}
     >
-      Usar precio sugerido: <span className="font-bold">{suggestedPrice}</span>
+      Precio sugerido: <span className="font-bold">{suggestedPrice}</span>
     </button>
   )}
   <p className="text-gray-500 text-sm mt-1">
