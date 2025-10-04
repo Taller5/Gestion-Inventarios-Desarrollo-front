@@ -7,10 +7,23 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 export default defineConfig({
   plugins: [
     tailwindcss(),
-     tanstackRouter({
+    tanstackRouter({
       target: 'react',
       autoCodeSplitting: true,
     }),
-    react()
+    react(),
   ],
+  server: {
+    host: true, // permite que Docker acceda a la app
+    port: 5173, // puerto de desarrollo
+    // Proxy dentro de 'server'
+    proxy: {
+      '/api': {
+        target: 'https://gestion-inventarios-desarrollo-back.vercel.app/api/index.php', // aquí va el backend real y también se cambia en el index linea 14
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, '/api/index.php/api'),
+      },
+    },
+  },
 })
