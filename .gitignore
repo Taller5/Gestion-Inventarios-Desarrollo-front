@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # Archivo ambiente de desarrollo
-.env
+
