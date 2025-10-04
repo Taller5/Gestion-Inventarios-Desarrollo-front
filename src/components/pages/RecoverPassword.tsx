@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { useRouter } from '@tanstack/react-router';
+import { useRouter } from "@tanstack/react-router";
 import Container from "../ui/Container";
-import emailjs from "@emailjs/browser";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -23,8 +22,8 @@ export default function RecoverPassword() {
     setSuccess(false);
 
     try {
-      // 1️⃣ Llamar al endpoint de Laravel que genera la contraseña temporal
-      const res = await fetch(`${API_URL}/api/v1/employees/recover-password`, {
+      // Llamada al endpoint del backend
+      const res = await fetch(`${API_URL}/v1/recover-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -32,34 +31,21 @@ export default function RecoverPassword() {
 
       if (!res.ok) {
         const errData = await res.json();
-        throw new Error(errData.message || "No se pudo generar la clave temporal");
+        throw new Error(
+          errData.message || "No se pudo generar la clave temporal"
+        );
       }
 
       const data = await res.json();
       console.log("Respuesta backend:", data);
-      router.navigate({ to: '/login' });
-
-      const tempPassword = data.temporaryPassword;
-      const userName = data.name;
-
-      if (!tempPassword) throw new Error("No se recibió la clave temporal");
-
-      // Enviar correo con EmailJS
-      const templateParams = {
-        to_email: email,
-        user_name: userName,
-        password: tempPassword,
-      };
-
-      await emailjs.send(
-        "service_vl273ce",   // service ID
-        "template_x678a3b",  // template ID
-        templateParams,
-        "1rHCHqTG4NTv_3j6C"  // public key
-      );
 
       setSuccess(true);
       setEmail("");
+
+      // Redirigir a login después de éxito
+      setTimeout(() => {
+        router.navigate({ to: "/login" });
+      }, 2000);
     } catch (err: any) {
       console.error("Recover error:", err);
       setError(err.message || "Error inesperado");
