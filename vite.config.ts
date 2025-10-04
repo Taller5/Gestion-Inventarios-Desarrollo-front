@@ -1,29 +1,32 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import tailwindcss from '@tailwindcss/vite'
 import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
-// https://vite.dev/config/
-export default defineConfig({
-  plugins: [
-    tailwindcss(),
-    tanstackRouter({
-      target: 'react',
-      autoCodeSplitting: true,
-    }),
-    react(),
-  ],
-  server: {
-    host: true, // permite que Docker acceda a la app
-    port: 5173, // puerto de desarrollo
-    // Proxy dentro de 'server'
-    proxy: {
-      '/api': {
-        target: 'https://gestion-inventarios-desarrollo-back.vercel.app/api/index.php', // aquí va el backend real y también se cambia en el index linea 14
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api/index.php/api'),
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '')
+
+  return {
+    plugins: [
+      tailwindcss(),
+      tanstackRouter({ target: 'react', autoCodeSplitting: true }),
+      react(),
+    ],
+    server: {
+      host: true,
+      port: 5173,
+      headers: {
+        // CSP ajustada para permitir tu backend de desarrollo
+        'Content-Security-Policy': "connect-src 'self' ws: https://res.cloudinary.com http://localhost:8000;"
       },
+      proxy: {
+        '/api': {
+          target: env.VITE_API_URL, // http://localhost:8000
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api/, '/api'), // mantienes el mismo path
+        },
+      }
     },
-  },
+  }
 })
