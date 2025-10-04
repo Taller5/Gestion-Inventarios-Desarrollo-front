@@ -28,7 +28,7 @@ export default function Profile(props: ProfileProps) {
   const [email, setEmail] = useState(userFromStorage.email || "");
   const [profilePhotoUrl, setProfilePhotoUrl] = useState(
     userFromStorage.profile_photo
-      ? `${API_URL}/${userFromStorage.profile_photo}`
+      ? `${userFromStorage.profile_photo}`
       : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
   );
   const [saving, setSaving] = useState(false);
@@ -119,80 +119,10 @@ export default function Profile(props: ProfileProps) {
   };
 
   // Cambiar foto de perfil
-  const handlePhotoChange2 = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const MAX_FILE_SIZE = 2 * 1024 * 1024;
-      if (file.size > MAX_FILE_SIZE) {
-        setAlert({
-          type: "error",
-          message:
-            "La imagen es demasiado grande. El tamaño máximo permitido es de 2MB.",
-        });
-        return;
-      }
-      const validImageTypes = ["image/jpeg", "image/png", "image/gif"];
-      if (!validImageTypes.includes(file.type)) {
-        setAlert({
-          type: "error",
-          message: "Por favor, sube una imagen en formato JPG, PNG o GIF.",
-        });
-        return;
-      } // hasta aqui xXx
-      try {
-        setSaving(true);
-        setProfilePhotoUrl(URL.createObjectURL(file));
-        const token = localStorage.getItem("authToken");
-        const user = LoginService.getUser();
-        if (!token || !user) {
-          throw new Error("No se pudo verificar la autenticación");
-        }
-        const formData = new FormData();
-        formData.append("profile_photo", file);
-        const response = await fetch(
-          `${API_URL}/api/v1/employees/${user.id}/profile-photo`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              Accept: "application/json",
-            },
-            body: formData,
-          }
-        );
-        const data = await response.json();
-        if (response.ok) {
-          const updatedUser = { ...user, profile_photo: data.profile_photo };
-          localStorage.setItem("user", JSON.stringify(updatedUser));
-          window.dispatchEvent(new Event("userUpdated"));
-          setProfilePhotoUrl(`${API_URL}/${data.profile_photo}`);
-          setAlert({
-            type: "success",
-            message: "Foto de perfil actualizada correctamente",
-          });
-        } else {
-          throw new Error(data.message || "Error al subir la foto");
-        }
-      } catch (error: any) {
-        setAlert({
-          type: "error",
-          message:
-            error.message || "Ocurrió un error al actualizar la foto de perfil",
-        });
-        setProfilePhotoUrl(
-          userFromStorage.profile_photo
-            ? `${API_URL}/${userFromStorage.profile_photo}`
-            : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-        );
-      } finally {
-        setSaving(false);
-      }
-    }
-  };
-
   const handlePhotoChange = async (url: string) => {
-    setProfilePhotoUrl(url);
     localStorage.setItem('profilePhotoUrl', url);
+    console.log(url);
+    console.log('fromstor',userFromStorage.profile_photo);
 
     try {
       setSaving(true);
@@ -222,7 +152,6 @@ export default function Profile(props: ProfileProps) {
       const updatedUser = { ...user, profile_photo: url };
       localStorage.setItem('user', JSON.stringify(updatedUser));
       window.dispatchEvent(new Event("userUpdated"));
-      setProfilePhotoUrl(`${API_URL}/${url}`);
       setAlert({
             type: "success",
             message: "Foto de perfil actualizada correctamente",
@@ -235,7 +164,7 @@ export default function Profile(props: ProfileProps) {
         });
         setProfilePhotoUrl(
           userFromStorage.profile_photo
-            ? `${API_URL}/${userFromStorage.profile_photo}`
+            ? `${userFromStorage.profile_photo}`
             : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
         );
     }finally {
@@ -345,8 +274,7 @@ export default function Profile(props: ProfileProps) {
                       <div className="mb-4 flex flex-col items-center">
                         <img
                           className="w-32 h-32 rounded-full mx-auto mb-7"
-                          src={userFromStorage.profile_photo}
-                          alt="Profile photo"
+                          src={profilePhotoUrl}
                         />
                         <Cloudinary onUpload={handlePhotoChange}/>
                       </div>
