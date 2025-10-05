@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       headers: isDev
         ? {
-          // CSP permisivo para desarrollo local
+          // CSP permisivo para desarrollo en local
           'Content-Security-Policy': `
               default-src 'self' http://localhost:5173 http://127.0.0.1:* 'unsafe-inline' 'unsafe-eval';
               script-src 'self' 'unsafe-inline' 'unsafe-eval';
