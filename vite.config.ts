@@ -6,6 +6,8 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
+  const isDev = mode === 'development'
+
   return {
     plugins: [
       tailwindcss(),
@@ -15,18 +17,27 @@ export default defineConfig(({ mode }) => {
     server: {
       host: true,
       port: 5173,
-      headers: {
-        // CSP ajustada para permitir tu backend de desarrollo
-        'Content-Security-Policy': "connect-src 'self' ws: https://res.cloudinary.com http://localhost:8000;"
-      },
+      headers: isDev
+        ? {
+          // CSP permisivo para desarrollo local
+          'Content-Security-Policy': `
+              default-src 'self' http://localhost:5173 http://127.0.0.1:* 'unsafe-inline' 'unsafe-eval';
+              script-src 'self' 'unsafe-inline' 'unsafe-eval';
+              style-src 'self' 'unsafe-inline';
+              connect-src 'self' http://localhost:8000 https://api.cloudinary.com ws://localhost:5173 ws://127.0.0.1:*;
+              img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://cdn.pixabay.com;
+              font-src 'self' data:;
+            `.replace(/\s+/g, ' ')
+        }
+        : undefined,
       proxy: {
         '/api': {
-          target: env.VITE_API_URL, // http://localhost:8000
+          target: env.VITE_API_URL,
           changeOrigin: true,
           secure: false,
-          rewrite: (path) => path.replace(/^\/api/, '/api'), 
+          rewrite: (path) => path.replace(/^\/api/, '/api'),
         },
-      }
+      },
     },
   }
 })
