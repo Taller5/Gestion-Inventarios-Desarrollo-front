@@ -96,7 +96,7 @@ export function SearchBar<T extends Record<string, any>>({
         />
         <button
           onClick={handleSearch}
-          className="px-4 py-2 flex items-center justify-center"
+          className="px-4 py-2 flex items-center justify-center cursor-pointer"
         >
           <IoSearch />
         </button>
