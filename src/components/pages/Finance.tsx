@@ -22,7 +22,7 @@ export default function Finance() {
         <SideBar role={userRole}></SideBar>
 
             <div className="w-full pl-10">
-                <h1 className="text-2xl font-bold h-5 pt-10">Registro de ingresos</h1>
+                <h1 className="text-2xl font-bold h-5 pt-10">Gestionar Registro de ingresos</h1>
             </div>
             
         </div>

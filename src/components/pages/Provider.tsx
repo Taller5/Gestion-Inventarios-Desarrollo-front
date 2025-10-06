@@ -438,7 +438,7 @@ export default function Providers() {
           <div className="flex">
             <SideBar role={userRole}></SideBar>
             <div className="w-full pl-10 pt-10">
-              <h1 className="text-2xl font-bold mb-6 text-left">Proveedores</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">Gestionar Proveedores</h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
                   <SearchBar<Provider>
@@ -448,12 +448,17 @@ export default function Providers() {
                     placeholder="Buscar por ID, nombre o contacto..."
                     onResultsChange={(results) => {
                       setProvidersFiltered(results);
-                      if (results.length > 0 || !results) setAlert(null);
+                      if (results.length > 0) setAlert(null);
                     }}
                     onSelect={(item) => setProvidersFiltered([item])}
                     onNotFound={(q) => {
-                      if (q === "") setAlert(null);
-                      else {
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID, nombre o contacto para buscar.",
+                        });
+                      } else {
                         setProvidersFiltered([]);
                         setAlert({
                           type: "error",
@@ -461,10 +466,19 @@ export default function Providers() {
                         });
                       }
                     }}
+                    onClearAlert={() => {
+                      setAlert(null); // Quita la alerta
+                   
+                    }}
                   />
+
                   {alert && (
                     <div
-                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro boder" : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"}`}
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                        alert.type === "success"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+                      }`}
                     >
                       {alert.message}
                     </div>

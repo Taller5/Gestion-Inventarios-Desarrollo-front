@@ -42,7 +42,10 @@ export default function Warehouses() {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
     null
   );
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [warehousesFiltered, setWarehousesFiltered] = useState<Warehouse[]>([]);
   useEffect(() => {
     setWarehousesFiltered(warehouses);
@@ -171,7 +174,7 @@ export default function Warehouses() {
             setShowEditModal(true);
           }}
         >
-          <RiEdit2Fill/>
+          <RiEdit2Fill />
           Editar
         </Button>
 
@@ -182,7 +185,7 @@ export default function Warehouses() {
             setShowModal(true);
           }}
         >
-          <FaTrash/>
+          <FaTrash />
           Eliminar
         </Button>
       </div>
@@ -202,32 +205,43 @@ export default function Warehouses() {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-               <h1 className="text-2xl font-bold mb-6 text-left">Administrar Bodegas</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Gestionar Bodegas
+              </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-               <SearchBar<Warehouse>
-                      data={warehouses}
-                      displayField="bodega_id"
-                      searchFields={["bodega_id", "codigo"]}
-                      placeholder="Buscar por ID o codigo..."
-                      onResultsChange={results => {
-                        setWarehousesFiltered(results);
-                        if (results.length > 0 || !results) setAlert(null); 
-                      }}
-                      onSelect={item => setWarehousesFiltered([item])}
-                      onNotFound={q => {
-                        if (q === "") {
-                          setAlert(null); 
-                        } else {
-                          setWarehousesFiltered([]);
-                          setAlert({
-                            type: "error",
-                            message: `No existe ningún producto con el código o nombre "${q}".`,
-                          });
-                        }
-                      }}
-                    />
-                  {/* Mostrar alert de búsqueda */}
+                  <SearchBar<Warehouse>
+                    data={warehouses}
+                    displayField="bodega_id"
+                    searchFields={["bodega_id", "codigo"]}
+                    placeholder="Buscar por ID o código..."
+                    onResultsChange={(results) => {
+                      setWarehousesFiltered(results);
+                      if (results.length > 0) setAlert(null); // Quita la alerta si hay resultados
+                    }}
+                    onSelect={(item) => setWarehousesFiltered([item])}
+                    onNotFound={(q) => {
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID o código para buscar.",
+                        });
+                      } else {
+                        setWarehousesFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ninguna bodega con el ID o código "${q}".`,
+                        });
+                      }
+                    }}
+                    onClearAlert={() => {
+                      setAlert(null); // Quita la alerta
+                      
+                    }}
+                  />
+
+                  {/* Mostrar solo un alert de búsqueda */}
                   {alert && (
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
@@ -248,12 +262,13 @@ export default function Warehouses() {
                       setShowEditModal(true);
                     }}
                     disabled={branches.length === 0}
-                    ><IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                       <span className="whitespace-nowrap text-base">
-                        Añadir Bodega
-                      </span>
-                    </Button>
-                  
+                  >
+                    <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                    <span className="whitespace-nowrap text-base">
+                      Añadir Bodega
+                    </span>
+                  </Button>
+
                   {branches.length === 0 && (
                     <div className="absolute bottom-full left-0 mb-1 w-64 bg-gray-800 text-white text-xs p-2 rounded opacity-0 group-hover:opacity-100 transition-opacity">
                       Primero debe crear una sucursal
@@ -293,7 +308,7 @@ export default function Warehouses() {
                         ¿Está seguro que desea eliminar esta bodega?
                       </p>
                       <div className="flex justify-end gap-4">
-                         <button
+                        <button
                           type="button"
                           className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
                           onClick={handleDelete}
