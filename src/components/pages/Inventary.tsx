@@ -164,26 +164,23 @@ export default function Inventary() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [productsFiltered, setProductsFiltered] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-// Estados separados
-const [categorySearchMain, setCategorySearchMain] = useState("");
-const [categorySearchModal, setCategorySearchModal] = useState("");
+  // Estados separados
+  const [categorySearchMain, setCategorySearchMain] = useState("");
+  const [categorySearchModal, setCategorySearchModal] = useState("");
 
   const [suggestedPrice, setSuggestedPrice] = useState<number>(0);
   const [useSuggestedPrice, setUseSuggestedPrice] = useState(true);
   // Negocio seleccionado
-const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
-  () => {
-    // Recupera al cargar desde sessionStorage
-    const stored = sessionStorage.getItem("selectedBusiness");
-    return stored ? JSON.parse(stored) : null;
-  }
-);
-
+  const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
+    () => {
+      // Recupera al cargar desde sessionStorage
+      const stored = sessionStorage.getItem("selectedBusiness");
+      return stored ? JSON.parse(stored) : null;
+    }
+  );
 
   // Lista de negocios únicos extraídos de las bodegas
   const [businesses, setBusinesses] = useState<Business[]>([]);
-
- 
 
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryEditMode, setCategoryEditMode] = useState(false);
@@ -300,97 +297,73 @@ const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
     }
   };
 
+  // 1️ Cargar bodegas y extraer negocios únicos
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/warehouses`)
+      .then((res) => res.json())
+      .then((data: Warehouse[]) => {
+        setWarehouses(data);
 
-// 1️⃣ Cargar bodegas y extraer negocios únicos
-useEffect(() => {
-  fetch(`${API_URL}/api/v1/warehouses`)
-    .then((res) => res.json())
-    .then((data: Warehouse[]) => {
-      setWarehouses(data);
+        // Extraer negocios únicos
+        const map = new Map<number, Business>();
+        data.forEach((w) => {
+          const b = w.branch.business as Business;
+          if (b && !map.has(b.negocio_id)) map.set(b.negocio_id, b);
+        });
 
-      // Extraer negocios únicos
-      const map = new Map<number, Business>();
-      data.forEach((w) => {
-        const b = w.branch.business as Business;
-        if (b && !map.has(b.negocio_id)) map.set(b.negocio_id, b);
+        const uniqueBusinesses = Array.from(map.values());
+        setBusinesses(uniqueBusinesses);
+
+        // Recuperar negocio guardado en sesión solo si existe
+        const stored = sessionStorage.getItem("selectedBusiness");
+        if (stored) {
+          const parsed: Business = JSON.parse(stored);
+          const exists = uniqueBusinesses.find(
+            (b) => b.negocio_id === parsed.negocio_id
+          );
+          if (exists) setSelectedBusiness(exists);
+        }
       });
+  }, []);
 
-      const uniqueBusinesses = Array.from(map.values());
-      setBusinesses(uniqueBusinesses);
-
-      // Recuperar negocio guardado en sesión solo si existe
-      const stored = sessionStorage.getItem("selectedBusiness");
-      if (stored) {
-        const parsed: Business = JSON.parse(stored);
-        const exists = uniqueBusinesses.find(
-          (b) => b.negocio_id === parsed.negocio_id
-        );
-        if (exists) setSelectedBusiness(exists);
-      }
-    });
-}, []);
-
-// 2️⃣ Guardar automáticamente cuando cambie
-useEffect(() => {
-  if (selectedBusiness) {
-    sessionStorage.setItem(
-      "selectedBusiness",
-      JSON.stringify(selectedBusiness)
-    );
-  } else {
-    sessionStorage.removeItem("selectedBusiness");
-  }
-}, [selectedBusiness]);
-
-// 3️⃣ Select para elegir negocio
-<Select
-  placeholder="Seleccione un negocio..."
-  value={
-    selectedBusiness
-      ? { value: selectedBusiness.negocio_id, label: selectedBusiness.nombre_comercial }
-      : null
-  }
-  onChange={(option: any) => {
-    if (!option) {
-      setSelectedBusiness(null);
+  // 2️ Guardar automáticamente cuando cambie
+  useEffect(() => {
+    if (selectedBusiness) {
+      sessionStorage.setItem(
+        "selectedBusiness",
+        JSON.stringify(selectedBusiness)
+      );
     } else {
-      const business = businesses.find(
-        (b) => b.negocio_id === option.value
-      ) || null;
-      setSelectedBusiness(business);
+      sessionStorage.removeItem("selectedBusiness");
     }
-  }}
-  options={businesses.map((b) => ({
-    value: b.negocio_id,
-    label: b.nombre_comercial,
-  }))}
-  isClearable
-/>
+  }, [selectedBusiness]);
 
-
-
-
-  // Modal de alerta
-  {
-    alertMessage && (
-      <SimpleModal
-        open={true}
-        onClose={() => setAlertMessage(null)}
-        title="Atención"
-      >
-        <p className="text-center">{alertMessage}</p>
-        <div className="flex justify-center mt-6">
-          <button
-            type="button"
-            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg"
-            onClick={() => setAlertMessage(null)}
-          >
-            Aceptar
-          </button>
-        </div>
-      </SimpleModal>
-    );
-  }
+  // 3️ Select para elegir negocio
+  <Select
+    placeholder="Seleccione un negocio..."
+    value={
+      selectedBusiness
+        ? {
+            value: selectedBusiness.negocio_id,
+            label: selectedBusiness.nombre_comercial,
+          }
+        : null
+    }
+    onChange={(option: any) => {
+      if (!option) {
+        setSelectedBusiness(null);
+      } else {
+        const business =
+          businesses.find((b) => b.negocio_id === option.value) || null;
+        setSelectedBusiness(business);
+      }
+    }}
+    options={businesses.map((b) => ({
+      value: b.negocio_id,
+      label: b.nombre_comercial,
+    }))}
+    isClearable
+  />;
 
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
@@ -495,50 +468,49 @@ useEffect(() => {
   }, []);
 
   // Une productos y lotes para mostrar todos los productos aunque no tengan lotes
-useEffect(() => {
-  // 1. Agrupar productos con sus lotes
-  const lotesPorCodigo = lotes.reduce(
-    (acc, lote) => {
-      if (!acc[lote.codigo_producto]) acc[lote.codigo_producto] = [];
-      acc[lote.codigo_producto].push(lote);
-      return acc;
-    },
-    {} as Record<string, Lote[]>
-  );
-
-  // 2. Agregar lotes a cada producto
-  let productosAgrupados = productos.map((producto) => ({
-    ...producto,
-    stock: producto.stock,
-    lotes: lotesPorCodigo[producto.codigo_producto] || [],
-  }));
-
-  // 3. Filtrar por negocio si hay uno seleccionado
-  if (selectedBusiness) {
-    productosAgrupados = productosAgrupados.filter((p) => {
-      const warehouse = warehouses.find(
-        (w) => String(w.bodega_id) === String(p.bodega_id)
-      );
-      const business = warehouse?.branch.business as Business;
-      return business?.negocio_id === selectedBusiness.negocio_id;
-    });
-  }
-
-  // 4. Filtrar por categoría (main)
-  if (categorySearchMain && categorySearchMain.trim() !== "") {
-    productosAgrupados = productosAgrupados.filter(
-      (p) =>
-        p.categoria.toLowerCase() === categorySearchMain.toLowerCase() // aquí exacto porque viene del datalist
+  useEffect(() => {
+    // 1. Agrupar productos con sus lotes
+    const lotesPorCodigo = lotes.reduce(
+      (acc, lote) => {
+        if (!acc[lote.codigo_producto]) acc[lote.codigo_producto] = [];
+        acc[lote.codigo_producto].push(lote);
+        return acc;
+      },
+      {} as Record<string, Lote[]>
     );
-  }
 
-  // 5. Si no hay negocio ni categoría seleccionados => tabla vacía
-  if (!selectedBusiness && !categorySearchMain) {
-    setProductsFiltered([]);
-  } else {
-    setProductsFiltered(productosAgrupados);
-  }
-}, [productos, lotes, selectedBusiness, categorySearchMain, warehouses]);
+    // 2. Agregar lotes a cada producto
+    let productosAgrupados = productos.map((producto) => ({
+      ...producto,
+      stock: producto.stock,
+      lotes: lotesPorCodigo[producto.codigo_producto] || [],
+    }));
+
+    // 3. Filtrar por negocio si hay uno seleccionado
+    if (selectedBusiness) {
+      productosAgrupados = productosAgrupados.filter((p) => {
+        const warehouse = warehouses.find(
+          (w) => String(w.bodega_id) === String(p.bodega_id)
+        );
+        const business = warehouse?.branch.business as Business;
+        return business?.negocio_id === selectedBusiness.negocio_id;
+      });
+    }
+
+    // 4. Filtrar por categoría (main)
+    if (categorySearchMain && categorySearchMain.trim() !== "") {
+      productosAgrupados = productosAgrupados.filter(
+        (p) => p.categoria.toLowerCase() === categorySearchMain.toLowerCase() // aquí exacto porque viene del datalist
+      );
+    }
+
+    // 5. Si no hay negocio ni categoría seleccionados => tabla vacía
+    if (!selectedBusiness && !categorySearchMain) {
+      setProductsFiltered([]);
+    } else {
+      setProductsFiltered(productosAgrupados);
+    }
+  }, [productos, lotes, selectedBusiness, categorySearchMain, warehouses]);
 
   return (
     <ProtectedRoute
@@ -556,81 +528,83 @@ useEffect(() => {
                 {/* Barra de búsqueda y botones principales */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                   <div className="mb-6 w-full sm:w-1/2">
+                    <Select
+                      placeholder="Seleccione un negocio..."
+                      value={
+                        selectedBusiness
+                          ? {
+                              value: selectedBusiness.negocio_id,
+                              label: selectedBusiness.nombre_comercial,
+                            }
+                          : null
+                      }
+                      onChange={(option: any) => {
+                        if (!option) {
+                          setSelectedBusiness(null);
+                        } else {
+                          const business =
+                            businesses.find(
+                              (b) => b.negocio_id === option.value
+                            ) || null;
+                          setSelectedBusiness(business);
+                        }
+                      }}
+                      options={businesses.map((b) => ({
+                        value: b.negocio_id,
+                        label: b.nombre_comercial,
+                      }))}
+                      isClearable
+                      isLoading={businesses.length === 0} // muestra loading mientras carga
+                    />
 
+                    {/* Filtrar por categoría */}
+                    <div className="mt-6">
+                      <h3 className="font-bold text-gray-700 mb-2">
+                        Categorías existentes
+                      </h3>
 
+                      <input
+                        list="categorias"
+                        value={categorySearchMain}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          setCategorySearchMain(value);
 
-<Select
-  placeholder="Seleccione un negocio..."
-  value={
-    selectedBusiness
-      ? { value: selectedBusiness.negocio_id, label: selectedBusiness.nombre_comercial }
-      : null
-  }
-  onChange={(option: any) => {
-    if (!option) {
-      setSelectedBusiness(null);
-    } else {
-      const business = businesses.find(
-        (b) => b.negocio_id === option.value
-      ) || null;
-      setSelectedBusiness(business);
-    }
-  }}
-  options={businesses.map((b) => ({
-    value: b.negocio_id,
-    label: b.nombre_comercial,
-  }))}
-  isClearable
-  isLoading={businesses.length === 0} // muestra loading mientras carga
-/>
+                          const filtered = productos.filter((p) => {
+                            const warehouse = warehouses.find(
+                              (w) => String(w.bodega_id) === String(p.bodega_id)
+                            );
+                            const b = warehouse?.branch.business as Business;
 
+                            if (
+                              selectedBusiness &&
+                              b?.negocio_id !== selectedBusiness?.negocio_id
+                            ) {
+                              return false;
+                            }
 
+                            if (value) {
+                              return (
+                                p.categoria &&
+                                p.categoria.toLowerCase() ===
+                                  value.toLowerCase()
+                              );
+                            }
+                            return true;
+                          });
 
+                          setProductsFiltered(filtered);
+                        }}
+                        placeholder="Escriba o seleccione categoría..."
+                        className="w-full border rounded-lg px-3 py-2"
+                      />
 
-{/* Filtrar por categoría */}
-<div className="mt-6">
-  <h3 className="font-bold text-gray-700 mb-2">Categorías existentes</h3>
-
-  <input
-    list="categorias"
-    value={categorySearchMain}
-    onChange={(e) => {
-      const value = e.target.value;
-      setCategorySearchMain(value);
-
-      const filtered = productos.filter((p) => {
-        const warehouse = warehouses.find(
-          (w) => String(w.bodega_id) === String(p.bodega_id)
-        );
-        const b = warehouse?.branch.business as Business;
-
-        if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id) {
-          return false;
-        }
-
-        if (value) {
-          return (
-            p.categoria &&
-            p.categoria.toLowerCase() === value.toLowerCase()
-          );
-        }
-        return true;
-      });
-
-      setProductsFiltered(filtered);
-    }}
-    placeholder="Escriba o seleccione categoría..."
-    className="w-full border rounded-lg px-3 py-2"
-  />
-
-  <datalist id="categorias">
-    {[...new Set(productos.map((p) => p.categoria))].map(
-      (c) => c && <option key={c} value={c} />
-    )}
-  </datalist>
-</div>
-
-
+                      <datalist id="categorias">
+                        {[...new Set(productos.map((p) => p.categoria))].map(
+                          (c) => c && <option key={c} value={c} />
+                        )}
+                      </datalist>
+                    </div>
                   </div>
 
                   {/* Mensaje si no hay negocio seleccionado */}
@@ -833,31 +807,31 @@ useEffect(() => {
                                         : "Agregar Categoría"
                                     }
                                   >
-                                     {/* BOTÓN DE CERRAR MODAL EN LA ESQUINA */}
-                                        <button
-                                          type="button"
-                                          onClick={() => {
-                                            setCategoryModalOpen(false);
-                                            setCategoryEditMode(false);
-                                          }}
-                                          className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition"
-                                        >
-                                          {/* SVG de X más gruesa */}
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-6 w-6 text-[var(--color-rojo-oscuro)]"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth={3} // 🔹 más grueso
-                                          >
-                                            <path
-                                              strokeLinecap="round"
-                                              strokeLinejoin="round"
-                                              d="M6 18L18 6M6 6l12 12"
-                                            />
-                                          </svg>
-                                        </button>
+                                    {/* BOTÓN DE CERRAR MODAL EN LA ESQUINA */}
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setCategoryModalOpen(false);
+                                        setCategoryEditMode(false);
+                                      }}
+                                      className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition"
+                                    >
+                                      {/* SVG de X más gruesa */}
+                                      <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        className="h-6 w-6 text-[var(--color-rojo-oscuro)]"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        strokeWidth={3} // 🔹 más grueso
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          d="M6 18L18 6M6 6l12 12"
+                                        />
+                                      </svg>
+                                    </button>
                                     <form
                                       onSubmit={(e) => {
                                         e.preventDefault();
@@ -880,8 +854,6 @@ useEffect(() => {
                                       className="relative bg-white rounded-2xl w-full p-8 overflow-y-auto"
                                     >
                                       <div className="flex flex-col gap-4">
-                                       
-
                                         <label className="font-semibold">
                                           Nombre
                                           <input
@@ -974,7 +946,9 @@ useEffect(() => {
                                           placeholder="Buscar categoría..."
                                           value={categorySearchModal}
                                           onChange={(e) =>
-                                            setCategorySearchModal(e.target.value)
+                                            setCategorySearchModal(
+                                              e.target.value
+                                            )
                                           }
                                           className="w-full border rounded-lg px-3 py-2 mb-4"
                                         />
@@ -1490,12 +1464,32 @@ useEffect(() => {
                             <input
                               name="codigo_producto"
                               value={formProducto.codigo_producto}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                // Opcional: filtrar caracteres inválidos (solo letras y números)
                                 setFormProducto((f) => ({
                                   ...f,
-                                  codigo_producto: e.target.value,
-                                }))
-                              }
+                                  codigo_producto: raw,
+                                }));
+                                // Limpia alerta de código duplicado si hay
+                                setAlertMessage(null);
+                              }}
+                              onBlur={() => {
+                                // Validar si el código ya existe
+                                const codigoExistente = productos.some(
+                                  (p) =>
+                                    p.codigo_producto ===
+                                      formProducto.codigo_producto &&
+                                    (!editProductMode ||
+                                      p.codigo_producto !==
+                                        formProducto.codigo_producto)
+                                );
+                                if (codigoExistente) {
+                                  setAlertMessage(
+                                    `El código "${formProducto.codigo_producto}" ya está en uso.`
+                                  );
+                                }
+                              }}
                               placeholder="Código"
                               className="w-full border rounded-lg px-4 py-2"
                               required
@@ -1509,12 +1503,15 @@ useEffect(() => {
                             <input
                               name="nombre_producto"
                               value={formProducto.nombre_producto}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                // Permite solo letras, espacios, acentos y caracteres básicos, sin números
+                                const filtered = raw.replace(/[0-9]/g, "");
                                 setFormProducto((f) => ({
                                   ...f,
-                                  nombre_producto: e.target.value,
-                                }))
-                              }
+                                  nombre_producto: filtered,
+                                }));
+                              }}
                               placeholder="Nombre del producto"
                               className="w-full border rounded-lg px-4 py-2"
                               required
