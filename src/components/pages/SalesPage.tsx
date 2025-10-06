@@ -256,7 +256,6 @@ export default function SalesPage() {
         : true
     );
 
-
   // --- AGREGAR AL CARRITO ---
 
   const getAvailableStock = (codigo: string) => {
@@ -332,6 +331,32 @@ export default function SalesPage() {
     setEditIdx(null);
   };
 
+  // Calcular totales
+  const subtotal = carrito.reduce(
+    (acc, item) => acc + item.producto.precio_venta * item.cantidad,
+    0
+  );
+  const totalDescuento = carrito.reduce(
+    (acc, item) =>
+      acc +
+      (item.producto.precio_venta * item.cantidad * (item.descuento || 0)) /
+        100,
+    0
+  );
+  const subtotalConDescuento = subtotal - totalDescuento;
+  const impuestos = +(subtotalConDescuento * 0.13).toFixed(2); // 13% de impuesto
+  const totalAPagar = subtotalConDescuento + impuestos;
+
+  const vuelto =
+    metodoPago === "Efectivo"
+      ? Math.max(0, (montoEntregado || 0) - totalAPagar)
+      : 0;
+
+  const botonDisabled =
+    (metodoPago === "Efectivo" && (montoEntregado || 0) < totalAPagar) ||
+    ((metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
+      (!comprobante || comprobante.trim() === ""));
+
   const finalizarVenta = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -370,27 +395,6 @@ export default function SalesPage() {
             : metodoPago === "SINPE"
               ? "SINPE"
               : metodoPago;
-
-      // Calcular totales
-      const subtotal = carrito.reduce(
-        (acc, item) => acc + item.producto.precio_venta * item.cantidad,
-        0
-      );
-      const totalDescuento = carrito.reduce(
-        (acc, item) =>
-          acc +
-          (item.producto.precio_venta * item.cantidad * (item.descuento || 0)) /
-            100,
-        0
-      );
-      const subtotalConDescuento = subtotal - totalDescuento;
-      const impuestos = +(subtotalConDescuento * 0.13).toFixed(2); // 13% de impuesto
-      const totalAPagar = subtotalConDescuento + impuestos;
-
-      const vuelto =
-        metodoPago === "Efectivo"
-          ? Math.max(0, (montoEntregado || 0) - totalAPagar)
-          : 0;
 
       // Validar monto suficiente si es pago en efectivo
       if (metodoPago === "Efectivo" && (montoEntregado || 0) < totalAPagar) {
@@ -662,7 +666,7 @@ export default function SalesPage() {
                         return (
                           <div
                             key={producto.codigo_producto}
-                            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-claro ${
+                            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-ultra-claro ${
                               productoSeleccionado?.codigo_producto ===
                               producto.codigo_producto
                                 ? "bg-white font-bold"
@@ -867,7 +871,7 @@ export default function SalesPage() {
 
                   {/* Aplicar mismo descuento a todo */}
                   {carrito.length > 0 && (
-                    <div className="mt-1  py-5 px-5 flex justify-end gap-2 bg-gris-claro">
+                    <div className="mt-1  py-5 px-5 flex justify-end gap-2 bg-gris-ultra-claro">
                       <label className="text-gray-700 font-semibold">
                         Aplicar mismo descuento a todo:
                       </label>
@@ -1358,26 +1362,21 @@ export default function SalesPage() {
                             montoEntregado={montoEntregado}
                             comprobante={comprobante}
                             buttonText="Generar Factura PDF"
+                            disabled={botonDisabled}
                           />
                         )}
 
                       <Button
                         text="Finalizar"
                         type="submit"
-                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
-                        disabled={
-                          (metodoPago === "Efectivo" &&
-                            (!montoEntregado || montoEntregado <= 0)) ||
-                          ((metodoPago === "Tarjeta" ||
-                            metodoPago === "SINPE") &&
-                            (!comprobante || comprobante.trim() === ""))
-                        }
+                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36 cursor-pointer"
+                        disabled={botonDisabled}
                       />
 
                       <Button
                         text="Cancelar"
                         onClick={() => setFacturaModal(false)}
-                        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36"
+                        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36 cursor-pointer"
                       />
                     </div>
                   </form>
