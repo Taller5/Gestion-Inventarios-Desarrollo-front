@@ -586,7 +586,7 @@ export default function Inventary() {
                   </div>
 
 
-                  <div className="w-full h-10 mt-17">
+                  <div className="w-full h-10 mt-43">
                     <SearchBar<Producto>
                       data={productos}
                       displayField="codigo_producto"
@@ -630,7 +630,7 @@ export default function Inventary() {
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2 mt-17">
+                  <div className="flex gap-2 mt-43">
                     <Button
                       style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center"
                       onClick={() => {
@@ -1431,44 +1431,46 @@ export default function Inventary() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Columna izquierda */}
                         <div className="flex flex-col gap-6 w-full">
-                          <label className="font-semibold w-full">
-                            Código
-                            <input
-                              name="codigo_producto"
-                              value={formProducto.codigo_producto}
-                              onChange={(e) => {
-                                const raw = e.target.value;
-                                // Opcional: filtrar caracteres inválidos (solo letras y números)
-                                setFormProducto((f) => ({
-                                  ...f,
-                                  codigo_producto: raw,
-                                }));
-                                // Limpia alerta de código duplicado si hay
-                                setAlertMessage(null);
-                              }}
-                              onBlur={() => {
-                                // Validar si el código ya existe
-                                const codigoExistente = productos.some(
-                                  (p) =>
-                                    p.codigo_producto ===
-                                      formProducto.codigo_producto &&
-                                    (!editProductMode ||
-                                      p.codigo_producto !==
-                                        formProducto.codigo_producto)
-                                );
-                                if (codigoExistente) {
-                                  setAlertMessage(
-                                    `El código "${formProducto.codigo_producto}" ya está en uso.`
-                                  );
-                                }
-                              }}
-                              placeholder="Código"
-                              className="w-full border rounded-lg px-4 py-2"
-                              required
-                              disabled={editProductMode}
-                              readOnly={editProductMode}
-                            />
-                          </label>
+                        <label className="font-semibold w-full">
+  Código
+  <input
+    name="codigo_producto"
+    value={formProducto.codigo_producto}
+    onChange={(e) => {
+      const raw = e.target.value;
+      setFormProducto((f) => ({
+        ...f,
+        codigo_producto: raw,
+      }));
+      setAlertMessage(null); // limpia alerta al escribir
+    }}
+    onBlur={() => {
+      const codigoExistente = productos.some(
+        (p) =>
+          p.codigo_producto === formProducto.codigo_producto &&
+          (!editProductMode ||
+            p.codigo_producto !== formProducto.codigo_producto)
+      );
+      if (codigoExistente) {
+        setAlertMessage(
+          `El código "${formProducto.codigo_producto}" ya está en uso.`
+        );
+      }
+    }}
+    placeholder="Código"
+    className="w-full border rounded-lg px-4 py-2"
+    required
+    disabled={editProductMode}
+    readOnly={editProductMode}
+  />
+  {/* ALERTA */}
+  {alertMessage && (
+    <div className="mt-2 px-3 py-2 bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro rounded text-sm font-semibold">
+      {alertMessage}
+    </div>
+  )}
+</label>
+
 
                           <label className="font-semibold w-full">
                             Nombre del producto

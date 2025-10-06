@@ -40,6 +40,8 @@ const API_URL = import.meta.env.VITE_API_URL as string;
 
 const formatDateSafe = (input?: string | number | null) => {
   if (!input) return "-";
+
+  // Si es un número (timestamp)
   if (typeof input === "number") {
     const d = new Date(input);
     return isNaN(d.getTime())
@@ -54,15 +56,25 @@ const formatDateSafe = (input?: string | number | null) => {
           timeZone: "America/Costa_Rica",
         });
   }
+
   const s = String(input).trim();
-if (/[\/a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(s) && !/T/.test(s)) return s;
+
+  // Si contiene letras o símbolos y no tiene "T", devolver tal cual
+  if (/[\/a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(s) && !/T/.test(s)) return s;
 
   let isoCandidate = s;
+
+  // Formato ISO completo
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:\d{2})?$/.test(s)) {
-    if (!/[Zz]|[+\-]\d{2}:\d{2}$/.test(s)) isoCandidate += "Z";
-  } else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?$/.test(s)) {
+  if (!(/([Zz]|[+\-]\d{2}:\d{2})$/.test(s))) isoCandidate += "Z";
+}
+
+  // Formato "YYYY-MM-DD HH:MM(:SS)"
+  else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?$/.test(s)) {
     isoCandidate = s.replace(" ", "T") + "Z";
-  } else {
+  } 
+  // Otros formatos que Date pueda interpretar
+  else {
     const tryD = new Date(s);
     if (!isNaN(tryD.getTime())) {
       return tryD.toLocaleString("es-CR", {
@@ -75,8 +87,9 @@ if (/[\/a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(s) && !/T/.test(s)) return s;
         timeZone: "America/Costa_Rica",
       });
     }
-    return s;
+    return s; // si no es fecha, devolver string tal cual
   }
+
   const d = new Date(isoCandidate);
   return isNaN(d.getTime())
     ? s
@@ -90,6 +103,7 @@ if (/[\/a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(s) && !/T/.test(s)) return s;
         timeZone: "America/Costa_Rica",
       });
 };
+
 
 export default function CashRegisterPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
