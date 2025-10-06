@@ -178,7 +178,7 @@ export default function Inventary() {
       return stored ? JSON.parse(stored) : null;
     }
   );
-
+  const [hasSearched, setHasSearched] = useState(false);
   // Lista de negocios únicos extraídos de las bodegas
   const [businesses, setBusinesses] = useState<Business[]>([]);
 
@@ -643,25 +643,29 @@ export default function Inventary() {
                     <div className="flex items-center gap-3 w-full mt-auto">
                       <div className="flex-1">
                         <SearchBar<Producto>
-                          data={baseProducts} // productos filtrados por negocio/categoría
+                          data={baseProducts}
                           displayField="codigo_producto"
                           searchFields={["codigo_producto", "nombre_producto"]}
                           placeholder="Buscar por código o nombre..."
                           onResultsChange={(results) => {
                             setSearchedProducts(results);
 
-                            if (results.length === 0) {
-                              setAlert({
-                                type: "error",
-                                message:
-                                  "No existe ningún producto con ese código o nombre.",
-                              });
-                            } else {
-                              setAlert(null); // limpia alerta si hay resultados
+                            if (hasSearched) {
+                              // ⚠️ solo mostrar alerta si ya se buscó
+                              if (results.length === 0) {
+                                setAlert({
+                                  type: "error",
+                                  message:
+                                    "No existe ningún producto con ese código o nombre.",
+                                });
+                              } else {
+                                setAlert(null);
+                              }
                             }
                           }}
                           onSelect={(item) => setSearchedProducts([item])}
                           onNotFound={(query) => {
+                            setHasSearched(true); // ⚡ marca que se hizo búsqueda
                             if (!query || query.trim() === "") {
                               setAlert({
                                 type: "error",
@@ -1741,7 +1745,13 @@ export default function Inventary() {
                                 ? "Guardar cambios"
                                 : "Guardar"
                           }
-                          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-17 py-4 rounded-xl shadow-md transition cursor-pointer w-52"
+                          style={`
+      bg-azul-medio hover:bg-azul-hover 
+      text-white font-bold px-17 py-4 
+      rounded-xl shadow-md transition 
+      cursor-pointer w-52
+      disabled:bg-gray-300 disabled:text-gray-600 disabled:cursor-not-allowed
+    `}
                           type="submit"
                           disabled={
                             loadingForm ||
