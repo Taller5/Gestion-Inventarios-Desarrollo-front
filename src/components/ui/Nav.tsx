@@ -56,6 +56,7 @@ export default function Nav({ logo }: NavProps) {
           <>
             {/* Perfil clickeable */}
             <div
+              role="presentation" 
               className="flex items-center gap-2 cursor-pointer"
               onClick={() => (window.location.href = "/profile")}
             >
