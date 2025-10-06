@@ -162,7 +162,7 @@ export default function Inventary() {
   const [lotes, setLotes] = useState<Lote[]>([]);
   const [loteAEliminar, setLoteAEliminar] = useState<Lote | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
-  const [productsFiltered, setProductsFiltered] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
   // Estados separados
   const [categorySearchMain, setCategorySearchMain] = useState("");
@@ -199,6 +199,50 @@ export default function Inventary() {
     useState<string | undefined>("");
 
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+  const [baseProducts, setBaseProducts] = useState<Producto[]>([]);
+  const [searchedProducts, setSearchedProducts] = useState<Producto[]>([]);
+
+  // recalcula la base (negocio + categoría)
+  useEffect(() => {
+    let productosAgrupados = [...productos];
+
+    if (selectedBusiness) {
+      productosAgrupados = productosAgrupados.filter((p) => {
+        const warehouse = warehouses.find(
+          (w) => String(w.bodega_id) === String(p.bodega_id)
+        );
+        const business = warehouse?.branch.business as Business;
+        return business?.negocio_id === selectedBusiness.negocio_id;
+      });
+    }
+
+    if (categorySearchMain && categorySearchMain.trim() !== "") {
+      productosAgrupados = productosAgrupados.filter(
+        (p) => p.categoria?.toLowerCase() === categorySearchMain.toLowerCase()
+      );
+    }
+
+    if (!selectedBusiness && !categorySearchMain) {
+      setBaseProducts([]);
+    } else {
+      setBaseProducts(productosAgrupados);
+    }
+
+    // 🔹 reset búsqueda cuando cambian filtros base
+    setSearchedProducts([]);
+  }, [productos, selectedBusiness, categorySearchMain, warehouses]);
+
+  // decide qué mostrar en la tabla
+  const finalProducts =
+    searchedProducts.length > 0 ? searchedProducts : baseProducts;
+
+  const [productsFiltered, setProductsFiltered] = useState<Producto[]>([]);
+
+  // Mantener productsFiltered actualizado con finalProducts
+  useEffect(() => {
+    setProductsFiltered(finalProducts);
+  }, [finalProducts]);
 
   //precios
   const getBusinessMargin = (bodega_id: string) => {
@@ -599,15 +643,39 @@ export default function Inventary() {
                     <div className="flex items-center gap-3 w-full mt-auto">
                       <div className="flex-1">
                         <SearchBar<Producto>
-                          data={productsFiltered} // ✅ usar solo los filtrados
+                          data={baseProducts} // productos filtrados por negocio/categoría
                           displayField="codigo_producto"
                           searchFields={["codigo_producto", "nombre_producto"]}
                           placeholder="Buscar por código o nombre..."
-                          onResultsChange={(results) =>
-                            setProductsFiltered(results)
-                          }
-                          onSelect={(item) => setProductsFiltered([item])}
-                          onNotFound={() => setProductsFiltered([])}
+                          onResultsChange={(results) => {
+                            setSearchedProducts(results);
+
+                            if (results.length === 0) {
+                              setAlert({
+                                type: "error",
+                                message:
+                                  "No existe ningún producto con ese código o nombre.",
+                              });
+                            } else {
+                              setAlert(null); // limpia alerta si hay resultados
+                            }
+                          }}
+                          onSelect={(item) => setSearchedProducts([item])}
+                          onNotFound={(query) => {
+                            if (!query || query.trim() === "") {
+                              setAlert({
+                                type: "error",
+                                message:
+                                  "Por favor digite un código o nombre para buscar.",
+                              });
+                            } else {
+                              setSearchedProducts([]);
+                              setAlert({
+                                type: "error",
+                                message: `No existe ningún producto con el código o nombre "${query}".`,
+                              });
+                            }
+                          }}
                           onClearAlert={() => setAlert(null)}
                         />
                       </div>
@@ -686,7 +754,7 @@ export default function Inventary() {
                             Cargando...
                           </td>
                         </tr>
-                      ) : productsFiltered.length === 0 ? (
+                      ) : finalProducts.length === 0 ? ( // 👈 cambio aquí
                         <tr>
                           <td
                             colSpan={headers.length}
@@ -696,7 +764,6 @@ export default function Inventary() {
                           </td>
                         </tr>
                       ) : (
-                        // Renderiza una fila por producto agrupado
                         productsFiltered.map((producto: any) => (
                           <React.Fragment key={producto.codigo_producto}>
                             <tr
@@ -732,7 +799,7 @@ export default function Inventary() {
                                   producto.bodega_id ||
                                   ""}
                               </td>
-                              <td className=" flex flex-row py-3 px-3  text-sm gap-2">
+                              <td className="flex flex-row py-3 px-3 text-sm gap-2">
                                 <Button
                                   style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
                                   onClick={() => {
