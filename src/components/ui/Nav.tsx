@@ -54,18 +54,25 @@ export default function Nav({ logo }: NavProps) {
       <div className="flex items-center gap-2">
         {user ? (
           <>
-            {user.profile_photo && (
-              <img
-                className="w-10 h-10 rounded-full"
-                src={
-                  user.profile_photo.startsWith("http")
-                    ? user.profile_photo
-                    : `${API_URL}/${user.profile_photo}`
-                }
-                alt="Perfil"
-              />
-            )}
-            {user.name && <span className="font-medium">{user.name}</span>}
+            {/* Perfil clickeable */}
+            <div
+              className="flex items-center gap-2 cursor-pointer"
+              onClick={() => (window.location.href = "/profile")}
+            >
+              {user.profile_photo && (
+                <img
+                  className="w-10 h-10 rounded-full"
+                  src={
+                    user.profile_photo.startsWith("http")
+                      ? user.profile_photo
+                      : `${API_URL}/${user.profile_photo}`
+                  }
+                  alt="Perfil"
+                />
+              )}
+              {user.name && <span className="font-medium">{user.name}</span>}
+            </div>
+
             <button
               onClick={handleLogout}
               className="bg-rojo-claro hover:bg-rojo-oscuro cursor-pointer text-white px-3 py-1 rounded ml-2 flex items-center gap-1"
