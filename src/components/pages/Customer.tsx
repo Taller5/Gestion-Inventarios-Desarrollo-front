@@ -291,7 +291,7 @@ export default function CustomersPage() {
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
-                Clientes y Fidelización
+                Gestionar Clientes y Fidelización
               </h1>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-6">
@@ -302,12 +302,15 @@ export default function CustomersPage() {
                     placeholder="Buscar por cédula..."
                     onResultsChange={(results) => {
                       setFilteredCustomers(results);
-                      if (results.length > 0 || !results) setAlert(null);
+                      if (results.length > 0) setAlert(null); // Quita la alerta si hay resultados
                     }}
                     onSelect={(item) => setFilteredCustomers([item])}
                     onNotFound={(q) => {
-                      if (q === "") {
-                        setAlert(null);
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message: "Por favor digite una cédula para buscar.",
+                        });
                       } else {
                         setFilteredCustomers([]);
                         setAlert({
@@ -316,7 +319,14 @@ export default function CustomersPage() {
                         });
                       }
                     }}
+                    onClearAlert={() => {
+                      setAlert(null); // Quita la alerta
+                      // Solo recarga la tabla si actualmente está mostrando menos elementos que todos
+                      
+                    }}
                   />
+
+                  {/* Mostrar solo un alert de búsqueda */}
                   {alert && (
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${

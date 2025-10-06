@@ -196,17 +196,20 @@ export default function Homepage() {
               <option value="Corporativo">$80/mes - Corporativo</option>
             </select>
 
-            {/* Botón WhatsApp con mensaje prellenado */}
-            <a
-              href={`https://wa.me/50689098222?text=${encodeURIComponent(
-                `Hola, me interesa el plan: ${plan}. Mi nombre es ${name} y mi correo es ${email}.`
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded mb-4 w-full text-center"
-            >
-              Contactar por WhatsApp
-            </a>
+           {/* Botón WhatsApp con mensaje prellenado */}
+{/* Botón WhatsApp con mensaje prellenado */}
+<a
+  href={`https://wa.me/50689098222?text=${encodeURIComponent(
+    `Hola, me interesa el plan: ${plan}. Mi nombre es ${name} y mi correo es ${email}.`
+  )}`}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="bg-verde-claro hover:bg-verde-oscuro  text-white font-bold py-3 px-6 rounded mb-4 w-full flex items-center justify-center gap-2"
+>
+  <FaWhatsapp className="text-white w-5 h-5" />
+  Contactar por WhatsApp
+</a>
+
 
             <button
               onClick={handleCloseModal}

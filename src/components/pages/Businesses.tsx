@@ -304,7 +304,7 @@ export default function Businesses() {
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
-                Administrar Negocios
+                Gestionar Negocios
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
@@ -315,18 +315,38 @@ export default function Businesses() {
                     placeholder="Buscar por ID o nombre legal..."
                     onResultsChange={(results) => {
                       setBusinessesFiltered(results);
-                      if (results.length > 0 || !results) setAlert(null);
+                      if (results.length > 0) setAlert(null); // Quita la alerta si hay resultados
                     }}
                     onSelect={(item) => setBusinessesFiltered([item])}
                     onNotFound={(q) => {
-                      setBusinessesFiltered([]);
-                      setAlert({ type: "error", message: `No existe "${q}"` });
-                      setTimeout(() => setAlert(null), 8000);
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID o nombre legal para buscar.",
+                        });
+                      } else {
+                        setBusinessesFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ningún negocio con el ID o nombre legal "${q}".`,
+                        });
+                      }
+                    }}
+                    onClearAlert={() => {
+                      setAlert(null); // Quita la alerta
+                     
                     }}
                   />
+
+                  {/* Mostrar solo un alert de búsqueda */}
                   {alert && (
                     <div
-                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${alert.type === "success" ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro" : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"}`}
+                      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                        alert.type === "success"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+                      }`}
                     >
                       {alert.message}
                     </div>
@@ -668,7 +688,7 @@ export default function Businesses() {
                       >
                         Eliminar
                       </button>
-                       <button
+                      <button
                         onClick={() => setDeleteModalOpen(false)}
                         className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       >

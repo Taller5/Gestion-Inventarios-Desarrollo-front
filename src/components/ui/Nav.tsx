@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useRouterState } from "@tanstack/react-router";
+import { FaUser, FaSignOutAlt } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -8,14 +8,9 @@ interface NavProps {
 }
 
 export default function Nav({ logo }: NavProps) {
-  const [user, setUser] = useState<{
-    name?: string;
-    profile_photo?: string;
-  } | null>(null);
+  const [user, setUser] = useState<{ name?: string; profile_photo?: string } | null>(null);
 
-  // ✅ Ruta actual con TanStack Router
-  const { location } = useRouterState();
-  const isLoginPage = location.pathname === "/login";
+  const isLoginPage = window.location.pathname === "/login";
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -34,12 +29,18 @@ export default function Nav({ logo }: NavProps) {
     localStorage.removeItem("user");
     localStorage.removeItem("authToken");
     setUser(null);
-    window.location.href = "/"; // 🔄 redirige al home
+    window.location.href = "/"; // redirige al home
+  };
+
+  const handleLogoClick = () => {
+    if (window.location.pathname !== "/") {
+      window.location.href = "/"; // redirige solo si no estamos ya en home
+    }
   };
 
   return (
     <nav className="bg-white flex items-center justify-between py-1 px-7 shadow h-[80px] w-full top-0 left-0">
-      <div className="font-bold text-xl text-verde-oscuro">
+      <div className="font-bold text-xl text-verde-oscuro cursor-pointer" onClick={handleLogoClick}>
         <img className="w-20 h-10" src={logo || "/img/logo.png"} alt="logo" />
       </div>
 
@@ -49,29 +50,25 @@ export default function Nav({ logo }: NavProps) {
             {user.profile_photo && (
               <img
                 className="w-10 h-10 rounded-full"
-                src={
-                  user.profile_photo.startsWith("http")
-                    ? user.profile_photo
-                    : `${API_URL}/${user.profile_photo}`
-                }
+                src={user.profile_photo.startsWith("http") ? user.profile_photo : `${API_URL}/${user.profile_photo}`}
                 alt="Perfil"
               />
             )}
             {user.name && <span className="font-medium">{user.name}</span>}
             <button
               onClick={handleLogout}
-              className="bg-rojo-claro hover:bg-rojo-oscuro cursor-pointer text-white px-3 py-1 rounded ml-2"
+              className="bg-rojo-claro hover:bg-rojo-oscuro cursor-pointer text-white px-3 py-1 rounded ml-2 flex items-center gap-1"
             >
-              Cerrar sesión
+              <FaSignOutAlt /> Cerrar sesión
             </button>
           </>
         ) : (
           !isLoginPage && (
             <button
               onClick={() => (window.location.href = "/login")}
-              className="bg-azul-medio hover:bg-azul-hover cursor-pointer text-white px-3 py-1 rounded"
+              className="bg-azul-medio hover:bg-azul-hover cursor-pointer text-white px-3 py-1 rounded flex items-center gap-1"
             >
-              Iniciar sesión
+              <FaUser /> Iniciar sesión
             </button>
           )
         )}

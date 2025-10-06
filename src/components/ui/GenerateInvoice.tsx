@@ -69,8 +69,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       let y = padding;
 
       // --- Encabezado ---
-      doc.addImage("/public/img/logo.png", "PNG", padding, y, 25, 12); //aqui se pondra el logo del negocio respectivo
-      y += 25;
+    
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
       doc.text(

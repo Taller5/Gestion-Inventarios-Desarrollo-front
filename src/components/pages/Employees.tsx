@@ -19,7 +19,7 @@ type User = {
   email: string;
   phone: string;
   status: string;
-  profile_photo?: string; 
+  profile_photo?: string;
 };
 
 const headers = ["id", "name", "rol", "contact", "state", "phone", "actions"];
@@ -28,7 +28,10 @@ export default function Employees() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
-    const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
   const [users, setUsers] = useState<User[]>([]);
   const [showModal, setShowModal] = useState(false);
@@ -67,7 +70,7 @@ export default function Employees() {
           setShowEditModal(true);
         }}
       >
-        <RiEdit2Fill/>
+        <RiEdit2Fill />
         Editar
       </Button>
 
@@ -78,7 +81,7 @@ export default function Employees() {
           setShowModal(true);
         }}
       >
-        <FaTrash/>
+        <FaTrash />
         Eliminar
       </Button>
     </div>,
@@ -121,32 +124,42 @@ export default function Employees() {
           <div className="flex">
             <SideBar role={userRole}></SideBar>
             <div className="w-full pl-10 pt-10">
-               <h1 className="text-2xl font-bold mb-6 text-left">Personal y Roles</h1>
-               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Gestionar Personal y Roles
+              </h1>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-               <SearchBar<User>
-                      data={users}
-                      displayField="id"
-                      searchFields={["id", "name"]}
-                      placeholder="Buscar por ID o nombre..."
-                      onResultsChange={results => {
-                        setEmployeesFiltered(results);
-                        if (results.length > 0 || !results) setAlert(null); 
-                      }}
-                      onSelect={item => setEmployeesFiltered([item])}
-                      onNotFound={q => {
-                        if (q === "") {
-                          setAlert(null); 
-                        } else {
-                          setEmployeesFiltered([]);
-                          setAlert({
-                            type: "error",
-                            message: `No existe ningún producto con el código o nombre "${q}".`,
-                          });
-                        }
-                      }}
-                    />
-                  {/* Mostrar alert de búsqueda */}
+                  <SearchBar<User>
+                    data={users}
+                    displayField="id"
+                    searchFields={["id", "name"]}
+                    placeholder="Buscar por ID o nombre..."
+                    onResultsChange={(results) => {
+                      setEmployeesFiltered(results);
+                      if (results.length > 0) setAlert(null); // Quita la alerta si hay resultados
+                    }}
+                    onSelect={(item) => setEmployeesFiltered([item])}
+                    onNotFound={(q) => {
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID o nombre para buscar.",
+                        });
+                      } else {
+                        setEmployeesFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ningún empleado con el ID o nombre "${q}".`,
+                        });
+                      }
+                    }}
+                    onClearAlert={() => {
+                      setAlert(null); // Quita la alerta
+                    }}
+                  />
+
+                  {/* Mostrar solo un alert de búsqueda */}
                   {alert && (
                     <div
                       className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
@@ -160,15 +173,16 @@ export default function Employees() {
                   )}
                 </div>
                 <Button
-                 
                   style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
                   onClick={() => setShowEditModal(true)}
-                > <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                >
+                  {" "}
+                  <IoAddCircle className="w-6 h-6 flex-shrink-0" />
                   <span className="whitespace-nowrap text-base">
-                      {/* Ícono de usuario con "+" usando IoAddCircle */}
-                     
-                      Añadir empleado
-                    </span></Button>
+                    {/* Ícono de usuario con "+" usando IoAddCircle */}
+                    Añadir empleado
+                  </span>
+                </Button>
               </div>
               <TableInformation tableContent={tableContent} headers={headers} />
               <Modal

@@ -9,17 +9,17 @@ export default function SideBar(props: SideBarProps) {
 
   const btnStyle = 'bg-transparent font-bold rounded p-1 cursor-pointer w-full text-left';
 
-  const btnInventario = (<Button text="Inventario" style={btnStyle} to="/Inventary" />);
-  const btnRegistroIngresos = (<Button text="Registro de Ingresos" style={btnStyle} to="/finance" />);
-  const btnClientes = (<Button text="Clientes y Fidelización" style={btnStyle} to="/customer" />);
-  const btnPersonal = (<Button text="Personal y Roles" style={btnStyle} to="/employees" />);
-  const btnNegocios = (<Button text="Negocios" style={btnStyle} to="/businesses" />);
-  const btnSucursales = (<Button text="Sucursales" style={btnStyle} to="/branches" />);
-  const btnBodegas = (<Button text="Bodegas" style={btnStyle} to="/warehouses" />);
-  const btnPerfil = (<Button text="Perfil" style={btnStyle} to="/profile" />);
+  const btnInventario = (<Button text=" Inventario" style={btnStyle} to="/Inventary" />);
+  const btnRegistroIngresos = (<Button text=" Registro de Ingresos" style={btnStyle} to="/finance" />);
+  const btnClientes = (<Button text="  Clientes y Fidelización" style={btnStyle} to="/customer" />);
+  const btnPersonal = (<Button text=" Personal y Roles" style={btnStyle} to="/employees" />);
+  const btnNegocios = (<Button text=" Negocios" style={btnStyle} to="/businesses" />);
+  const btnSucursales = (<Button text="  Sucursales" style={btnStyle} to="/branches" />);
+  const btnBodegas = (<Button text=" Bodegas" style={btnStyle} to="/warehouses" />);
+  const btnPerfil = (<Button text=" Perfil" style={btnStyle} to="/profile" />);
   const btnSalesPages = (<Button text="Punto de Venta" style={btnStyle} to="/salesPage" />);
-  const btnProvider = (<Button text="Proveedores" style={btnStyle} to="/Provider" />);
-  const btnCashRegisterPage = (<Button text="Control de Caja" style={btnStyle} to="/cashRegisterPage" />);
+  const btnProvider = (<Button text=" Proveedores" style={btnStyle} to="/Provider" />);
+  const btnCashRegisterPage = (<Button text="Cajas" style={btnStyle} to="/cashRegisterPage" />);
 
 
   // Botones base para todos los usuarios

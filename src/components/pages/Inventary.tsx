@@ -12,6 +12,7 @@ import { IoAddCircle } from "react-icons/io5";
 import { CgDetailsMore } from "react-icons/cg";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaSearch } from "react-icons/fa";
+import Select from "react-select";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -163,9 +164,26 @@ export default function Inventary() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [productsFiltered, setProductsFiltered] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [categorySearch, setCategorySearch] = useState("");
+// Estados separados
+const [categorySearchMain, setCategorySearchMain] = useState("");
+const [categorySearchModal, setCategorySearchModal] = useState("");
+
   const [suggestedPrice, setSuggestedPrice] = useState<number>(0);
   const [useSuggestedPrice, setUseSuggestedPrice] = useState(true);
+  // Negocio seleccionado
+const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
+  () => {
+    // Recupera al cargar desde sessionStorage
+    const stored = sessionStorage.getItem("selectedBusiness");
+    return stored ? JSON.parse(stored) : null;
+  }
+);
+
+
+  // Lista de negocios únicos extraídos de las bodegas
+  const [businesses, setBusinesses] = useState<Business[]>([]);
+
+ 
 
   const [categoryModalOpen, setCategoryModalOpen] = useState(false);
   const [categoryEditMode, setCategoryEditMode] = useState(false);
@@ -198,21 +216,24 @@ export default function Inventary() {
     return parseFloat(business.margen_ganancia || "0.25") || 0.25;
   };
 
-useEffect(() => {
-  if (!formProducto.precio_compra || !formProducto.bodega_id) return;
+  useEffect(() => {
+    // Si no hay precio de compra o bodega seleccionada, sugerido = 0
+    if (!formProducto.precio_compra || !formProducto.bodega_id) {
+      setSuggestedPrice(0);
+      return;
+    }
 
-  const margin = getBusinessMargin(formProducto.bodega_id);
-  const precioOpcional = formProducto.precio_compra * (1 + margin);
+    const margin = getBusinessMargin(formProducto.bodega_id);
+    const precioOpcional = formProducto.precio_compra * (1 + margin);
 
-  // Guardamos solo dos decimales
-  const precioRedondeado = Number(precioOpcional.toFixed(2));
-  setSuggestedPrice(precioRedondeado);
+    const precioRedondeado = Number(precioOpcional.toFixed(2));
+    setSuggestedPrice(precioRedondeado);
 
-  // Solo si ya se aceptó el sugerido
-  if (useSuggestedPrice) {
-    setFormProducto((f) => ({ ...f, precio_venta: precioRedondeado }));
-  }
-}, [formProducto.precio_compra, formProducto.bodega_id, useSuggestedPrice]);
+    // Solo aplicar automáticamente si el usuario aceptó el sugerido
+    if (useSuggestedPrice) {
+      setFormProducto((f) => ({ ...f, precio_venta: precioRedondeado }));
+    }
+  }, [formProducto.precio_compra, formProducto.bodega_id, useSuggestedPrice]);
 
   // Abrir modal para editar
   const openEditCategory = (cat: { nombre: string; descripcion?: string }) => {
@@ -278,6 +299,76 @@ useEffect(() => {
       setCategoryLoadingForm(false);
     }
   };
+
+
+// 1️⃣ Cargar bodegas y extraer negocios únicos
+useEffect(() => {
+  fetch(`${API_URL}/api/v1/warehouses`)
+    .then((res) => res.json())
+    .then((data: Warehouse[]) => {
+      setWarehouses(data);
+
+      // Extraer negocios únicos
+      const map = new Map<number, Business>();
+      data.forEach((w) => {
+        const b = w.branch.business as Business;
+        if (b && !map.has(b.negocio_id)) map.set(b.negocio_id, b);
+      });
+
+      const uniqueBusinesses = Array.from(map.values());
+      setBusinesses(uniqueBusinesses);
+
+      // Recuperar negocio guardado en sesión solo si existe
+      const stored = sessionStorage.getItem("selectedBusiness");
+      if (stored) {
+        const parsed: Business = JSON.parse(stored);
+        const exists = uniqueBusinesses.find(
+          (b) => b.negocio_id === parsed.negocio_id
+        );
+        if (exists) setSelectedBusiness(exists);
+      }
+    });
+}, []);
+
+// 2️⃣ Guardar automáticamente cuando cambie
+useEffect(() => {
+  if (selectedBusiness) {
+    sessionStorage.setItem(
+      "selectedBusiness",
+      JSON.stringify(selectedBusiness)
+    );
+  } else {
+    sessionStorage.removeItem("selectedBusiness");
+  }
+}, [selectedBusiness]);
+
+// 3️⃣ Select para elegir negocio
+<Select
+  placeholder="Seleccione un negocio..."
+  value={
+    selectedBusiness
+      ? { value: selectedBusiness.negocio_id, label: selectedBusiness.nombre_comercial }
+      : null
+  }
+  onChange={(option: any) => {
+    if (!option) {
+      setSelectedBusiness(null);
+    } else {
+      const business = businesses.find(
+        (b) => b.negocio_id === option.value
+      ) || null;
+      setSelectedBusiness(business);
+    }
+  }}
+  options={businesses.map((b) => ({
+    value: b.negocio_id,
+    label: b.nombre_comercial,
+  }))}
+  isClearable
+/>
+
+
+
 
   // Modal de alerta
   {
@@ -404,30 +495,50 @@ useEffect(() => {
   }, []);
 
   // Une productos y lotes para mostrar todos los productos aunque no tengan lotes
-  const agruparProductos = (productosArr: Producto[], lotesArr: Lote[]) => {
-    const lotesPorCodigo = lotesArr.reduce(
-      (acc, lote) => {
-        if (!acc[lote.codigo_producto]) acc[lote.codigo_producto] = [];
-        acc[lote.codigo_producto].push(lote);
-        return acc;
-      },
-      {} as Record<string, Lote[]>
-    );
+useEffect(() => {
+  // 1. Agrupar productos con sus lotes
+  const lotesPorCodigo = lotes.reduce(
+    (acc, lote) => {
+      if (!acc[lote.codigo_producto]) acc[lote.codigo_producto] = [];
+      acc[lote.codigo_producto].push(lote);
+      return acc;
+    },
+    {} as Record<string, Lote[]>
+  );
 
-    return productosArr.map((producto) => {
-      const lotes = lotesPorCodigo[producto.codigo_producto] || [];
-      return {
-        ...producto,
-        stock: producto.stock, // <-- stock real del producto
-        lotes,
-      };
+  // 2. Agregar lotes a cada producto
+  let productosAgrupados = productos.map((producto) => ({
+    ...producto,
+    stock: producto.stock,
+    lotes: lotesPorCodigo[producto.codigo_producto] || [],
+  }));
+
+  // 3. Filtrar por negocio si hay uno seleccionado
+  if (selectedBusiness) {
+    productosAgrupados = productosAgrupados.filter((p) => {
+      const warehouse = warehouses.find(
+        (w) => String(w.bodega_id) === String(p.bodega_id)
+      );
+      const business = warehouse?.branch.business as Business;
+      return business?.negocio_id === selectedBusiness.negocio_id;
     });
-  };
+  }
 
-  // Inicializa productosFiltrados con todos los productos agrupados
-  useEffect(() => {
-    setProductsFiltered(agruparProductos(productos, lotes));
-  }, [productos, lotes]);
+  // 4. Filtrar por categoría (main)
+  if (categorySearchMain && categorySearchMain.trim() !== "") {
+    productosAgrupados = productosAgrupados.filter(
+      (p) =>
+        p.categoria.toLowerCase() === categorySearchMain.toLowerCase() // aquí exacto porque viene del datalist
+    );
+  }
+
+  // 5. Si no hay negocio ni categoría seleccionados => tabla vacía
+  if (!selectedBusiness && !categorySearchMain) {
+    setProductsFiltered([]);
+  } else {
+    setProductsFiltered(productosAgrupados);
+  }
+}, [productos, lotes, selectedBusiness, categorySearchMain, warehouses]);
 
   return (
     <ProtectedRoute
@@ -440,10 +551,95 @@ useEffect(() => {
               <SideBar role={userRole} />
               <div className="w-full pl-10 pt-10">
                 <h1 className="text-2xl font-bold mb-6 text-left">
-                  Inventario
+                  Gestionar Inventario
                 </h1>
                 {/* Barra de búsqueda y botones principales */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
+                  <div className="mb-6 w-full sm:w-1/2">
+
+
+
+<Select
+  placeholder="Seleccione un negocio..."
+  value={
+    selectedBusiness
+      ? { value: selectedBusiness.negocio_id, label: selectedBusiness.nombre_comercial }
+      : null
+  }
+  onChange={(option: any) => {
+    if (!option) {
+      setSelectedBusiness(null);
+    } else {
+      const business = businesses.find(
+        (b) => b.negocio_id === option.value
+      ) || null;
+      setSelectedBusiness(business);
+    }
+  }}
+  options={businesses.map((b) => ({
+    value: b.negocio_id,
+    label: b.nombre_comercial,
+  }))}
+  isClearable
+  isLoading={businesses.length === 0} // muestra loading mientras carga
+/>
+
+
+
+
+{/* Filtrar por categoría */}
+<div className="mt-6">
+  <h3 className="font-bold text-gray-700 mb-2">Categorías existentes</h3>
+
+  <input
+    list="categorias"
+    value={categorySearchMain}
+    onChange={(e) => {
+      const value = e.target.value;
+      setCategorySearchMain(value);
+
+      const filtered = productos.filter((p) => {
+        const warehouse = warehouses.find(
+          (w) => String(w.bodega_id) === String(p.bodega_id)
+        );
+        const b = warehouse?.branch.business as Business;
+
+        if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id) {
+          return false;
+        }
+
+        if (value) {
+          return (
+            p.categoria &&
+            p.categoria.toLowerCase() === value.toLowerCase()
+          );
+        }
+        return true;
+      });
+
+      setProductsFiltered(filtered);
+    }}
+    placeholder="Escriba o seleccione categoría..."
+    className="w-full border rounded-lg px-3 py-2"
+  />
+
+  <datalist id="categorias">
+    {[...new Set(productos.map((p) => p.categoria))].map(
+      (c) => c && <option key={c} value={c} />
+    )}
+  </datalist>
+</div>
+
+
+                  </div>
+
+                  {/* Mensaje si no hay negocio seleccionado */}
+                  {!selectedBusiness && (
+                    <div className="mt-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold">
+                      Por favor, seleccione un negocio para ver los productos.
+                    </div>
+                  )}
+
                   <div className="w-full h-10">
                     <SearchBar<Producto>
                       data={productos}
@@ -452,12 +648,16 @@ useEffect(() => {
                       placeholder="Buscar por código o nombre..."
                       onResultsChange={(results) => {
                         setProductsFiltered(results);
-                        if (results.length > 0 || !results) setAlert(null);
+                        if (results.length > 0) setAlert(null);
                       }}
                       onSelect={(item) => setProductsFiltered([item])}
                       onNotFound={(q) => {
-                        if (q === "") {
-                          setAlert(null);
+                        if (!q || q.trim() === "") {
+                          setAlert({
+                            type: "error",
+                            message:
+                              "Por favor digite un nombre o código para buscar.",
+                          });
                         } else {
                           setProductsFiltered([]);
                           setAlert({
@@ -466,7 +666,11 @@ useEffect(() => {
                           });
                         }
                       }}
+                      onClearAlert={() => {
+                        setAlert(null); // Quita la alerta
+                      }}
                     />
+
                     {/* Mostrar alert de búsqueda */}
                     {alert && (
                       <div
@@ -629,6 +833,31 @@ useEffect(() => {
                                         : "Agregar Categoría"
                                     }
                                   >
+                                     {/* BOTÓN DE CERRAR MODAL EN LA ESQUINA */}
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setCategoryModalOpen(false);
+                                            setCategoryEditMode(false);
+                                          }}
+                                          className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition"
+                                        >
+                                          {/* SVG de X más gruesa */}
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-6 w-6 text-[var(--color-rojo-oscuro)]"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={3} // 🔹 más grueso
+                                          >
+                                            <path
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                              d="M6 18L18 6M6 6l12 12"
+                                            />
+                                          </svg>
+                                        </button>
                                     <form
                                       onSubmit={(e) => {
                                         e.preventDefault();
@@ -651,6 +880,8 @@ useEffect(() => {
                                       className="relative bg-white rounded-2xl w-full p-8 overflow-y-auto"
                                     >
                                       <div className="flex flex-col gap-4">
+                                       
+
                                         <label className="font-semibold">
                                           Nombre
                                           <input
@@ -697,14 +928,13 @@ useEffect(() => {
                                           />
                                         </label>
                                       </div>
-
                                       <div className="flex gap-4 justify-end mt-6">
                                         <button
                                           type="submit"
                                           disabled={categoryLoadingForm}
-                                          className={`font-bold px-6 py-2 rounded-lg shadow-md transition ${
+                                          className={`font-bold rounded-lg shadow-md transition w-40 h-12 ${
                                             categoryEditMode
-                                              ? "bg-amarillo-oscuro hover:bg-orange-600 text-white"
+                                              ? "bg-amarillo-claro hover:bg-amarillo-oscuro text-white"
                                               : "bg-azul-medio hover:bg-azul-hover text-white"
                                           }`}
                                         >
@@ -714,22 +944,11 @@ useEffect(() => {
                                               ? "Guardar cambios"
                                               : "Agregar"}
                                         </button>
-                                        <button
-                                          type="button"
-                                          className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
-                                          onClick={() => {
-                                            setCategoryModalOpen(false);
-                                            setCategoryEditMode(false);
-                                          }}
-                                        >
-                                          Cancelar
-                                        </button>
 
-                                        {/* Botón para volver al modo agregar */}
                                         {categoryEditMode && (
                                           <button
                                             type="button"
-                                            className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+                                            className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold rounded-lg shadow-md transition w-40 h-12"
                                             onClick={() => {
                                               setCategoryForm({
                                                 nombre: "",
@@ -737,13 +956,13 @@ useEffect(() => {
                                               });
                                               setCategoryEditMode(false);
                                               setCategoryOriginalNombre(null);
-                                              // No tocar categoryOriginalDescripcion para no generar error
                                             }}
                                           >
-                                            Volver a Agregar
+                                            Volver
                                           </button>
                                         )}
                                       </div>
+
                                       {/* Selector de categorías con búsqueda */}
                                       <div className="mt-6">
                                         <h3 className="font-bold text-gray-700 mb-2">
@@ -753,21 +972,21 @@ useEffect(() => {
                                         <input
                                           type="text"
                                           placeholder="Buscar categoría..."
-                                          value={categorySearch}
+                                          value={categorySearchModal}
                                           onChange={(e) =>
-                                            setCategorySearch(e.target.value)
+                                            setCategorySearchModal(e.target.value)
                                           }
-                                          className="w-full border rounded-lg px-3 py-2 mb-2"
+                                          className="w-full border rounded-lg px-3 py-2 mb-4"
                                         />
 
-                                        {categorySearch.trim() !== "" && (
+                                        {categorySearchModal.trim() !== "" && (
                                           <ul className="max-h-64 overflow-y-auto border rounded-lg">
                                             {categories
                                               .filter((cat) =>
                                                 cat.nombre
                                                   .toLowerCase()
                                                   .includes(
-                                                    categorySearch.toLowerCase()
+                                                    categorySearchModal.toLowerCase()
                                                   )
                                               )
                                               .map((cat) => (
@@ -786,7 +1005,7 @@ useEffect(() => {
                                                   <div className="flex gap-2">
                                                     <button
                                                       type="button"
-                                                      className="text-blue-500 hover:underline"
+                                                      className="bg-azul-medio hover:bg-azul-hover text-white px-4 py-1 rounded-lg font-semibold transition"
                                                       onClick={() =>
                                                         openEditCategory(cat)
                                                       }
@@ -795,7 +1014,7 @@ useEffect(() => {
                                                     </button>
                                                     <button
                                                       type="button"
-                                                      className="text-red-500 hover:underline"
+                                                      className="bg-rojo-claro hover:bg-rojo-oscuro text-white px-4 py-1 rounded-lg font-semibold transition"
                                                       onClick={() =>
                                                         setCategoryToDelete(
                                                           cat.nombre
@@ -1173,7 +1392,12 @@ useEffect(() => {
                 </div>
                 {/* Modal para agregar/editar producto */}
                 {modalOpen === "add-product" && (
-                  <SimpleModal open={true} onClose={() => setModalOpen(false)}>
+                  <SimpleModal
+                    open={true}
+                    onClose={() => setModalOpen(false)}
+                    isWide
+                    onReset={() => setUseSuggestedPrice(false)}
+                  >
                     <form
                       onSubmit={async (e) => {
                         e.preventDefault();
@@ -1251,16 +1475,17 @@ useEffect(() => {
                         setModalOpen(false);
                         setEditProductMode(false);
                       }}
-                      className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
+                      className="relative bg-white rounded-2xl w-[100%] max-w-7xl m-15  mx-auto  overflow-y-auto"
                     >
                       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
                         {editProductMode
                           ? "Editar Producto"
                           : "Agregar Producto"}
                       </h2>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="flex flex-col gap-4">
-                          <label className="font-semibold">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {/* Columna izquierda */}
+                        <div className="flex flex-col gap-6 w-full">
+                          <label className="font-semibold w-full">
                             Código
                             <input
                               name="codigo_producto"
@@ -1272,13 +1497,14 @@ useEffect(() => {
                                 }))
                               }
                               placeholder="Código"
-                              className="w-full border rounded-lg px-3 py-2"
+                              className="w-full border rounded-lg px-4 py-2"
                               required
                               disabled={editProductMode}
                               readOnly={editProductMode}
                             />
                           </label>
-                          <label className="font-semibold">
+
+                          <label className="font-semibold w-full">
                             Nombre del producto
                             <input
                               name="nombre_producto"
@@ -1290,38 +1516,50 @@ useEffect(() => {
                                 }))
                               }
                               placeholder="Nombre del producto"
-                              className="w-full border rounded-lg px-3 py-2"
+                              className="w-full border rounded-lg px-4 py-2"
                               required
                             />
                           </label>
-                          <label className="font-semibold">
+
+                          <label className="font-semibold w-full">
                             Categoría
-                            <label className="font-semibold">
-                              Categoría
-                              <select
-                                name="categoria"
-                                value={formProducto.categoria}
-                                onChange={(e) =>
-                                  setFormProducto((f) => ({
-                                    ...f,
-                                    categoria: e.target.value,
+                            <Select
+                              name="categoria"
+                              value={
+                                categories
+                                  .map((cat) => ({
+                                    value: cat.nombre,
+                                    label: cat.nombre,
                                   }))
-                                }
-                                className="w-full border rounded-lg px-3 py-2"
-                                required
-                              >
-                                <option value="">
-                                  Seleccione una categoría
-                                </option>
-                                {categories.map((cat) => (
-                                  <option key={cat.nombre} value={cat.nombre}>
-                                    {cat.nombre}
-                                  </option>
-                                ))}
-                              </select>
-                            </label>
+                                  .find(
+                                    (opt) =>
+                                      opt.value === formProducto.categoria
+                                  ) || null
+                              }
+                              onChange={(selected) =>
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  categoria: selected?.value || "",
+                                }))
+                              }
+                              options={categories.map((cat) => ({
+                                value: cat.nombre,
+                                label: cat.nombre,
+                              }))}
+                              placeholder="Seleccione una categoría"
+                              isSearchable
+                              isClearable
+                              styles={{
+                                menu: (provided) => ({
+                                  ...provided,
+                                  maxHeight: 200,
+                                  overflowY: "auto",
+                                }),
+                              }}
+                            />
                           </label>
-                          <label className="font-semibold">
+
+                          <label className="font-semibold w-full">
                             Descripción
                             <textarea
                               name="descripcion"
@@ -1333,12 +1571,14 @@ useEffect(() => {
                                 }))
                               }
                               placeholder="Descripción"
-                              className="w-full border rounded-lg px-3 py-2 min-h-[40px]"
+                              className="w-full border rounded-lg px-4 py-2 min-h-[60px]"
                             />
                           </label>
                         </div>
-                        <div className="flex flex-col gap-4">
-                          <label className="font-semibold">
+
+                        {/* Columna derecha */}
+                        <div className="flex flex-col gap-6 w-full">
+                          <label className="font-semibold w-full">
                             Precio de compra
                             <input
                               name="precio_compra"
@@ -1351,52 +1591,55 @@ useEffect(() => {
                                 }))
                               }
                               placeholder="Precio compra"
-                              className="w-full border rounded-lg px-3 py-2"
+                              className="w-full border rounded-lg px-4 py-2"
                               min={0}
                               required
                             />
                           </label>
-<label className="font-semibold w-full">
-  Precio de venta
-  <input
-    name="precio_venta"
-    type="number"
-    value={formProducto.precio_venta}
-    onChange={(e) => {
-      setFormProducto((f) => ({
-        ...f,
-        precio_venta: Number(e.target.value),
-      }));
-      setUseSuggestedPrice(false); // Desactiva el precio sugerido si el usuario escribe
-    }}
-    placeholder="Ingrese el precio de venta"
-    className="w-full border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-azul-medio transition mt-1"
-    min={0}
-    required
-  />
-  {formProducto.precio_compra > 0 && (
-    <button
-      type="button"
-      className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg text-sm mt-2 shadow-md transition w-full"
-      onClick={() => {
-        setFormProducto((f) => ({
-          ...f,
-          precio_venta: suggestedPrice,
-        }));
-        setUseSuggestedPrice(true);
-      }}
-    >
-      Precio sugerido: <span className="font-bold">{suggestedPrice}</span>
-    </button>
-  )}
-  <p className="text-gray-500 text-sm mt-1">
-    Puedes aceptar el precio sugerido o ingresar uno propio.
-  </p>
-</label>
 
+                          <label className="font-semibold w-full">
+                            Precio de venta
+                            <input
+                              name="precio_venta"
+                              type="number"
+                              value={formProducto.precio_venta}
+                              onChange={(e) => {
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  precio_venta: Number(e.target.value),
+                                }));
+                                setUseSuggestedPrice(false);
+                              }}
+                              placeholder="Ingrese el precio de venta"
+                              className="w-full border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-azul-medio transition mt-1"
+                              min={0}
+                              required
+                            />
+                            {formProducto.precio_compra > 0 && (
+                              <button
+                                type="button"
+                                className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg text-sm mt-2 shadow-md transition w-full"
+                                onClick={() => {
+                                  setFormProducto((f) => ({
+                                    ...f,
+                                    precio_venta: suggestedPrice,
+                                  }));
+                                  setUseSuggestedPrice(true);
+                                }}
+                              >
+                                Precio sugerido:{" "}
+                                <span className="font-bold">
+                                  {suggestedPrice}
+                                </span>
+                              </button>
+                            )}
+                            <p className="text-gray-500 text-sm mt-1">
+                              Puedes aceptar el precio sugerido o ingresar uno
+                              propio.
+                            </p>
+                          </label>
 
-
-                          <label className="font-semibold">
+                          <label className="font-semibold w-full">
                             Bodega
                             <div className="relative">
                               <select
@@ -1408,7 +1651,7 @@ useEffect(() => {
                                     bodega_id: e.target.value,
                                   }))
                                 }
-                                className="w-full border rounded-lg px-3 py-2"
+                                className="w-full border rounded-lg px-4 py-2"
                                 required
                                 onMouseOver={handleSelectMouseOver}
                                 onMouseOut={handleSelectMouseOut}
@@ -1420,7 +1663,7 @@ useEffect(() => {
                                   </option>
                                 ))}
                               </select>
-                              {/* Tooltip for bodega info */}
+
                               {tooltip && tooltip.visible && (
                                 <div
                                   className="fixed bg-gray-900 text-white px-3 py-2 rounded-lg z-[1000] text-sm whitespace-pre-line pointer-events-none shadow-lg"
@@ -1434,19 +1677,20 @@ useEffect(() => {
                               )}
                             </div>
                           </label>
-                          <label className="font-semibold">
+
+                          <label className="font-semibold w-full">
                             Stock
                             <input
                               name="stock"
                               value={formProducto.stock}
                               disabled
                               readOnly
-                              className="w-full border rounded-lg px-3 py-2 bg-gray-300"
+                              className="w-full border rounded-lg px-4 py-2 bg-gray-300"
                             />
                           </label>
                         </div>
                       </div>
-                      <div className="flex gap-4 justify-end mt-6">
+                      <div className="flex gap-50 justify-center mt-8">
                         <Button
                           text={
                             loadingForm
@@ -1455,7 +1699,7 @@ useEffect(() => {
                                 ? "Guardar cambios"
                                 : "Guardar"
                           }
-                          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-17 py-4 rounded-xl shadow-md transition cursor-pointer w-52"
                           type="submit"
                           disabled={
                             loadingForm ||
@@ -1469,7 +1713,7 @@ useEffect(() => {
                         />
                         <Button
                           text="Cancelar"
-                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-17  py-4 rounded-xl shadow-md transition cursor-pointer w-52"
                           type="button"
                           onClick={() => {
                             setModalOpen(false);

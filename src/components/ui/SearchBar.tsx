@@ -1,14 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { IoSearch } from "react-icons/io5";
 
 interface SearchProps<T> {
-  data: T[]; // Recibe datos directamente
+  data: T[];
   displayField: keyof T;
   searchFields?: (keyof T)[];
   placeholder?: string;
   onSelect: (item: T) => void;
   onNotFound?: (query: string) => void;
   onResultsChange?: (results: T[]) => void;
+  onClearAlert?: () => void; // <-- nuevo prop opcional para limpiar alerta
 }
 
 export function SearchBar<T extends Record<string, any>>({
@@ -19,9 +20,11 @@ export function SearchBar<T extends Record<string, any>>({
   onSelect,
   onNotFound,
   onResultsChange,
+  onClearAlert, // <-- recibimos el prop
 }: SearchProps<T>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<T[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!query.trim()) {
@@ -30,21 +33,20 @@ export function SearchBar<T extends Record<string, any>>({
       return;
     }
 
-    // Filtrado parcial mientras escribes
     const filtered = data.filter(item =>
-  (searchFields || [displayField]).some(
-    field =>
-      item[field] &&
-      String(item[field]).toLowerCase().includes(query.toLowerCase())
-  )
-);
+      (searchFields || [displayField]).some(
+        field =>
+          item[field] &&
+          String(item[field]).toLowerCase().includes(query.toLowerCase())
+      )
+    );
     setResults(filtered);
     onResultsChange?.(filtered);
   }, [query, data, displayField]);
 
   const handleSearch = () => {
     const exactMatch = data.find(
-      (item) => String(item[displayField]).toLowerCase() === query.toLowerCase()
+      item => String(item[displayField]).toLowerCase() === query.toLowerCase()
     );
 
     if (exactMatch) {
@@ -65,8 +67,24 @@ export function SearchBar<T extends Record<string, any>>({
     }
   };
 
+  // Limpiar alerta al hacer click fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        onClearAlert?.();
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClearAlert]);
+
   return (
-    <div className="w-full relative">
+    <div ref={containerRef} className="w-full relative">
       <div className="flex border border-gray-300 rounded-md overflow-hidden">
         <input
           type="text"
