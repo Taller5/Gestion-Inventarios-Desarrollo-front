@@ -301,7 +301,7 @@ const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(
   };
 
 
-// 1️⃣ Cargar bodegas y extraer negocios únicos
+// 1️ Cargar bodegas y extraer negocios únicos
 useEffect(() => {
   fetch(`${API_URL}/api/v1/warehouses`)
     .then((res) => res.json())
@@ -330,7 +330,7 @@ useEffect(() => {
     });
 }, []);
 
-// 2️⃣ Guardar automáticamente cuando cambie
+// 2️ Guardar automáticamente cuando cambie
 useEffect(() => {
   if (selectedBusiness) {
     sessionStorage.setItem(
@@ -342,7 +342,7 @@ useEffect(() => {
   }
 }, [selectedBusiness]);
 
-// 3️⃣ Select para elegir negocio
+// 3️ Select para elegir negocio
 <Select
   placeholder="Seleccione un negocio..."
   value={
@@ -370,27 +370,26 @@ useEffect(() => {
 
 
 
-  // Modal de alerta
-  {
-    alertMessage && (
-      <SimpleModal
-        open={true}
-        onClose={() => setAlertMessage(null)}
-        title="Atención"
+{/* Modal de alerta */}
+{alertMessage && (
+  <SimpleModal
+    open={true}
+    onClose={() => setAlertMessage(null)}
+    title="Atención"
+  >
+    <p className="text-center">{alertMessage}</p>
+    <div className="flex justify-center mt-6">
+      <button
+        type="button"
+        className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg"
+        onClick={() => setAlertMessage(null)}
       >
-        <p className="text-center">{alertMessage}</p>
-        <div className="flex justify-center mt-6">
-          <button
-            type="button"
-            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg"
-            onClick={() => setAlertMessage(null)}
-          >
-            Aceptar
-          </button>
-        </div>
-      </SimpleModal>
-    );
-  }
+        Aceptar
+      </button>
+    </div>
+  </SimpleModal>
+)}
+
 
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
