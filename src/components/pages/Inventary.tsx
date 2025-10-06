@@ -532,64 +532,61 @@ export default function Inventary() {
                       isLoading={businesses.length === 0} // muestra loading mientras carga
                     />
 
-                    {/* Filtrar por categoría */}
-                    <div className="mt-6">
-                      <h3 className="font-bold text-gray-700 mb-2">
-                        Categorías existentes
-                      </h3>
-
-                      <input
-                        list="categorias"
-                        value={categorySearchMain}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          setCategorySearchMain(value);
-
-                          const filtered = productos.filter((p) => {
-                            const warehouse = warehouses.find(
-                              (w) => String(w.bodega_id) === String(p.bodega_id)
-                            );
-                            const b = warehouse?.branch.business as Business;
-
-                            if (
-                              selectedBusiness &&
-                              b?.negocio_id !== selectedBusiness?.negocio_id
-                            ) {
-                              return false;
-                            }
-
-                            if (value) {
-                              return (
-                                p.categoria &&
-                                p.categoria.toLowerCase() ===
-                                  value.toLowerCase()
-                              );
-                            }
-                            return true;
-                          });
-
-                          setProductsFiltered(filtered);
-                        }}
-                        placeholder="Escriba o seleccione categoría..."
-                        className="w-full border rounded-lg px-3 py-2"
-                      />
-
-                      <datalist id="categorias">
-                        {[...new Set(productos.map((p) => p.categoria))].map(
-                          (c) => c && <option key={c} value={c} />
-                        )}
-                      </datalist>
-                    </div>
-                  </div>
-
                   {/* Mensaje si no hay negocio seleccionado */}
                   {!selectedBusiness && (
                     <div className="mt-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold">
                       Por favor, seleccione un negocio para ver los productos.
                     </div>
                   )}
+             <div className="mt-6">
+  <h3 className="font-bold text-gray-700 mb-2">Categorías existentes</h3>
 
-                  <div className="w-full h-10">
+  <Select
+    placeholder="Seleccione una categoría..."
+    value={
+      categorySearchMain
+        ? { value: categorySearchMain, label: categorySearchMain }
+        : null
+    }
+    onChange={(option: any) => {
+      if (!option) {
+        setCategorySearchMain("");
+      } else {
+        setCategorySearchMain(option.value);
+      }
+
+      const filtered = productos.filter((p) => {
+        const warehouse = warehouses.find(
+          (w) => String(w.bodega_id) === String(p.bodega_id)
+        );
+        const b = warehouse?.branch.business as Business;
+
+        if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id) {
+          return false;
+        }
+
+        if (option?.value) {
+          return (
+            p.categoria &&
+            p.categoria.toLowerCase() === option.value.toLowerCase()
+          );
+        }
+        return true;
+      });
+
+      setProductsFiltered(filtered);
+    }}
+    options={[...new Set(productos.map((p) => p.categoria))]
+      .filter(Boolean)
+      .map((c) => ({ value: c!, label: c! }))}
+    isClearable
+    isLoading={productos.length === 0}
+  />
+</div>
+                  </div>
+
+
+                  <div className="w-full h-10 mt-17">
                     <SearchBar<Producto>
                       data={productos}
                       displayField="codigo_producto"
@@ -633,7 +630,7 @@ export default function Inventary() {
                       </div>
                     )}
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-17">
                     <Button
                       style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center"
                       onClick={() => {
