@@ -501,8 +501,8 @@ export default function Inventary() {
                   Gestionar Inventario
                 </h1>
                 {/* Barra de búsqueda y botones principales */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
-                  <div className="mb-6 w-full sm:w-1/2">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-2">
+                  <div className=" w-full sm:w-1/2">
                     <Select
                       placeholder="Seleccione un negocio..."
                       value={
@@ -539,7 +539,7 @@ export default function Inventary() {
                     </div>
                   )}
              <div className="mt-6">
-  <h3 className="font-bold text-gray-700 mb-2">Categorías existentes</h3>
+  <h3 className="font-bold text-gray-700  mt-25">Categorías existentes</h3>
 
   <Select
     placeholder="Seleccione una categoría..."
@@ -1431,7 +1431,7 @@ export default function Inventary() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Columna izquierda */}
                         <div className="flex flex-col gap-6 w-full">
-                        <label className="font-semibold w-full">
+<label className="font-semibold w-full">
   Código
   <input
     name="codigo_producto"
@@ -1451,7 +1451,13 @@ export default function Inventary() {
           (!editProductMode ||
             p.codigo_producto !== formProducto.codigo_producto)
       );
+
       if (codigoExistente) {
+        // cerramos modal
+        setModalOpen(false);
+        setEditProductMode(false);
+
+        // mostramos alerta global
         setAlertMessage(
           `El código "${formProducto.codigo_producto}" ya está en uso.`
         );
@@ -1463,13 +1469,15 @@ export default function Inventary() {
     disabled={editProductMode}
     readOnly={editProductMode}
   />
-  {/* ALERTA */}
-  {alertMessage && (
-    <div className="mt-2 px-3 py-2 bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro rounded text-sm font-semibold">
-      {alertMessage}
-    </div>
-  )}
 </label>
+
+{/* ALERTA GLOBAL DESPUÉS DEL MODAL */}
+{alertMessage && !modalOpen && (
+  <div className="mt-4 mx-auto max-w-lg px-4 py-3 bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro rounded text-sm font-semibold text-center shadow-md">
+    {alertMessage}
+  </div>
+)}
+
 
 
                           <label className="font-semibold w-full">
