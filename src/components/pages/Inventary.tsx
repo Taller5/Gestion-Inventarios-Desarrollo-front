@@ -338,32 +338,7 @@ export default function Inventary() {
     }
   }, [selectedBusiness]);
 
-  // 3️ Select para elegir negocio
-  <Select
-    placeholder="Seleccione un negocio..."
-    value={
-      selectedBusiness
-        ? {
-            value: selectedBusiness.negocio_id,
-            label: selectedBusiness.nombre_comercial,
-          }
-        : null
-    }
-    onChange={(option: any) => {
-      if (!option) {
-        setSelectedBusiness(null);
-      } else {
-        const business =
-          businesses.find((b) => b.negocio_id === option.value) || null;
-        setSelectedBusiness(business);
-      }
-    }}
-    options={businesses.map((b) => ({
-      value: b.negocio_id,
-      label: b.nombre_comercial,
-    }))}
-    isClearable
-  />;
+
 
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 

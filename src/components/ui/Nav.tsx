@@ -8,7 +8,10 @@ interface NavProps {
 }
 
 export default function Nav({ logo }: NavProps) {
-  const [user, setUser] = useState<{ name?: string; profile_photo?: string } | null>(null);
+  const [user, setUser] = useState<{
+    name?: string;
+    profile_photo?: string;
+  } | null>(null);
 
   const isLoginPage = window.location.pathname === "/login";
 
@@ -40,9 +43,13 @@ export default function Nav({ logo }: NavProps) {
 
   return (
     <nav className="bg-white flex items-center justify-between py-1 px-7 shadow h-[80px] w-full top-0 left-0">
-      <div className="font-bold text-xl text-verde-oscuro cursor-pointer" onClick={handleLogoClick}>
+      <button
+        type="button"
+        onClick={handleLogoClick}
+        className="font-bold text-xl text-verde-oscuro cursor-pointer p-0 border-0 bg-transparent"
+      >
         <img className="w-20 h-10" src={logo || "/img/logo.png"} alt="logo" />
-      </div>
+      </button>
 
       <div className="flex items-center gap-2">
         {user ? (
@@ -50,7 +57,11 @@ export default function Nav({ logo }: NavProps) {
             {user.profile_photo && (
               <img
                 className="w-10 h-10 rounded-full"
-                src={user.profile_photo.startsWith("http") ? user.profile_photo : `${API_URL}/${user.profile_photo}`}
+                src={
+                  user.profile_photo.startsWith("http")
+                    ? user.profile_photo
+                    : `${API_URL}/${user.profile_photo}`
+                }
                 alt="Perfil"
               />
             )}
