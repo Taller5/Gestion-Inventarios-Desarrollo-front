@@ -152,7 +152,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       doc.rect(
         x,
         y - 4,
-        colWidths.reduce((a, b) => a + b),
+        colWidths.reduce((a, b) => a + b, 0),
         8,
         "F"
       );
@@ -182,7 +182,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
           doc.rect(
             x,
             y - 4,
-            colWidths.reduce((a, b) => a + b),
+            colWidths.reduce((a, b) => a + b, 0),
             6,
             "F"
           );
@@ -206,7 +206,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
         doc.line(
           padding,
           y - 4,
-          padding + colWidths.reduce((a, b) => a + b),
+          padding + colWidths.reduce((a, b) => a + b, 0),
           y - 4
         );
       });
@@ -219,7 +219,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       const totalAPagar = subtotalConDescuento + impuestos;
 
       doc.setFont("helvetica", "bold");
-      const totalX = padding + colWidths.slice(0, 3).reduce((a, b) => a + b);
+      const totalX = padding + colWidths.slice(0, 3).reduce((a, b) => a + b, 0);
       doc.text(`Subtotal: ${formatNumber(subtotal)}`, totalX, y);
       y += 6;
       doc.text(

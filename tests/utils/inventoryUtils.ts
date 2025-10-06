@@ -26,7 +26,7 @@ export const getBusinessMargin = (bodega_id: string): number => {
   if (!warehouse) return 0.25; // 25% por defecto
 
   const business: Business = warehouse.branch.business as any;
-  return parseFloat(business.margen_ganancia || '0.25') || 0.25;
+  return Number.parseFloat(business.margen_ganancia || '0.25') || 0.25;
 };
 
 // Función que calcula precio sugerido a partir del precio de compra y bodega
