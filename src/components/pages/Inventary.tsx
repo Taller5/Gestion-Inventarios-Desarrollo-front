@@ -338,8 +338,6 @@ export default function Inventary() {
     }
   }, [selectedBusiness]);
 
-
-
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   // Función para abrir el modal de eliminación
@@ -501,8 +499,10 @@ export default function Inventary() {
                   Gestionar Inventario
                 </h1>
                 {/* Barra de búsqueda y botones principales */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-2">
-                  <div className=" w-full sm:w-1/2">
+                <div className="flex flex-col sm:flex-row justify-between gap-10 mb-4 w-full">
+                  {/* 🟦 Sección Izquierda: Filtros */}
+                  <div className="w-full sm:w-1/2 flex flex-col gap-6">
+                    {/* Selección de negocio */}
                     <Select
                       placeholder="Seleccione un negocio..."
                       value={
@@ -529,98 +529,127 @@ export default function Inventary() {
                         label: b.nombre_comercial,
                       }))}
                       isClearable
-                      isLoading={businesses.length === 0} // muestra loading mientras carga
+                      isLoading={businesses.length === 0}
                     />
 
-                  {/* Mensaje si no hay negocio seleccionado */}
-                  {!selectedBusiness && (
-                    <div className="mt-6 p-4 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold">
-                      Por favor, seleccione un negocio para ver los productos.
-                    </div>
-                  )}
-             <div className="mt-6">
-  <h3 className="font-bold text-gray-700  mt-25">Categorías existentes</h3>
+                    {/* Mensaje si no hay negocio */}
+                    {!selectedBusiness && (
+                      <div className="p-4 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold">
+                        Por favor, seleccione un negocio para ver los productos.
+                      </div>
+                    )}
 
-  <Select
-    placeholder="Seleccione una categoría..."
-    value={
-      categorySearchMain
-        ? { value: categorySearchMain, label: categorySearchMain }
-        : null
-    }
-    onChange={(option: any) => {
-      if (!option) {
-        setCategorySearchMain("");
-      } else {
-        setCategorySearchMain(option.value);
-      }
-
-      const filtered = productos.filter((p) => {
-        const warehouse = warehouses.find(
-          (w) => String(w.bodega_id) === String(p.bodega_id)
-        );
-        const b = warehouse?.branch.business as Business;
-
-        if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id) {
-          return false;
-        }
-
-        if (option?.value) {
-          return (
-            p.categoria &&
-            p.categoria.toLowerCase() === option.value.toLowerCase()
-          );
-        }
-        return true;
-      });
-
-      setProductsFiltered(filtered);
-    }}
-    options={[...new Set(productos.map((p) => p.categoria))]
-      .filter(Boolean)
-      .map((c) => ({ value: c!, label: c! }))}
-    isClearable
-    isLoading={productos.length === 0}
-  />
-</div>
-                  </div>
-
-
-                  <div className="w-full h-10 mt-43">
-                    <SearchBar<Producto>
-                      data={productos}
-                      displayField="codigo_producto"
-                      searchFields={["codigo_producto", "nombre_producto"]}
-                      placeholder="Buscar por código o nombre..."
-                      onResultsChange={(results) => {
-                        setProductsFiltered(results);
-                        if (results.length > 0) setAlert(null);
-                      }}
-                      onSelect={(item) => setProductsFiltered([item])}
-                      onNotFound={(q) => {
-                        if (!q || q.trim() === "") {
-                          setAlert({
-                            type: "error",
-                            message:
-                              "Por favor digite un nombre o código para buscar.",
-                          });
-                        } else {
-                          setProductsFiltered([]);
-                          setAlert({
-                            type: "error",
-                            message: `No existe ningún producto con el código o nombre "${q}".`,
-                          });
+                    {/* Selección de categoría */}
+                    <div>
+                      <h3 className="font-bold text-gray-700 mb-2">
+                        Categorías existentes
+                      </h3>
+                      <Select
+                        placeholder="Seleccione una categoría..."
+                        value={
+                          categorySearchMain
+                            ? {
+                                value: categorySearchMain,
+                                label: categorySearchMain,
+                              }
+                            : null
                         }
-                      }}
-                      onClearAlert={() => {
-                        setAlert(null); // Quita la alerta
-                      }}
-                    />
+                        onChange={(option: any) => {
+                          if (!option) {
+                            setCategorySearchMain("");
+                          } else {
+                            setCategorySearchMain(option.value);
+                          }
 
-                    {/* Mostrar alert de búsqueda */}
+                          const filtered = productos.filter((p) => {
+                            const warehouse = warehouses.find(
+                              (w) => String(w.bodega_id) === String(p.bodega_id)
+                            );
+                            const b = warehouse?.branch.business as Business;
+
+                            if (
+                              selectedBusiness &&
+                              b?.negocio_id !== selectedBusiness?.negocio_id
+                            ) {
+                              return false;
+                            }
+
+                            if (option?.value) {
+                              return (
+                                p.categoria &&
+                                p.categoria.toLowerCase() ===
+                                  option.value.toLowerCase()
+                              );
+                            }
+                            return true;
+                          });
+
+                          setProductsFiltered(filtered);
+                        }}
+                        options={[...new Set(productos.map((p) => p.categoria))]
+                          .filter(Boolean)
+                          .map((c) => ({ value: c!, label: c! }))}
+                        isClearable
+                        isLoading={productos.length === 0}
+                      />
+                    </div>
+                  </div>
+                  {/* 🟩 Sección Derecha: Buscador y Botones */}
+                  <div className="w-full sm:w-1/2 flex flex-col gap-2 mr-10 h-full">
+                    <div className="flex items-center gap-3 w-full mt-auto">
+                      <div className="flex-1">
+                        <SearchBar<Producto>
+                          data={productsFiltered} // ✅ usar solo los filtrados
+                          displayField="codigo_producto"
+                          searchFields={["codigo_producto", "nombre_producto"]}
+                          placeholder="Buscar por código o nombre..."
+                          onResultsChange={(results) =>
+                            setProductsFiltered(results)
+                          }
+                          onSelect={(item) => setProductsFiltered([item])}
+                          onNotFound={() => setProductsFiltered([])}
+                          onClearAlert={() => setAlert(null)}
+                        />
+                      </div>
+
+                      {/* Botones al lado */}
+                      <Button
+                        style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center"
+                        onClick={() => {
+                          setEditProductMode(false);
+                          setFormProducto({
+                            codigo_producto: "",
+                            nombre_producto: "",
+                            categoria: "",
+                            descripcion: "",
+                            stock: 0,
+                            precio_compra: 0,
+                            precio_venta: 0,
+                            bodega_id: "",
+                          });
+                          setModalOpen("add-product");
+                        }}
+                      >
+                        <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                        <span className="whitespace-nowrap text-base">
+                          Agregar Producto
+                        </span>
+                      </Button>
+
+                      <Button
+                        to="/iaprediction"
+                        style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center gap-2"
+                      >
+                        <FaSearch />
+                        <span className="whitespace-nowrap text-base">
+                          Ver predicciones
+                        </span>
+                      </Button>
+                    </div>
+
                     {alert && (
                       <div
-                        className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                        className={`mt-2 px-4 py-2 rounded-lg text-center font-semibold ${
                           alert.type === "success"
                             ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
                             : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
@@ -629,39 +658,6 @@ export default function Inventary() {
                         {alert.message}
                       </div>
                     )}
-                  </div>
-                  <div className="flex gap-2 mt-43">
-                    <Button
-                      style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center"
-                      onClick={() => {
-                        setEditProductMode(false);
-                        setFormProducto({
-                          codigo_producto: "",
-                          nombre_producto: "",
-                          categoria: "",
-                          descripcion: "",
-                          stock: 0,
-                          precio_compra: 0,
-                          precio_venta: 0,
-                          bodega_id: "",
-                        });
-                        setModalOpen("add-product");
-                      }}
-                    >
-                      <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                      <span className="whitespace-nowrap text-base">
-                        Agregar Producto
-                      </span>
-                    </Button>
-                    <Button
-                      to="/iaprediction"
-                      style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
-                    >
-                      <FaSearch />
-                      <span className="whitespace-nowrap text-base">
-                        Ver predicciones
-                      </span>
-                    </Button>
                   </div>
                 </div>
 
@@ -786,7 +782,7 @@ export default function Inventary() {
                                         setCategoryModalOpen(false);
                                         setCategoryEditMode(false);
                                       }}
-                                      className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition"
+                                      className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition cursor-pointer"
                                     >
                                       {/* SVG de X más gruesa */}
                                       <svg
@@ -876,7 +872,7 @@ export default function Inventary() {
                                         <button
                                           type="submit"
                                           disabled={categoryLoadingForm}
-                                          className={`font-bold rounded-lg shadow-md transition w-40 h-12 ${
+                                          className={`font-bold rounded-lg shadow-md transition w-40 h-12 cursor-pointer${
                                             categoryEditMode
                                               ? "bg-amarillo-claro hover:bg-amarillo-oscuro text-white"
                                               : "bg-azul-medio hover:bg-azul-hover text-white"
@@ -1431,54 +1427,54 @@ export default function Inventary() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {/* Columna izquierda */}
                         <div className="flex flex-col gap-6 w-full">
-<label className="font-semibold w-full">
-  Código
-  <input
-    name="codigo_producto"
-    value={formProducto.codigo_producto}
-    onChange={(e) => {
-      const raw = e.target.value;
-      setFormProducto((f) => ({
-        ...f,
-        codigo_producto: raw,
-      }));
-      setAlertMessage(null); // limpia alerta al escribir
-    }}
-    onBlur={() => {
-      const codigoExistente = productos.some(
-        (p) =>
-          p.codigo_producto === formProducto.codigo_producto &&
-          (!editProductMode ||
-            p.codigo_producto !== formProducto.codigo_producto)
-      );
+                          <label className="font-semibold w-full">
+                            Código
+                            <input
+                              name="codigo_producto"
+                              value={formProducto.codigo_producto}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  codigo_producto: raw,
+                                }));
+                                setAlertMessage(null); // limpia alerta al escribir
+                              }}
+                              onBlur={() => {
+                                const codigoExistente = productos.some(
+                                  (p) =>
+                                    p.codigo_producto ===
+                                      formProducto.codigo_producto &&
+                                    (!editProductMode ||
+                                      p.codigo_producto !==
+                                        formProducto.codigo_producto)
+                                );
 
-      if (codigoExistente) {
-        // cerramos modal
-        setModalOpen(false);
-        setEditProductMode(false);
+                                if (codigoExistente) {
+                                  // cerramos modal
+                                  setModalOpen(false);
+                                  setEditProductMode(false);
 
-        // mostramos alerta global
-        setAlertMessage(
-          `El código "${formProducto.codigo_producto}" ya está en uso.`
-        );
-      }
-    }}
-    placeholder="Código"
-    className="w-full border rounded-lg px-4 py-2"
-    required
-    disabled={editProductMode}
-    readOnly={editProductMode}
-  />
-</label>
+                                  // mostramos alerta global
+                                  setAlertMessage(
+                                    `El código "${formProducto.codigo_producto}" ya está en uso.`
+                                  );
+                                }
+                              }}
+                              placeholder="Código"
+                              className="w-full border rounded-lg px-4 py-2"
+                              required
+                              disabled={editProductMode}
+                              readOnly={editProductMode}
+                            />
+                          </label>
 
-{/* ALERTA GLOBAL DESPUÉS DEL MODAL */}
-{alertMessage && !modalOpen && (
-  <div className="mt-4 mx-auto max-w-lg px-4 py-3 bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro rounded text-sm font-semibold text-center shadow-md">
-    {alertMessage}
-  </div>
-)}
-
-
+                          {/* ALERTA GLOBAL DESPUÉS DEL MODAL */}
+                          {alertMessage && !modalOpen && (
+                            <div className="mt-4 mx-auto max-w-lg px-4 py-3 bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro rounded text-sm font-semibold text-center shadow-md">
+                              {alertMessage}
+                            </div>
+                          )}
 
                           <label className="font-semibold w-full">
                             Nombre del producto
@@ -2236,7 +2232,7 @@ export default function Inventary() {
                   )}
                 <div className="mb-4">
                   <button
-                    className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition"
+                    className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition cursor-pointer"
                     onClick={() => {
                       setCategoryForm({ nombre: "", descripcion: "" });
                       setCategoryEditMode(false);

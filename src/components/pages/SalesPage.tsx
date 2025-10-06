@@ -593,14 +593,14 @@ export default function SalesPage() {
                   )}
                   <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
                     <Button
-                      style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
+                      style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center cursor-pointer"
                       onClick={() => (window.location.href = "/customer")}
                     >
                       <IoPersonAdd className="mr-2" size={18} /> Nuevo cliente
                     </Button>
 
                     <Button
-                      style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center"
+                      style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center cursor-pointer"
                       onClick={() =>
                         setClienteSeleccionado({
                           customer_id: 0,
@@ -617,7 +617,7 @@ export default function SalesPage() {
                   {sucursalSeleccionada && !modalSucursal && (
                     <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6 mt-4">
                       <button
-                        className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200"
+                        className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200 cursor-pointer"
                         onClick={() => setModalSucursal(true)}
                       >
                         Cambiar sucursal
@@ -1077,7 +1077,7 @@ export default function SalesPage() {
                       {sucursales.map((sucursal) => (
                         <button
                           key={sucursal.sucursal_id}
-                          className="w-full px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white rounded font-bold"
+                          className="w-full px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white rounded font-bold cursor-pointer"
                           onClick={() => {
                             const user = JSON.parse(
                               localStorage.getItem("user") || "{}"

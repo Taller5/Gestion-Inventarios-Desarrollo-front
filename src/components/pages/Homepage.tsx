@@ -187,7 +187,7 @@ export default function Homepage() {
             <select
               value={plan}
               onChange={(e) => setPlan(e.target.value)}
-              className="mb-4 w-full px-3 py-2 border rounded"
+              className="mb-4 w-full px-3 py-2 border rounded cursor-pointer"
             >
               <option value="">Selecciona un plan</option>
               <option value="Básico">$20/mes - Básico</option>
@@ -213,7 +213,7 @@ export default function Homepage() {
 
             <button
               onClick={handleCloseModal}
-              className="text-gray-700 hover:text-gray-900 font-semibold"
+              className="bg-gris-claro hover:bg-gris-ultra-oscuro  text-white font-bold py-3 px-6 rounded mb-4 w-full flex items-center justify-center gap-2 cursor-pointer"
             >
               Cerrar
             </button>

@@ -270,7 +270,7 @@ useEffect(() => {
     Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
     Acciones: !c.closed_at ? (
       <Button
-        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-2 py-1 rounded text-sm"
+        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
         onClick={() => {
           setCashRegisterToClose(c);
           setCloseModalOpen(true);
@@ -298,7 +298,7 @@ useEffect(() => {
                   <select
                     value={selectedBusiness ?? ""}
                     onChange={(e) => setSelectedBusiness(Number(e.target.value) || null)}
-                    className="border rounded-lg px-3 py-2"
+                    className="border rounded-lg px-3 py-2 cursor-pointer"
                   >
                     <option value="">Todos los negocios</option>
                     {businesses.map((b) => (
@@ -314,7 +314,7 @@ useEffect(() => {
                     type="date"
                     value={startDate ?? ""}
                     onChange={(e) => setStartDate(e.target.value || null)}
-                    className="border rounded-lg px-3 py-2"
+                    className="border rounded-lg px-3 py-2 cursor-pointer"
                   />
                 </div>
                 <div>
@@ -323,12 +323,12 @@ useEffect(() => {
                     type="date"
                     value={endDate ?? ""}
                     onChange={(e) => setEndDate(e.target.value || null)}
-                    className="border rounded-lg px-3 py-2"
+                    className="border rounded-lg px-3 py-2 cursor-pointer"
                   />
                 </div>
                 <div>
                   <Button
-                    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-4 py-2 rounded"
+                    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-4 py-2 rounded cursor-pointer"
                     onClick={() => {
                       setSelectedBusiness(null);
                       setStartDate(null);
@@ -343,7 +343,7 @@ useEffect(() => {
               {/* Botón abrir nueva caja */}
               <div className="flex items-center gap-4 mb-6">
                 <Button
-                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-4 rounded flex items-center gap-2 cursor-pointer"
                   onClick={() => setModalOpen(true)}
                 >
                   <IoAddCircle /> Abrir nueva caja
