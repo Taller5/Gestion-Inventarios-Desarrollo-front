@@ -5,7 +5,6 @@ import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-
   const isDev = mode === 'development'
 
   return {
@@ -19,14 +18,15 @@ export default defineConfig(({ mode }) => {
       port: 5173,
       headers: isDev
         ? {
-          // CSP permisivo para desarrollo en local
+          // CSP completamente permisiva para desarrollo
           'Content-Security-Policy': `
-              default-src 'self' http://localhost:5173 http://127.0.0.1:* 'unsafe-inline' 'unsafe-eval';
-              script-src 'self' 'unsafe-inline' 'unsafe-eval';
-              style-src 'self' 'unsafe-inline';
-              connect-src 'self' http://localhost:8000 https://api.cloudinary.com ws://localhost:5173 ws://127.0.0.1:*;
-              img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://cdn.pixabay.com;
-              font-src 'self' data:;
+              default-src * 'unsafe-inline' 'unsafe-eval' blob: data: ws:;
+              script-src * 'unsafe-inline' 'unsafe-eval' blob:;
+              worker-src * blob:;
+              style-src * 'unsafe-inline';
+              connect-src * ws: wss:;
+              img-src * data: blob:;
+              font-src * data:;
             `.replace(/\s+/g, ' ')
         }
         : undefined,
