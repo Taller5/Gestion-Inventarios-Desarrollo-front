@@ -150,7 +150,7 @@ export default function Employees() {
                         setEmployeesFiltered([]);
                         setAlert({
                           type: "error",
-                          message: `No existe ningún empleado con el ID o nombre "${q}".`,
+                          message: `No existe ningún colaborador con el ID o nombre "${q}".`,
                         });
                       }
                     }}
@@ -180,7 +180,7 @@ export default function Employees() {
                   <IoAddCircle className="w-6 h-6 flex-shrink-0" />
                   <span className="whitespace-nowrap text-base">
                     {/* Ícono de usuario con "+" usando IoAddCircle */}
-                    Añadir empleado
+                    Añadir colaborador
                   </span>
                 </Button>
               </div>

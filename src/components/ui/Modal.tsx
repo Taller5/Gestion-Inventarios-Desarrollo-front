@@ -182,7 +182,7 @@ export default function Modal({
                 onSubmit={handleSubmit}
             >
                 <h2 className="text-2xl font-bold mb-8 text-center w-full">
-                    {isEditMode ? "Editar usuario" : "Añadir empleado"}
+                    {isEditMode ? "Editar usuario" : "Añadir colaborador"}
                 </h2>
                 {alert && (
                     <div

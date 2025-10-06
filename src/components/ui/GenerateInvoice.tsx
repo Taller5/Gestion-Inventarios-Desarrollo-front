@@ -69,7 +69,14 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       let y = padding;
 
       // --- Encabezado ---
-    
+      // --- Encabezado ---
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text("Gestior", 105, y, { align: "center" }); // nombre del sistema centrado
+      y += 10;
+
+      doc.addImage("/public/img/logo.png", "PNG", padding, y, 25, 12);
+      y += 25;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
       doc.text(
@@ -78,6 +85,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
         y
       );
       y += 7;
+  
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.text(
@@ -266,6 +274,15 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(8);
       doc.text("Gracias por su compra", padding, y);
+
+      // --- Leyenda oficial ---
+      y += 5;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      const leyenda = `2025: autorizado mediante resolución
+No. DGT-R-033-2019 del 20/06/2019
+Versión del documento 4.3`;
+      doc.text(leyenda, 105, y, { align: "center", maxWidth: 180 });
 
       doc.save(`Factura_${clienteSeleccionado.name || "cliente"}.pdf`);
       setSuccessMessage("Factura generada correctamente");
