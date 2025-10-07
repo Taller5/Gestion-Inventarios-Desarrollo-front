@@ -145,36 +145,47 @@ export default function CustomersPage() {
       return;
     }
 
-    if (
-      !/^\d+$/.test(form.identity_number) ||
-      form.identity_number.length > 12
-    ) {
-      setAlert({
-        type: "error",
-        message:
-          "La cédula o identificación solo puede contener números (máx. 12).",
-      });
-      setLoadingForm(false);
-      return;
-    }
+// Validación de cédula / número de identificación
+if (!/^\d+$/.test(form.identity_number) || form.identity_number.length > 12) {
+  setAlert({
+    type: "error",
+    message: "La cédula o identificación solo puede contener números (máx. 12).",
+  });
+  setLoadingForm(false);
+  return;
+}
 
-    if (!/^\d{8}$/.test(form.phone)) {
-      setAlert({
-        type: "error",
-        message: "El teléfono debe contener exactamente 8 números.",
-      });
-      setLoadingForm(false);
-      return;
-    }
+// Validación de teléfono
+if (!/^\d{8}$/.test(form.phone)) {
+  setAlert({
+    type: "error",
+    message: "El teléfono debe contener exactamente 8 números.",
+  });
+  setLoadingForm(false);
+  return;
+}
 
-    if (!/\S+@\S+\.\S+/.test(form.email) || form.email.length > 100) {
-      setAlert({
-        type: "error",
-        message: "Correo inválido (máx. 100 caracteres).",
-      });
-      setLoadingForm(false);
-      return;
-    }
+// Validación segura de email
+const validateEmail = (email: string): string | null => {
+  if (email.length > 100) return "Correo demasiado largo (máx. 100 caracteres).";
+
+  // Regex lineal y acotada para prevenir backtracking super-lineal
+  const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+
+  if (!emailRegex.test(email)) return "Correo inválido.";
+  return null;
+};
+
+const errorEmail = validateEmail(form.email);
+if (errorEmail) {
+  setAlert({
+    type: "error",
+    message: errorEmail,
+  });
+  setLoadingForm(false);
+  return;
+}
+
 
     try {
       const otherCustomers = customerToEdit
