@@ -491,6 +491,7 @@ export default function Businesses() {
                           }
 
                           // Validación de email segura// Validación segura de email
+                          // Validación segura de email sin riesgo de super-linear backtracking
                           const validateEmail = (
                             email: string
                           ): string | null => {
@@ -498,9 +499,11 @@ export default function Businesses() {
                               return "Correo demasiado largo (máx. 100 caracteres).";
                             }
 
-                            // Regex lineal segura, evita super-linear runtime
+                            // Email: hasta 64 chars usuario, @, hasta 255 chars dominio, un punto, 2+ chars TLD
                             const emailRegex =
                               /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+
+                            // Validación simple: no hay repetición de patrones peligrosos
                             if (!emailRegex.test(email)) {
                               return "Correo inválido.";
                             }
@@ -508,6 +511,7 @@ export default function Businesses() {
                             return null;
                           };
 
+                          // Uso
                           const errorEmail = validateEmail(form.email);
                           if (errorEmail) {
                             setAlert({ type: "error", message: errorEmail });
