@@ -490,20 +490,32 @@ export default function Businesses() {
                             return;
                           }
 
-                          // Validación de correo segura
-                          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,100}$/;
-                          if (
-                            !emailRegex.test(form.email) ||
-                            form.email.length > 100
-                          ) {
-                            setAlert({
-                              type: "error",
-                              message: "Correo inválido (máx. 100 caracteres).",
-                            });
+                          // Validación de email segura
+                          const validateEmail = (
+                            email: string
+                          ): string | null => {
+                            // Limitar longitud máxima
+                            if (email.length > 100) {
+                              return "Correo demasiado largo (máx. 100 caracteres).";
+                            }
+
+                            // Regex segura para email
+                            const emailRegex =
+                              /^[^\s@]{1,64}@[^\s@]{1,255}.[^\s@]{2,}$/;
+                            if (!emailRegex.test(email)) {
+                              return "Correo inválido.";
+                            }
+
+                            return null;
+                          };
+
+                          // Uso dentro de tu validación de formulario
+                          const errorEmail = validateEmail(form.email);
+                          if (errorEmail) {
+                            setAlert({ type: "error", message: errorEmail });
                             setTimeout(() => setAlert(null), 5000);
                             return;
                           }
-
                           // Verificación de correo duplicado en lista local
                           const emailDuplicado = businesses.some(
                             (b) =>

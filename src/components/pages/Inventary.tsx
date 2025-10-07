@@ -758,7 +758,7 @@ export default function Inventary() {
                             Cargando...
                           </td>
                         </tr>
-                      ) : finalProducts.length === 0 ? ( 
+                      ) : finalProducts.length === 0 ? (
                         <tr>
                           <td
                             colSpan={headers.length}
@@ -1900,34 +1900,30 @@ export default function Inventary() {
                             />
                           </label>
                           <label className="font-semibold">
-                            Fecha de entrada de bodega
-                            <input
-                              name="fecha_entrada"
-                              type="date"
-                              value={formLote.fecha_entrada}
-                              onChange={(e) =>
-                                setFormLote((f) => ({
-                                  ...f,
-                                  fecha_entrada: e.target.value,
-                                }))
-                              }
-                              placeholder="Fecha de entrada"
-                              className="w-full border rounded-lg px-3 py-2"
-                              required
-                            />
-                          </label>
-                          <label className="font-semibold">
                             Fecha de salida de bodega
                             <input
                               name="fecha_salida_lote"
                               type="date"
                               value={formLote.fecha_salida_lote || ""}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const nuevaFechaSalida = e.target.value;
+                                if (
+                                  formLote.fecha_entrada &&
+                                  nuevaFechaSalida < formLote.fecha_entrada
+                                ) {
+                                  setAlert({
+                                    type: "error",
+                                    message:
+                                      "La fecha de salida no puede ser menor que la de entrada",
+                                  });
+                                  setTimeout(() => setAlert(null), 5000);
+                                  return;
+                                }
                                 setFormLote((f) => ({
                                   ...f,
-                                  fecha_salida_lote: e.target.value,
-                                }))
-                              }
+                                  fecha_salida_lote: nuevaFechaSalida,
+                                }));
+                              }}
                               placeholder="Fecha de salida"
                               className="w-full border rounded-lg px-3 py-2"
                             />
@@ -2153,25 +2149,6 @@ export default function Inventary() {
                               />
                             </label>
                             <label className="font-semibold">
-                              Cantidad
-                              <input
-                                name="cantidad"
-                                type="number"
-                                value={formLote.cantidad}
-                                onChange={(e) =>
-                                  setFormLote((f) => ({
-                                    ...f,
-                                    cantidad: Number(e.target.value),
-                                  }))
-                                }
-                                placeholder="Cantidad"
-                                className="w-full border rounded-lg px-3 py-2"
-                                required
-                                readOnly={!editMode}
-                                disabled={!editMode}
-                              />
-                            </label>
-                            <label className="font-semibold">
                               Fecha de entrada de bodega
                               <input
                                 name="fecha_entrada"
@@ -2181,6 +2158,12 @@ export default function Inventary() {
                                   setFormLote((f) => ({
                                     ...f,
                                     fecha_entrada: e.target.value,
+                                    // 🔹 Si la salida es menor que la nueva entrada, la limpia
+                                    fecha_salida_lote:
+                                      f.fecha_salida_lote &&
+                                      e.target.value > f.fecha_salida_lote
+                                        ? ""
+                                        : f.fecha_salida_lote,
                                   }))
                                 }
                                 placeholder="Fecha de entrada"
@@ -2190,18 +2173,34 @@ export default function Inventary() {
                                 disabled={!editMode}
                               />
                             </label>
+
                             <label className="font-semibold">
                               Fecha de salida de bodega
                               <input
                                 name="fecha_salida_lote"
                                 type="date"
+                                min={formLote.fecha_entrada || undefined} // 🔹 No permite escoger fecha menor visualmente
                                 value={formLote.fecha_salida_lote || ""}
-                                onChange={(e) =>
+                                onChange={(e) => {
+                                  const salida = e.target.value;
+                                  if (
+                                    formLote.fecha_entrada &&
+                                    salida < formLote.fecha_entrada
+                                  ) {
+                                    // 🔹 Si se intenta seleccionar una fecha menor, muestra error en el modal
+                                    setSimpleModal({
+                                      open: true,
+                                      title: "Fecha inválida",
+                                      message:
+                                        "La fecha de salida no puede ser anterior a la fecha de entrada de bodega.",
+                                    });
+                                    return;
+                                  }
                                   setFormLote((f) => ({
                                     ...f,
-                                    fecha_salida_lote: e.target.value,
-                                  }))
-                                }
+                                    fecha_salida_lote: salida,
+                                  }));
+                                }}
                                 placeholder="Fecha de salida"
                                 className="w-full border rounded-lg px-3 py-2"
                                 readOnly={!editMode}

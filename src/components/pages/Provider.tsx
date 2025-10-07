@@ -44,6 +44,7 @@ type Product = {
   id: number;
   codigo_producto: string;
   nombre_producto: string;
+  descripcion: string;
   stock: number;
   precio: number;
   bodega?: string;
@@ -404,10 +405,34 @@ export default function Providers() {
               <Select
                 options={products.map((p) => ({
                   value: p.nombre_producto,
-                  label: p.nombre_producto,
+                  label: (
+                    <div>
+                      <span className="font-semibold">{p.nombre_producto}</span>
+                      <span className="text-gray-500 text-sm block">
+                        {p.descripcion || "Sin descripción"}
+                      </span>
+                    </div>
+                  ),
                 }))}
                 isMulti
-                value={formData.products.map((p) => ({ value: p, label: p }))}
+                value={formData.products.map((p) => {
+                  const prod = products.find(
+                    (prod) => prod.nombre_producto === p
+                  );
+                  return {
+                    value: p,
+                    label: (
+                      <div>
+                        <span className="font-semibold">
+                          {prod?.nombre_producto || p}
+                        </span>
+                        <span className="text-gray-500 text-sm block">
+                          {prod?.descripcion || ""}
+                        </span>
+                      </div>
+                    ),
+                  };
+                })}
                 onChange={(selectedOptions) =>
                   setFormData({
                     ...formData,
@@ -418,6 +443,7 @@ export default function Providers() {
                 }
                 className="basic-multi-select"
                 classNamePrefix="select"
+                placeholder="Selecciona productos..."
               />
               <p className="text-sm text-gray-500 mt-1">
                 Selecciona los productos que distribuye el proveedor.
