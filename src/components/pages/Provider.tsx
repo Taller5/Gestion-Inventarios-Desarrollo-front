@@ -241,6 +241,7 @@ export default function Providers() {
   const ProviderModal = () => {
     const [nameError, setNameError] = useState<string>("");
     const [emailError, setEmailError] = useState<string>("");
+    const [phoneError, setPhoneError] = useState<string>("");
 
     const [formData, setFormData] = useState<ProviderForm>({
       id: 0,
@@ -298,6 +299,15 @@ export default function Providers() {
         return;
       }
 
+      // Validación teléfono: solo números y exactamente 8 dígitos
+      if (!/^\d{8}$/.test(formData.phone)) {
+        setPhoneError("El teléfono debe contener exactamente 8 números.");
+        return;
+      }
+
+      setPhoneError(""); // limpiar error si pasa la validación
+
+      setNameError("");
       setEmailError("");
 
       if (providerToEdit) {
@@ -364,11 +374,18 @@ export default function Providers() {
               placeholder="Teléfono"
               value={formData.phone}
               onChange={(e) => {
-                const onlyNums = e.target.value.replace(/[^0-9]/g, "");
+                // solo números y máximo 8 dígitos
+                const onlyNums = e.target.value
+                  .replace(/[^0-9]/g, "")
+                  .slice(0, 8);
                 setFormData({ ...formData, phone: onlyNums });
               }}
               required
             />
+            {phoneError && (
+              <span className="text-red-500 text-sm">{phoneError}</span>
+            )}
+
             <select
               className="border p-2 rounded"
               value={formData.state}
@@ -438,7 +455,9 @@ export default function Providers() {
           <div className="flex">
             <SideBar role={userRole}></SideBar>
             <div className="w-full pl-10 pt-10">
-              <h1 className="text-2xl font-bold mb-6 text-left">Gestionar Proveedores</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Gestionar Proveedores
+              </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
                   <SearchBar<Provider>
@@ -468,7 +487,6 @@ export default function Providers() {
                     }}
                     onClearAlert={() => {
                       setAlert(null); // Quita la alerta
-                   
                     }}
                   />
 

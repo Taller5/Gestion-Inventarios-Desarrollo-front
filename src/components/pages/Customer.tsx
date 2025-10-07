@@ -99,17 +99,33 @@ export default function CustomersPage() {
 
     switch (name) {
       case "name":
-        if (/^[a-zA-Z\s]*$/.test(value)) setForm({ ...form, [name]: value });
+        // Letras y espacios, máximo 50
+        if (/^[a-zA-Z\s]*$/.test(value) && value.length <= 50) {
+          setForm({ ...form, [name]: value });
+        }
         break;
+
       case "identity_number":
-        if (/^\d*$/.test(value)) setForm({ ...form, [name]: value });
+        // Solo números, máximo 12
+        if (/^\d*$/.test(value) && value.length <= 12) {
+          setForm({ ...form, [name]: value });
+        }
         break;
+
       case "phone":
-        if (/^\+?\d*$/.test(value)) setForm({ ...form, [name]: value });
+        // Solo números, máximo 8
+        if (/^\d*$/.test(value) && value.length <= 8) {
+          setForm({ ...form, [name]: value });
+        }
         break;
+
       case "email":
-        setForm({ ...form, [name]: value });
+        // Hasta 100 caracteres
+        if (value.length <= 100) {
+          setForm({ ...form, [name]: value });
+        }
         break;
+
       default:
         setForm({ ...form, [name]: value });
     }
@@ -120,34 +136,42 @@ export default function CustomersPage() {
     e.preventDefault();
     setLoadingForm(true);
     setAlert(null);
+    if (!/^[a-zA-Z\s]+$/.test(form.name) || form.name.length > 50) {
+      setAlert({
+        type: "error",
+        message: "El nombre solo puede contener letras y espacios (máx. 50).",
+      });
+      setLoadingForm(false);
+      return;
+    }
 
-    // Validaciones
-    if (!/^[a-zA-Z\s]+$/.test(form.name)) {
+    if (
+      !/^\d+$/.test(form.identity_number) ||
+      form.identity_number.length > 12
+    ) {
       setAlert({
         type: "error",
-        message: "El nombre solo puede contener letras y espacios.",
+        message:
+          "La cédula o identificación solo puede contener números (máx. 12).",
       });
       setLoadingForm(false);
       return;
     }
-    if (!/^\d+$/.test(form.identity_number)) {
+
+    if (!/^\d{8}$/.test(form.phone)) {
       setAlert({
         type: "error",
-        message: "La cédula solo puede contener números.",
+        message: "El teléfono debe contener exactamente 8 números.",
       });
       setLoadingForm(false);
       return;
     }
-    if (form.phone && !/^\+?\d+$/.test(form.phone)) {
+
+    if (!/\S+@\S+\.\S+/.test(form.email) || form.email.length > 100) {
       setAlert({
         type: "error",
-        message: "El teléfono solo puede contener números y opcionalmente '+'.",
+        message: "Correo inválido (máx. 100 caracteres).",
       });
-      setLoadingForm(false);
-      return;
-    }
-    if (!/\S+@\S+\.\S+/.test(form.email)) {
-      setAlert({ type: "error", message: "Correo inválido." });
       setLoadingForm(false);
       return;
     }
@@ -322,7 +346,6 @@ export default function CustomersPage() {
                     onClearAlert={() => {
                       setAlert(null); // Quita la alerta
                       // Solo recarga la tabla si actualmente está mostrando menos elementos que todos
-                      
                     }}
                   />
 
