@@ -9,7 +9,7 @@ interface SearchProps<T> {
   onSelect: (item: T) => void;
   onNotFound?: (query: string) => void;
   onResultsChange?: (results: T[]) => void;
-  onClearAlert?: () => void; // <-- nuevo prop opcional para limpiar alerta
+  onClearAlert?: () => void; // <-- prop opcional
 }
 
 export function SearchBar<T extends Record<string, any>>({
@@ -20,16 +20,18 @@ export function SearchBar<T extends Record<string, any>>({
   onSelect,
   onNotFound,
   onResultsChange,
-  onClearAlert, // <-- recibimos el prop
+  onClearAlert,
 }: SearchProps<T>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<T[]>([]);
+  const [open, setOpen] = useState(false); // <-- estado para controlar dropdown
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!query.trim()) {
       setResults(data);
       onResultsChange?.(data);
+      setOpen(false);
       return;
     }
 
@@ -42,6 +44,7 @@ export function SearchBar<T extends Record<string, any>>({
     );
     setResults(filtered);
     onResultsChange?.(filtered);
+    setOpen(true); // Abrir dropdown al escribir
   }, [query, data, displayField]);
 
   const handleSearch = () => {
@@ -53,10 +56,12 @@ export function SearchBar<T extends Record<string, any>>({
       setResults([exactMatch]);
       onResultsChange?.([exactMatch]);
       onSelect(exactMatch);
+      setOpen(false); // cerrar dropdown al seleccionar
     } else {
       setResults([]);
       onResultsChange?.([]);
       onNotFound?.(query);
+      setOpen(false);
     }
   };
 
@@ -67,13 +72,14 @@ export function SearchBar<T extends Record<string, any>>({
     }
   };
 
-  // Limpiar alerta al hacer click fuera
+  // Cerrar dropdown al hacer click afuera
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
+        setOpen(false);
         onClearAlert?.();
       }
     };
@@ -93,6 +99,7 @@ export function SearchBar<T extends Record<string, any>>({
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="w-full px-3 py-2 focus:outline-none"
+          onClick={() => setOpen(true)}
         />
         <button
           onClick={handleSearch}
@@ -102,7 +109,7 @@ export function SearchBar<T extends Record<string, any>>({
         </button>
       </div>
 
-      {results.length > 0 && query && (
+      {open && results.length > 0 && (
         <ul className="absolute w-full bg-white border border-gray-300 rounded-md mt-1 max-h-60 overflow-y-auto z-50 shadow-lg">
           {results.map((item, idx) => (
             <li
@@ -111,6 +118,7 @@ export function SearchBar<T extends Record<string, any>>({
               onClick={() => {
                 onSelect(item);
                 setQuery(String(item[displayField] ?? ""));
+                setOpen(false); // cerrar dropdown al seleccionar
               }}
             >
               {displayField ? item[displayField] : JSON.stringify(item)}
