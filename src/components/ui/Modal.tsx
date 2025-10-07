@@ -10,6 +10,7 @@ interface ModalProps {
   onUserAdded: (user: any) => void;
   userToEdit?: any; // Puede ser User o null
   onUserEdited?: (user: any) => void;
+  users: any[]; // Lista completa de usuarios
 }
 
 export default function Modal({
@@ -18,6 +19,7 @@ export default function Modal({
   onUserAdded,
   userToEdit,
   onUserEdited,
+  users,
 }: ModalProps) {
   const isEditMode = !!userToEdit;
   const [form, setForm] = useState({
@@ -79,7 +81,7 @@ export default function Modal({
         break;
       case "email":
         // max 100
-        if (value.length <= 100) {
+        if (value.length <= 30) {
           setForm((prev) => ({ ...prev, [name]: value }));
         }
         break;
@@ -98,6 +100,35 @@ export default function Modal({
       default:
         setForm((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  // Función para validar duplicados
+  const validateDuplicates = () => {
+    const emailExists = users.some(
+      (u) =>
+        u.email.toLowerCase() === form.email.toLowerCase() &&
+        u.id !== userToEdit?.id
+    );
+    if (emailExists) {
+      setAlert({
+        type: "error",
+        message: "Ya existe un usuario con ese correo electrónico.",
+      });
+      return false;
+    }
+
+    const phoneExists = users.some(
+      (u) => u.phone === form.phone && u.id !== userToEdit?.id
+    );
+    if (phoneExists) {
+      setAlert({
+        type: "error",
+        message: "Ya existe un usuario con ese número de teléfono.",
+      });
+      return false;
+    }
+
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,6 +167,9 @@ export default function Modal({
       });
       return;
     }
+
+    // Validación de duplicados
+    if (!validateDuplicates()) return;
 
     if (!isEditMode) {
       if (form.password.length < 6 || form.password.length > 20) {
@@ -226,28 +260,12 @@ export default function Modal({
     }
   };
 
-  // Reemplaza tu función getPasswordErrors por una igual a la de Profile:
   const passwordValidations = [
-    {
-      test: (pw: string) => pw.length >= 6,
-      message: "Al menos 6 caracteres",
-    },
-    {
-      test: (pw: string) => /[A-Z]/.test(pw),
-      message: "Al menos una letra mayúscula",
-    },
-    {
-      test: (pw: string) => /[a-z]/.test(pw),
-      message: "Al menos una letra minúscula",
-    },
-    {
-      test: (pw: string) => /\d/.test(pw),
-      message: "Al menos un número",
-    },
-    {
-      test: (pw: string) => /[^A-Za-z0-9]/.test(pw),
-      message: "Al menos un carácter especial",
-    },
+    { test: (pw: string) => pw.length >= 6, message: "Al menos 6 caracteres" },
+    { test: (pw: string) => /[A-Z]/.test(pw), message: "Al menos una letra mayúscula" },
+    { test: (pw: string) => /[a-z]/.test(pw), message: "Al menos una letra minúscula" },
+    { test: (pw: string) => /\d/.test(pw), message: "Al menos un número" },
+    { test: (pw: string) => /[^A-Za-z0-9]/.test(pw), message: "Al menos un carácter especial" },
   ];
   const getPasswordErrors = (pw: string) =>
     passwordValidations.filter((v) => !v.test(pw)).map((v) => v.message);
@@ -395,8 +413,8 @@ export default function Modal({
             {loading
               ? "Guardando..."
               : isEditMode
-                ? "Guardar cambios"
-                : "Guardar"}
+              ? "Guardar cambios"
+              : "Guardar"}
           </button>
           <button
             type="button"
@@ -410,14 +428,14 @@ export default function Modal({
       {/* Animación CSS */}
       <style>
         {`
-                @keyframes modalShow {
-                    0% { opacity: 0; transform: scale(0.95);}
-                    100% { opacity: 1; transform: scale(1);}
-                }
-                .animate-modalShow {
-                    animation: modalShow 0.3s ease;
-                }
-                `}
+          @keyframes modalShow {
+              0% { opacity: 0; transform: scale(0.95);}
+              100% { opacity: 1; transform: scale(1);}
+          }
+          .animate-modalShow {
+              animation: modalShow 0.3s ease;
+          }
+        `}
       </style>
     </div>
   );

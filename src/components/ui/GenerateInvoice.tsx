@@ -1,6 +1,10 @@
-import { useState } from "react";
+import { useState, forwardRef, useImperativeHandle } from "react";
 import { jsPDF } from "jspdf";
 import Button from "./Button";
+
+export interface GenerateInvoiceRef {
+  generarFactura: () => void;
+}
 
 interface GenerateInvoiceProps {
   sucursalSeleccionada: any;
@@ -12,10 +16,10 @@ interface GenerateInvoiceProps {
   user: { name?: string; username?: string };
   buttonText?: string;
   disabled?: boolean;
-  facturaCreada?: any; // <-- Nueva prop opcional
+  facturaCreada?: any; 
 }
 
-export default function GenerateInvoice(props: GenerateInvoiceProps) {
+const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>((props, ref) => {
   const {
     sucursalSeleccionada,
     clienteSeleccionado,
@@ -26,7 +30,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
     user,
     buttonText,
     disabled,
-    facturaCreada, // <-- recibimos la factura creada
+    facturaCreada,
   } = props;
 
   const [loading, setLoading] = useState(false);
@@ -42,27 +46,17 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
     setLoading(true);
 
     try {
-      if (!sucursalSeleccionada)
-        throw new Error("No se ha seleccionado ninguna sucursal.");
-      if (!clienteSeleccionado)
-        throw new Error("Debe seleccionar un cliente antes de imprimir la factura.");
-      if (!carrito || carrito.length === 0)
-        throw new Error("El carrito está vacío. No se puede generar la factura.");
-      if (metodoPago === "Efectivo" && (!montoEntregado || montoEntregado <= 0))
-        throw new Error("Ingrese el monto entregado para el pago en efectivo.");
-      if ((metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
-          (!comprobante || comprobante.trim() === ""))
-        throw new Error("Debe ingresar el comprobante para el método de pago seleccionado.");
+      if (!sucursalSeleccionada) throw new Error("No se ha seleccionado ninguna sucursal.");
+      if (!clienteSeleccionado) throw new Error("Debe seleccionar un cliente antes de imprimir la factura.");
+      if (!carrito || carrito.length === 0) throw new Error("El carrito está vacío. No se puede generar la factura.");
 
       const doc = new jsPDF();
       const padding = 10;
       let y = padding;
 
-      // --- Encabezado ---
+      const numeroFactura = facturaCreada?.id || "N/D";
       doc.setFont("helvetica", "bold");
       doc.setFontSize(18);
-      // Aquí usamos el ID de la factura si existe
-      const numeroFactura = facturaCreada?.id || "N/D";
       doc.text(`Factura #${numeroFactura}`, 105, y, { align: "center" });
       y += 10;
 
@@ -90,7 +84,6 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       doc.line(padding, y, 200, y);
       y += 5;
 
-      // --- Cliente y Cajero ---
       doc.setFont("helvetica", "bold");
       doc.text("Factura para:", padding, y);
       y += 6;
@@ -104,10 +97,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       doc.text(`Fecha: ${new Date().toLocaleString()}`, padding, y);
       y += 10;
 
-      doc.line(padding, y, 200, y);
-      y += 5;
-
-      // --- Tabla productos ---
+      // Tabla productos
       const headers = ["Código", "Producto", "Cant.", "Precio", "Desc.", "Subtotal"];
       const colWidths = [30, 60, 20, 30, 25, 25];
       let x = padding;
@@ -157,8 +147,6 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
         doc.line(padding, y - 4, padding + colWidths.reduce((a, b) => a + b, 0), y - 4);
       });
 
-      y += 5;
-
       const subtotalConDescuento = subtotal - totalDescuento;
       const impuestos = +(subtotalConDescuento * 0.13).toFixed(2);
       const totalAPagar = subtotalConDescuento + impuestos;
@@ -179,11 +167,7 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       y += 5;
       doc.text(`Monto entregado: ${formatNumber(montoEntregado || 0)}`, padding, y);
       y += 5;
-      doc.text(
-        `Vuelto: ${formatNumber(Math.max(0, (montoEntregado || 0) - totalAPagar))}`,
-        padding,
-        y
-      );
+      doc.text(`Vuelto: ${formatNumber(Math.max(0, (montoEntregado || 0) - totalAPagar))}`, padding, y);
       y += 5;
       doc.text(`Comprobante: ${comprobante || "-"}`, padding, y);
       y += 10;
@@ -195,11 +179,10 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       doc.setFont("helvetica", "italic");
       doc.setFontSize(8);
       doc.text("Gracias por su compra", padding, y);
-
-      // Leyenda oficial más grande y a lo ancho
       y += 5;
+
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9); // más grande
+      doc.setFontSize(9);
       const leyenda = `2025: autorizado mediante resolución
 No. DGT-R-033-2019 del 20/06/2019
 Versión del documento 4.3`;
@@ -213,6 +196,10 @@ Versión del documento 4.3`;
       setLoading(false);
     }
   };
+
+  useImperativeHandle(ref, () => ({
+    generarFactura,
+  }));
 
   return (
     <section className="flex flex-col gap-3">
@@ -234,4 +221,6 @@ Versión del documento 4.3`;
       />
     </section>
   );
-}
+});
+
+export default GenerateInvoice;

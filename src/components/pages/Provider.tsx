@@ -109,49 +109,101 @@ export default function Providers() {
     setSelectedProviderId(null);
   };
 
-  // Crear proveedor
-  const createProvider = async (providerData: ProviderPayload) => {
-    try {
-      const res = await fetch(`${API_URL}/api/v1/providers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(providerData),
+// Crear proveedor
+const createProvider = async (providerData: ProviderPayload) => {
+  const duplicateField = providers.find((p) =>
+    p.name.toLowerCase() === providerData.name.toLowerCase() ||
+    p.email.toLowerCase() === providerData.email.toLowerCase() ||
+    p.phone === providerData.phone
+  );
+
+  if (duplicateField) {
+    let field = "";
+    if (duplicateField.name.toLowerCase() === providerData.name.toLowerCase()) {
+      field = "nombre de empresa";
+    } else if (duplicateField.email.toLowerCase() === providerData.email.toLowerCase()) {
+      field = "email";
+    } else if (duplicateField.phone === providerData.phone) {
+      field = "teléfono";
+    }
+
+    setAlert({
+      type: "error",
+      message: `Ya existe un proveedor con el mismo ${field}`,
+    });
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/api/v1/providers`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(providerData),
+    });
+
+    if (res.ok) {
+      fetchProviders();
+      setAlert({
+        type: "success",
+        message: "Proveedor creado correctamente",
       });
-      if (res.ok) {
-        fetchProviders();
-        setAlert({
-          type: "success",
-          message: "Proveedor creado correctamente",
-        });
-      } else {
-        setAlert({ type: "error", message: "Error al crear proveedor" });
-      }
-    } catch {
+    } else {
       setAlert({ type: "error", message: "Error al crear proveedor" });
     }
-  };
+  } catch {
+    setAlert({ type: "error", message: "Error al crear proveedor" });
+  }
+};
 
-  // Actualizar proveedor
-  const updateProvider = async (id: number, providerData: ProviderPayload) => {
-    try {
-      const res = await fetch(`${API_URL}/api/v1/providers/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(providerData),
+// Actualizar proveedor
+const updateProvider = async (id: number, providerData: ProviderPayload) => {
+  const duplicateField = providers.find(
+    (p) =>
+      p.id !== id && (
+        p.name.toLowerCase() === providerData.name.toLowerCase() ||
+        p.email.toLowerCase() === providerData.email.toLowerCase() ||
+        p.phone === providerData.phone
+      )
+  );
+
+  if (duplicateField) {
+    let field = "";
+    if (duplicateField.name.toLowerCase() === providerData.name.toLowerCase()) {
+      field = "nombre de empresa";
+    } else if (duplicateField.email.toLowerCase() === providerData.email.toLowerCase()) {
+      field = "email";
+    } else if (duplicateField.phone === providerData.phone) {
+      field = "teléfono";
+    }
+
+    setAlert({
+      type: "error",
+      message: `Ya existe un proveedor con el mismo ${field}`,
+    });
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/api/v1/providers/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(providerData),
+    });
+
+    if (res.ok) {
+      fetchProviders();
+      setAlert({
+        type: "success",
+        message: "Proveedor actualizado correctamente",
       });
-      if (res.ok) {
-        fetchProviders();
-        setAlert({
-          type: "success",
-          message: "Proveedor actualizado correctamente",
-        });
-      } else {
-        setAlert({ type: "error", message: "Error al actualizar proveedor" });
-      }
-    } catch {
+    } else {
       setAlert({ type: "error", message: "Error al actualizar proveedor" });
     }
-  };
+  } catch {
+    setAlert({ type: "error", message: "Error al actualizar proveedor" });
+  }
+};
+
 
   // Eliminar proveedor (API)
   const deleteProvider = async (id: number) => {
@@ -398,57 +450,55 @@ export default function Providers() {
               <option value="Inactivo">Inactivo</option>
             </select>
 
-            <div>
-              <label className="font-semibold mb-2 block">
-                Productos que distribuye:
-              </label>
-              <Select
-                options={products.map((p) => ({
-                  value: p.nombre_producto,
-                  label: (
-                    <div>
-                      <span className="font-semibold">{p.nombre_producto}</span>
-                      <span className="text-gray-500 text-sm block">
-                        {p.descripcion || "Sin descripción"}
-                      </span>
-                    </div>
-                  ),
-                }))}
-                isMulti
-                value={formData.products.map((p) => {
-                  const prod = products.find(
-                    (prod) => prod.nombre_producto === p
-                  );
-                  return {
-                    value: p,
-                    label: (
-                      <div>
-                        <span className="font-semibold">
-                          {prod?.nombre_producto || p}
-                        </span>
-                        <span className="text-gray-500 text-sm block">
-                          {prod?.descripcion || ""}
-                        </span>
-                      </div>
-                    ),
-                  };
-                })}
-                onChange={(selectedOptions) =>
-                  setFormData({
-                    ...formData,
-                    products: selectedOptions
-                      ? selectedOptions.map((opt) => opt.value)
-                      : [],
-                  })
-                }
-                className="basic-multi-select"
-                classNamePrefix="select"
-                placeholder="Selecciona productos..."
-              />
-              <p className="text-sm text-gray-500 mt-1">
-                Selecciona los productos que distribuye el proveedor.
-              </p>
-            </div>
+      <div>
+  <label className="font-semibold mb-2 block">
+    Productos que distribuye:
+  </label>
+  <Select
+    options={products.map((p) => ({
+      value: p.nombre_producto,
+      label: (
+        <div>
+          <span className="font-semibold">{p.nombre_producto}</span>
+          <span className="text-gray-500 text-sm block">
+            {p.descripcion || "Sin descripción"}
+          </span>
+        </div>
+      ),
+    }))}
+    isMulti
+    value={formData.products.map((p) => {
+      const prod = products.find((prod) => prod.nombre_producto === p);
+      return {
+        value: p,
+        label: (
+          <div>
+            <span className="font-semibold">{prod?.nombre_producto || p}</span>
+            <span className="text-gray-500 text-sm block">
+              {prod?.descripcion || ""}
+            </span>
+          </div>
+        ),
+      };
+    })}
+    onChange={(selectedOptions) =>
+      setFormData({
+        ...formData,
+        products: selectedOptions ? selectedOptions.map((opt) => opt.value) : [],
+      })
+    }
+    className="basic-multi-select"
+    classNamePrefix="select"
+    placeholder="Selecciona productos..."
+    // Estas props aseguran que al hacer clic afuera se cierre automáticamente
+    closeMenuOnSelect={false} // deja abierto para multi-select mientras seleccionas
+    escapeClearsValue={true} // permite cerrar con ESC
+  />
+  <p className="text-sm text-gray-500 mt-1">
+    Selecciona los productos que distribuye el proveedor.
+  </p>
+</div>
+
 
             <div className="flex justify-end gap-4 mt-4">
               <button

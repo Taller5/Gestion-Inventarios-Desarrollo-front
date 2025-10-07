@@ -4,8 +4,11 @@ import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
 import { IoAddCircle, IoPersonAdd, IoPencil, IoSearch } from "react-icons/io5";
+import GenerateInvoice, {
+  type GenerateInvoiceRef,
+} from "../ui/GenerateInvoice";
 
-import GenerateInvoice from "../ui/GenerateInvoice";
+import { useRef } from "react";
 
 // Para React + TypeScript
 
@@ -359,6 +362,9 @@ export default function SalesPage() {
     ((metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
       (!comprobante || comprobante.trim() === ""));
 
+  // Al nivel del componente (fuera de finalizarVenta)
+  const invoiceRef = useRef<GenerateInvoiceRef>(null);
+
   const finalizarVenta = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -402,9 +408,9 @@ export default function SalesPage() {
         setFacturaModal(false);
         mostrarAlerta(
           "error",
-          `El monto entregado es menor al total a pagar. Faltan ₡${(
+          `El monto entregado es menor al total a pagar. Faltan ₡${
             totalAPagar - (montoEntregado || 0)
-          ).toLocaleString()}`
+          }`
         );
         return;
       }
@@ -485,11 +491,15 @@ export default function SalesPage() {
         }`
       );
 
-      // Guardar la factura creada para usar en PDF
-      setFacturaCreada(responseData);
+    // Guardar la factura creada para usar en PDF
+setFacturaCreada(responseData);
 
-      // Abrir modal de factura PDF
-      setFacturaModal(true);
+// Generar PDF automáticamente
+invoiceRef.current?.generarFactura();
+
+// Cerrar modal después de generar la factura
+setFacturaModal(false);
+
 
       // Limpiar estados del carrito
       setCarrito([]);
@@ -1351,41 +1361,28 @@ export default function SalesPage() {
                       )}
                     </div>
 
-                    {/* BOTONES */}
                     <div className="flex justify-end gap-4">
-                      {/* Botón para generar PDF oculto */}
-                      {sucursalSeleccionada &&
-                        clienteSeleccionado &&
-                        carrito.length > 0 && (
-                          <div style={{ display: "none" }}>
-                            <GenerateInvoice
-                              sucursalSeleccionada={sucursalSeleccionada}
-                              clienteSeleccionado={clienteSeleccionado}
-                              carrito={carrito}
-                              user={user}
-                              metodoPago={metodoPago}
-                              montoEntregado={montoEntregado}
-                              comprobante={comprobante}
-                              buttonText="Generar Factura PDF"
-                              disabled={!facturaCreada}
-                              facturaCreada={facturaCreada}
-                            />
-                          </div>
-                        )}
+                      {/* Componente GenerateInvoice oculto */}
+                      <div style={{ display: "none" }}>
+                        <GenerateInvoice
+                          ref={invoiceRef}
+                          sucursalSeleccionada={sucursalSeleccionada}
+                          clienteSeleccionado={clienteSeleccionado}
+                          carrito={carrito}
+                          user={user}
+                          metodoPago={metodoPago}
+                          montoEntregado={montoEntregado}
+                          comprobante={comprobante}
+                          facturaCreada={facturaCreada}
+                        />
+                      </div>
 
-                      {/* Finalizar ejecuta también el generarFactura */}
+                      {/* Botón Finalizar: crea factura en backend y genera PDF */}
                       <Button
                         text="Finalizar"
-                        type="submit"
-                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36 cursor-pointer"
                         disabled={botonDisabled}
-                        onClick={() => {
-                          // dispara el botón de GenerateInvoice si existe
-                          const hiddenBtn = document.querySelector(
-                            "section button.bg-verde-claro"
-                          ) as HTMLButtonElement | null;
-                          hiddenBtn?.click();
-                        }}
+                        onClick={() => {}}
+                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36 cursor-pointer"
                       />
 
                       <Button

@@ -185,15 +185,18 @@ export default function Employees() {
                 </Button>
               </div>
               <TableInformation tableContent={tableContent} headers={headers} />
+
               <Modal
                 open={showEditModal}
                 onClose={() => {
                   setShowEditModal(false);
                   setUserToEdit(null);
+                  setAlert(null);
                 }}
                 onUserAdded={handleUserAdded}
                 userToEdit={userToEdit}
                 onUserEdited={handleUserEdited}
+                users={users} // ✅ PASAR LOS USUARIOS REALES
               />
               {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
