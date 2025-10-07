@@ -66,8 +66,6 @@ export default function GenerateInvoice(props: GenerateInvoiceProps) {
       doc.text(`Factura #${numeroFactura}`, 105, y, { align: "center" });
       y += 10;
 
-      doc.addImage("/public/img/logo.png", "PNG", padding, y, 25, 12);
-      y += 25;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
       doc.text(sucursalSeleccionada.business?.nombre_comercial || "N/D", padding, y);
