@@ -531,7 +531,7 @@ export default function Inventary() {
 
   return (
     <ProtectedRoute
-      allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}
+      allowedRoles={["administrador", "supervisor", "vendedor", "bodeguero"]}
     >
       <Container
         page={
@@ -758,7 +758,7 @@ export default function Inventary() {
                             Cargando...
                           </td>
                         </tr>
-                      ) : finalProducts.length === 0 ? ( // 👈 cambio aquí
+                      ) : finalProducts.length === 0 ? ( 
                         <tr>
                           <td
                             colSpan={headers.length}
@@ -843,7 +843,7 @@ export default function Inventary() {
                                     title={
                                       categoryEditMode
                                         ? "Editar Categoría"
-                                        : "Agregar Categoría"
+                                        : "Gestionar Categorías"
                                     }
                                   >
                                     {/* BOTÓN DE CERRAR MODAL EN LA ESQUINA */}
@@ -871,6 +871,7 @@ export default function Inventary() {
                                         />
                                       </svg>
                                     </button>
+
                                     <form
                                       onSubmit={(e) => {
                                         e.preventDefault();
@@ -892,90 +893,8 @@ export default function Inventary() {
                                       }}
                                       className="relative bg-white rounded-2xl w-full p-8 overflow-y-auto"
                                     >
-                                      <div className="flex flex-col gap-4">
-                                        <label className="font-semibold">
-                                          Nombre
-                                          <input
-                                            name="nombre"
-                                            value={categoryForm.nombre}
-                                            onChange={(e) => {
-                                              const value =
-                                                e.target.value.replace(
-                                                  /[0-9]/g,
-                                                  ""
-                                                ); // No permitir números
-                                              setCategoryForm((f) => ({
-                                                ...f,
-                                                nombre: value,
-                                              }));
-                                            }}
-                                            placeholder="Nombre de la categoría"
-                                            className="w-full border rounded-lg px-3 py-2"
-                                            required
-                                          />
-                                        </label>
-
-                                        <label className="font-semibold">
-                                          Descripción
-                                          <textarea
-                                            name="descripcion"
-                                            value={
-                                              categoryForm.descripcion || ""
-                                            }
-                                            onChange={(e) => {
-                                              const value =
-                                                e.target.value.replace(
-                                                  /[0-9]/g,
-                                                  ""
-                                                ); // eliminar números
-                                              setCategoryForm((f) => ({
-                                                ...f,
-                                                descripcion: value,
-                                              }));
-                                            }}
-                                            placeholder="Descripción de la categoría"
-                                            className="w-full border rounded-lg px-3 py-2 min-h-[60px]"
-                                            required
-                                          />
-                                        </label>
-                                      </div>
-                                      <div className="flex gap-4 justify-end mt-6">
-                                        <button
-                                          type="submit"
-                                          disabled={categoryLoadingForm}
-                                          className={`font-bold rounded-lg shadow-md transition w-40 h-12 cursor-pointer${
-                                            categoryEditMode
-                                              ? "bg-amarillo-claro hover:bg-amarillo-oscuro text-white"
-                                              : "bg-azul-medio hover:bg-azul-hover text-white"
-                                          }`}
-                                        >
-                                          {categoryLoadingForm
-                                            ? "Guardando..."
-                                            : categoryEditMode
-                                              ? "Guardar cambios"
-                                              : "Agregar"}
-                                        </button>
-
-                                        {categoryEditMode && (
-                                          <button
-                                            type="button"
-                                            className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold rounded-lg shadow-md transition w-40 h-12"
-                                            onClick={() => {
-                                              setCategoryForm({
-                                                nombre: "",
-                                                descripcion: "",
-                                              });
-                                              setCategoryEditMode(false);
-                                              setCategoryOriginalNombre(null);
-                                            }}
-                                          >
-                                            Volver
-                                          </button>
-                                        )}
-                                      </div>
-
                                       {/* Selector de categorías con búsqueda */}
-                                      <div className="mt-6">
+                                      <div className="mb-4 ">
                                         <h3 className="font-bold text-gray-700 mb-2">
                                           Categorías existentes
                                         </h3>
@@ -1040,6 +959,93 @@ export default function Inventary() {
                                                 </li>
                                               ))}
                                           </ul>
+                                        )}
+                                      </div>
+                                      <div className="flex flex-col gap-4 mt-10">
+                                        <label className="w-full font-bold">
+                                          {categoryEditMode
+                                            ? "Edita los datos de la categoría"
+                                            : "Digite los datos de la nueva categoría"}
+                                        </label>
+
+                                        <label className="font-semibold">
+                                          Nombre
+                                          <input
+                                            name="nombre"
+                                            value={categoryForm.nombre}
+                                            onChange={(e) => {
+                                              const value =
+                                                e.target.value.replace(
+                                                  /[0-9]/g,
+                                                  ""
+                                                ); // No permitir números
+                                              setCategoryForm((f) => ({
+                                                ...f,
+                                                nombre: value,
+                                              }));
+                                            }}
+                                            placeholder="Nombre de la categoría"
+                                            className="w-full border rounded-lg px-3 py-2"
+                                            required
+                                          />
+                                        </label>
+
+                                        <label className="font-semibold">
+                                          Descripción
+                                          <textarea
+                                            name="descripcion"
+                                            value={
+                                              categoryForm.descripcion || ""
+                                            }
+                                            onChange={(e) => {
+                                              const value =
+                                                e.target.value.replace(
+                                                  /[0-9]/g,
+                                                  ""
+                                                ); // eliminar números
+                                              setCategoryForm((f) => ({
+                                                ...f,
+                                                descripcion: value,
+                                              }));
+                                            }}
+                                            placeholder="Descripción de la categoría"
+                                            className="w-full border rounded-lg px-3 py-2 min-h-[60px]"
+                                            required
+                                          />
+                                        </label>
+                                      </div>
+                                      <div className="flex gap-4 justify-end mt-6">
+                                        <button
+                                          type="submit"
+                                          disabled={categoryLoadingForm}
+                                          className={`font-bold rounded-lg shadow-md transition w-40 h-12 cursor-pointer ${
+                                            categoryEditMode
+                                              ? "bg-amarillo-claro hover:bg-amarillo-oscuro text-white"
+                                              : "bg-azul-medio hover:bg-azul-hover text-white"
+                                          }`}
+                                        >
+                                          {categoryLoadingForm
+                                            ? "Guardando..."
+                                            : categoryEditMode
+                                              ? "Guardar cambios"
+                                              : "Agregar"}
+                                        </button>
+
+                                        {categoryEditMode && (
+                                          <button
+                                            type="button"
+                                            className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold rounded-lg shadow-md transition w-40 h-12"
+                                            onClick={() => {
+                                              setCategoryForm({
+                                                nombre: "",
+                                                descripcion: "",
+                                              });
+                                              setCategoryEditMode(false);
+                                              setCategoryOriginalNombre(null);
+                                            }}
+                                          >
+                                            Volver
+                                          </button>
                                         )}
                                       </div>
                                     </form>

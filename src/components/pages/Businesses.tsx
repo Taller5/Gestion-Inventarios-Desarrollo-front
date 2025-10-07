@@ -163,73 +163,79 @@ export default function Businesses() {
     return null;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoadingForm(true);
-    setAlert(null);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoadingForm(true);
+  setAlert(null);
 
-    try {
-      // Validación
-      const error = validateForm();
-      if (error) throw new Error(error);
+  try {
+    // Validación
+    const error = validateForm();
+    if (error) throw new Error(error);
 
-      if (!/^\d{8}$/.test(form.telefono))
-        throw new Error("Teléfono inválido, debe tener exactamente 8 dígitos");
+    if (!/^\d{8}$/.test(form.telefono))
+      throw new Error("Teléfono inválido, debe tener exactamente 8 dígitos");
 
-      if (form.numero_identificacion.trim().length < 5)
-        throw new Error("Número de identificación mínimo 5 dígitos");
+    if (form.numero_identificacion.trim().length < 5)
+      throw new Error("Número de identificación mínimo 5 dígitos");
 
-      // Preparar datos
-      const formToSend = {
-        ...form,
-        margen_ganancia: Number(form.margen_ganancia) / 100,
-      };
-      const token = localStorage.getItem("token");
-      const url = businessToEdit
-        ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
-        : `${API_URL}/api/v1/businesses`;
+    // Preparar datos
+    const formToSend = {
+      ...form,
+      margen_ganancia: Number(form.margen_ganancia) / 100,
+    };
+    const token = localStorage.getItem("token");
+    const url = businessToEdit
+      ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
+      : `${API_URL}/api/v1/businesses`;
 
-      const method = businessToEdit ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formToSend),
-      });
+    const method = businessToEdit ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formToSend),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) throw new Error(data?.message || "Error al procesar");
-
-      if (businessToEdit) {
-        setBusinesses(
-          businesses.map((b) =>
-            b.negocio_id === businessToEdit.negocio_id ? data : b
-          )
-        );
-      } else {
-        setBusinesses([...businesses, data]);
+    // Caso especial: correo ya registrado
+    if (!res.ok) {
+      if (data?.message?.toLowerCase().includes("correo")) {
+        throw new Error("El correo ya está registrado en otro negocio");
       }
-
-      setAlert({
-        type: "success",
-        message: businessToEdit ? "Negocio actualizado" : "Negocio creado",
-      });
-
-      setTimeout(() => {
-        setModalOpen(false);
-        setBusinessToEdit(null);
-        setAlert(null);
-      }, 1200);
-    } catch (err: any) {
-      setAlert({ type: "error", message: err.message });
-      setTimeout(() => setAlert(null), 8000);
-    } finally {
-      setLoadingForm(false); // <-- Siempre se ejecuta
+      throw new Error(data?.message || "Error al procesar");
     }
-  };
+
+    if (businessToEdit) {
+      setBusinesses(
+        businesses.map((b) =>
+          b.negocio_id === businessToEdit.negocio_id ? data : b
+        )
+      );
+    } else {
+      setBusinesses([...businesses, data]);
+    }
+
+    setAlert({
+      type: "success",
+      message: businessToEdit ? "Negocio actualizado" : "Negocio creado",
+    });
+
+    setTimeout(() => {
+      setModalOpen(false);
+      setBusinessToEdit(null);
+      setAlert(null);
+    }, 1200);
+  } catch (err: any) {
+    setAlert({ type: "error", message: err.message });
+    setTimeout(() => setAlert(null), 8000);
+  } finally {
+    setLoadingForm(false);
+  }
+};
 
   const handleDelete = async () => {
     if (!businessToDelete) return;
@@ -404,98 +410,101 @@ export default function Businesses() {
                         onSubmit={(e) => {
                           e.preventDefault();
 
-                          // Validaciones
-                          if (
-                            !form.nombre_legal.trim() ||
-                            /^\d+$/.test(form.nombre_legal)
-                          ) {
-                            setAlert({
-                              type: "error",
-                              message:
-                                "El nombre legal no puede estar vacío ni ser solo números",
-                            });
-                            setTimeout(() => setAlert(null), 5000);
-                            return;
-                          }
+                          // --- Validaciones ---
+    if (!form.nombre_legal.trim() || /^\d+$/.test(form.nombre_legal)) {
+      setAlert({
+        type: "error",
+        message: "El nombre legal no puede estar vacío ni ser solo números",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
 
-                          if (
-                            !form.nombre_comercial.trim() ||
-                            /^\d+$/.test(form.nombre_comercial)
-                          ) {
-                            setAlert({
-                              type: "error",
-                              message:
-                                "El nombre comercial no puede estar vacío ni ser solo números",
-                            });
-                            setTimeout(() => setAlert(null), 5000);
-                            return;
-                          }
+    if (!form.nombre_comercial.trim() || /^\d+$/.test(form.nombre_comercial)) {
+      setAlert({
+        type: "error",
+        message: "El nombre comercial no puede estar vacío ni ser solo números",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
 
-                          if (
-                            form.numero_identificacion.trim().length < 5 ||
-                            isNaN(Number(form.numero_identificacion))
-                          ) {
-                            setAlert({
-                              type: "error",
-                              message:
-                                "Número de identificación mínimo 5 dígitos y solo números",
-                            });
-                            setTimeout(() => setAlert(null), 5000);
-                            return;
-                          }
+    if (form.numero_identificacion.trim().length < 5 || isNaN(Number(form.numero_identificacion))) {
+      setAlert({
+        type: "error",
+        message: "Número de identificación mínimo 5 dígitos y solo números",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
 
-                          const duplicado = businesses.some(
-                            (b) =>
-                              b.numero_identificacion ===
-                                form.numero_identificacion &&
-                              (!businessToEdit ||
-                                b.negocio_id !== businessToEdit.negocio_id)
-                          );
-                          if (duplicado) {
-                            setAlert({
-                              type: "error",
-                              message: "Esta identificación ya está registrada",
-                            });
-                            setTimeout(() => setAlert(null), 5000);
-                            return;
-                          }
+    // Duplicado
+    const duplicado = businesses.some(
+      (b) =>
+        b.numero_identificacion === form.numero_identificacion &&
+        (!businessToEdit || b.negocio_id !== businessToEdit.negocio_id)
+    );
+    if (duplicado) {
+      setAlert({
+        type: "error",
+        message: "Esta identificación ya está registrada",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
 
-                          const margen = Number(form.margen_ganancia);
-                          if (isNaN(margen) || margen < 0 || margen > 100) {
-                            setAlert({
-                              type: "error",
-                              message:
-                                "Margen de ganancia debe ser entre 0 y 100",
-                            });
-                            setTimeout(() => setAlert(null), 5000);
-                            return;
-                          }
+    // Margen de ganancia
+    const margen = Number(form.margen_ganancia);
+    if (isNaN(margen) || margen < 0 || margen > 100) {
+      setAlert({
+        type: "error",
+        message: "Margen de ganancia debe ser entre 0 y 100",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
 
-                          if (!/^\d{8,}$/.test(form.telefono)) {
-                            setAlert({
-                              type: "error",
-                              message:
-                                "Teléfono inválido, mínimo 8 dígitos y solo números",
-                            });
-                            setTimeout(() => setAlert(null), 5000);
-                            return;
-                          }
+    // Teléfono
+    if (!/^\d{8,}$/.test(form.telefono)) {
+      setAlert({
+        type: "error",
+        message: "Teléfono inválido, mínimo 8 dígitos y solo números",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
 
-                          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                          if (!emailRegex.test(form.email)) {
-                            setAlert({
-                              type: "error",
-                              message: "Email inválido",
-                            });
-                            setTimeout(() => setAlert(null), 5000);
-                            return;
-                          }
+    // Email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setAlert({
+        type: "error",
+        message: "Email inválido",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
 
-                          // Si pasa validaciones
-                          handleSubmit(e);
-                        }}
-                        className="flex flex-col gap-4"
-                      >
+    // Verificación de correo duplicado en lista local
+    const emailDuplicado = businesses.some(
+      (b) =>
+        b.email.toLowerCase() === form.email.toLowerCase() &&
+        (!businessToEdit || b.negocio_id !== businessToEdit.negocio_id)
+    );
+    if (emailDuplicado) {
+      setAlert({
+        type: "error",
+        message: "El correo ya está registrado en otro negocio",
+      });
+      setTimeout(() => setAlert(null), 5000);
+      return;
+    }
+
+    // --- Si pasa todas las validaciones ---
+    handleSubmit(e);
+   }}
+  className="flex flex-col gap-4"
+>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
                             Nombre legal

@@ -4,7 +4,8 @@ import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
 import { IoAddCircle, IoPersonAdd, IoPencil, IoSearch } from "react-icons/io5";
-import GenerarFactura from "../ui/GenerateInvoice";
+
+import GenerateInvoice from "../ui/GenerateInvoice";
 
 // Para React + TypeScript
 
@@ -89,6 +90,7 @@ export default function SalesPage() {
   const [metodoPago, setMetodoPago] = useState<string>("Efectivo");
   const [montoEntregado, setMontoEntregado] = useState<number>(0);
   const [comprobante, setComprobante] = useState<string>("");
+  const [facturaCreada, setFacturaCreada] = useState<any>(null);
 
   //sucursales y negocios
   const [bodegas, setBodegas] = useState<Warehouse[]>([]);
@@ -384,7 +386,6 @@ export default function SalesPage() {
         );
         return;
       }
-      // Quitar la alerta después de 10 segundos
 
       // Mapear método de pago al backend
       const metodoPagoBackend =
@@ -476,8 +477,6 @@ export default function SalesPage() {
         })
       );
 
-      // Devuelve stock disponible real: stock del producto menos lo que hay en carrito
-
       // Mensaje de éxito
       mostrarAlerta(
         "success",
@@ -486,12 +485,17 @@ export default function SalesPage() {
         }`
       );
 
-      // Limpiar estados
+      // Guardar la factura creada para usar en PDF
+      setFacturaCreada(responseData);
+
+      // Abrir modal de factura PDF
+      setFacturaModal(true);
+
+      // Limpiar estados del carrito
       setCarrito([]);
       setClienteSeleccionado(null);
       setMontoEntregado(0);
       setComprobante("");
-      setFacturaModal(false);
       localStorage.removeItem(LOCAL_STORAGE_KEY);
 
       // Actualizar lista de productos
@@ -509,7 +513,7 @@ export default function SalesPage() {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero"]}>
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
       <Container
         page={
           <div className="flex">
@@ -1349,28 +1353,39 @@ export default function SalesPage() {
 
                     {/* BOTONES */}
                     <div className="flex justify-end gap-4">
-                      {/* Botón para generar PDF */}
+                      {/* Botón para generar PDF oculto */}
                       {sucursalSeleccionada &&
                         clienteSeleccionado &&
                         carrito.length > 0 && (
-                          <GenerarFactura
-                            sucursalSeleccionada={sucursalSeleccionada}
-                            clienteSeleccionado={clienteSeleccionado}
-                            carrito={carrito}
-                            user={user}
-                            metodoPago={metodoPago}
-                            montoEntregado={montoEntregado}
-                            comprobante={comprobante}
-                            buttonText="Generar Factura PDF"
-                            disabled={botonDisabled}
-                          />
+                          <div style={{ display: "none" }}>
+                            <GenerateInvoice
+                              sucursalSeleccionada={sucursalSeleccionada}
+                              clienteSeleccionado={clienteSeleccionado}
+                              carrito={carrito}
+                              user={user}
+                              metodoPago={metodoPago}
+                              montoEntregado={montoEntregado}
+                              comprobante={comprobante}
+                              buttonText="Generar Factura PDF"
+                              disabled={!facturaCreada}
+                              facturaCreada={facturaCreada}
+                            />
+                          </div>
                         )}
 
+                      {/* Finalizar ejecuta también el generarFactura */}
                       <Button
                         text="Finalizar"
                         type="submit"
                         style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36 cursor-pointer"
                         disabled={botonDisabled}
+                        onClick={() => {
+                          // dispara el botón de GenerateInvoice si existe
+                          const hiddenBtn = document.querySelector(
+                            "section button.bg-verde-claro"
+                          ) as HTMLButtonElement | null;
+                          hiddenBtn?.click();
+                        }}
                       />
 
                       <Button
