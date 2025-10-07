@@ -17,7 +17,6 @@ import {
   MdCategory,
   MdOutlineApartment,
   MdSavings,
- 
 } from "react-icons/md";
 import { FaUsersGear } from "react-icons/fa6";
 interface SideBarProps {
@@ -54,8 +53,7 @@ export default function SideBar({ role }: SideBarProps) {
   const currentSection = Object.keys(sectionMap).find((path) =>
     currentPath.startsWith(path)
   );
-  if (currentSection)
-    initialSections[sectionMap[currentSection]] = true;
+  if (currentSection) initialSections[sectionMap[currentSection]] = true;
 
   const [openSections, setOpenSections] = useState<{ [key: string]: boolean }>(
     initialSections
@@ -108,7 +106,7 @@ export default function SideBar({ role }: SideBarProps) {
       <MdWarehouse size={20} color="white" /> Bodegas
     </Button>
   );
-  
+
   const btnSalesPages = (
     <Button style={btnStyle} to="/salesPage">
       <MdPointOfSale size={20} color="white" /> Punto de Venta
@@ -130,7 +128,7 @@ export default function SideBar({ role }: SideBarProps) {
     "Administración de Productos": <MdCategory size={20} color="white" />,
     Gestión: <MdOutlineApartment size={20} color="white" />,
     Finanzas: <MdSavings size={20} color="white" />,
-  "Administración de Usuarios": <FaUsersGear size={20} color="white" />, // icono nuevo
+    "Administración de Usuarios": <FaUsersGear size={20} color="white" />, // icono nuevo
   };
 
   // --- Configuración de secciones según rol ---
@@ -152,7 +150,11 @@ export default function SideBar({ role }: SideBarProps) {
     };
   } else {
     sections = {
-      "Administración de Productos": [btnInventario, btnProvider, btnSalesPages],
+      "Administración de Productos": [
+        btnInventario,
+        btnProvider,
+        btnSalesPages,
+      ],
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
       Finanzas: [btnRegistroIngresos, btnCashRegisterPage],
       "Administración de Usuarios": [btnClientes, btnPersonal],
@@ -176,7 +178,13 @@ export default function SideBar({ role }: SideBarProps) {
       );
     });
 
-  const Section = ({ title, buttons }: { title: string; buttons: JSX.Element[] }) => {
+  const Section = ({
+    title,
+    buttons,
+  }: {
+    title: string;
+    buttons: JSX.Element[];
+  }) => {
     const contentRef = React.useRef<HTMLDivElement>(null);
     const open = openSections[title] ?? false;
     const [maxHeight, setMaxHeight] = useState(open ? "500px" : "0px");
@@ -192,13 +200,25 @@ export default function SideBar({ role }: SideBarProps) {
     return (
       <div className="w-11/12">
         <div
+          role="button"
+          tabIndex={0} // hace que sea focuseable
           onClick={() => handleToggleSection(title)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              handleToggleSection(title);
+            }
+          }}
           className="flex items-center justify-between mb-2 w-full rounded-xl pl-4 pr-2 py-2 cursor-pointer hover:bg-azul-hover"
         >
           <span className="flex items-center gap-2 text-white font-bold">
             {sectionIcons[title]} {title}
           </span>
-          {open ? <MdExpandLess color="white" /> : <MdExpandMore color="white" />}
+          {open ? (
+            <MdExpandLess color="white" />
+          ) : (
+            <MdExpandMore color="white" />
+          )}
         </div>
 
         <div
@@ -211,95 +231,94 @@ export default function SideBar({ role }: SideBarProps) {
       </div>
     );
   };
-const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL;
 
-const [user, setUser] = useState<{
-  name?: string;
-  username?: string;
-  profile_photo?: string;
-  role?: string; // <-- agregamos el rol
-} | null>(null);
+  const [user, setUser] = useState<{
+    name?: string;
+    username?: string;
+    profile_photo?: string;
+    role?: string; // <-- agregamos el rol
+  } | null>(null);
 
-useEffect(() => {
-  // Tomar el usuario guardado en localStorage al montar el componente
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    const parsedUser = JSON.parse(storedUser);
-    setUser({
-      ...parsedUser,
-      role: parsedUser.role || "desconocido", // aseguramos que tenga rol
-    });
-  }
-
-  // Listener para actualizar el usuario si cambian los datos en localStorage
-  const handleUserUpdate = () => {
-    const updatedUser = localStorage.getItem("user");
-    if (updatedUser) {
-      const parsedUser = JSON.parse(updatedUser);
+  useEffect(() => {
+    // Tomar el usuario guardado en localStorage al montar el componente
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
       setUser({
         ...parsedUser,
-        role: parsedUser.role || "desconocido",
+        role: parsedUser.role || "desconocido", // aseguramos que tenga rol
       });
     }
-  };
 
-  window.addEventListener("userUpdated", handleUserUpdate);
-  return () => window.removeEventListener("userUpdated", handleUserUpdate);
-}, []);
+    // Listener para actualizar el usuario si cambian los datos en localStorage
+    const handleUserUpdate = () => {
+      const updatedUser = localStorage.getItem("user");
+      if (updatedUser) {
+        const parsedUser = JSON.parse(updatedUser);
+        setUser({
+          ...parsedUser,
+          role: parsedUser.role || "desconocido",
+        });
+      }
+    };
+
+    window.addEventListener("userUpdated", handleUserUpdate);
+    return () => window.removeEventListener("userUpdated", handleUserUpdate);
+  }, []);
 
   return (
     <section className="bg-azul-oscuro w-1/6 min-w-[200px] min-h-220 flex flex-col pt-4">
       <div className="pt-4 flex flex-col items-center gap-4 w-full">
-{/* Contenedor clickeable del perfil */}
-<div
-  role="button"
-  tabIndex={0}
-  className="w-11/12 flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl shadow-md p-4 cursor-pointer hover:bg-white/20 transition"
-  onClick={() => (window.location.href = "/profile")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ") window.location.href = "/profile";
-  }}
->
-  {/* Avatar */}
-  <div className="bg-white/20 p-2 rounded-full flex items-center justify-center">
-    {user?.profile_photo ? (
-      <img
-        className="w-12 h-12 rounded-full object-cover"
-        src={
-          user.profile_photo.startsWith("http")
-            ? user.profile_photo
-            : `${API_URL}/${user.profile_photo}`
-        }
-        alt="Foto de perfil"
-      />
-    ) : (
-      <MdAccountCircle size={40} color="white" />
-    )}
-  </div>
+        {/* Contenedor clickeable del perfil */}
+        <div
+          role="button"
+          tabIndex={0}
+          className="w-11/12 flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl shadow-md p-4 cursor-pointer hover:bg-white/20 transition"
+          onClick={() => (window.location.href = "/profile")}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ")
+              window.location.href = "/profile";
+          }}
+        >
+          {/* Avatar */}
+          <div className="bg-white/20 p-2 rounded-full flex items-center justify-center">
+            {user?.profile_photo ? (
+              <img
+                className="w-12 h-12 rounded-full object-cover"
+                src={
+                  user.profile_photo.startsWith("http")
+                    ? user.profile_photo
+                    : `${API_URL}/${user.profile_photo}`
+                }
+                alt="Foto de perfil"
+              />
+            ) : (
+              <MdAccountCircle size={40} color="white" />
+            )}
+          </div>
 
-  {/* Info de usuario */}
-  <div className="flex flex-col">
-    <span className="text-sky-200 font-bold text-sm uppercase tracking-wide">
-      Perfil
-    </span>
-    <span className="text-white font-semibold text-base leading-tight">
-      {user?.name || user?.username || "Usuario"}
-    </span>
-    <span className="text-gray-300 text-xs">
-      {user?.role || "Rol desconocido"}
-    </span>
-  </div>
-</div>
-
-
-
-
+          {/* Info de usuario */}
+          <div className="flex flex-col">
+            <span className="text-sky-200 font-bold text-sm uppercase tracking-wide">
+              Perfil
+            </span>
+            <span className="text-white font-semibold text-base leading-tight">
+              {user?.name || user?.username || "Usuario"}
+            </span>
+            <span className="text-gray-300 text-xs">
+              {user?.role || "Rol desconocido"}
+            </span>
+          </div>
+        </div>
 
         {/* Renderizar secciones según permisos */}
         <div className="w-full flex flex-col items-center gap-2">
           {Object.entries(sections).map(
             ([title, buttons]) =>
-              buttons.length > 0 && <Section key={title} title={title} buttons={buttons} />
+              buttons.length > 0 && (
+                <Section key={title} title={title} buttons={buttons} />
+              )
           )}
         </div>
       </div>
