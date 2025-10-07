@@ -270,63 +270,57 @@ export default function Branches() {
     fetchData();
   }, [token]);
   // Form handlers
+  // Handle input changes
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
 
-    // Validaciones en tiempo real
-    if (name === "nombre") {
-      // Permite letras, números, espacios; no deja empezar con número
-      if (
-        value === "" ||
-        /^[A-Za-zÁÉÍÓÚáéíóúÑñ][A-Za-z0-9ÁÉÍÓÚáéíóúÑñ ]*$/.test(value)
-      ) {
-        setForm((prev) => ({ ...prev, [name]: value }));
-      }
-      return; // no actualizar si no cumple
-    }
+    switch (name) {
+      case "nombre":
+        // Letras, números y espacios; debe comenzar con letra
+        if (
+          value === "" ||
+          /^[A-Za-zÁÉÍÓÚáéíóúÑñ][A-Za-z0-9ÁÉÍÓÚáéíóúÑñ ]*$/.test(value)
+        ) {
+          setForm((prev) => ({ ...prev, [name]: value }));
+        }
+        break;
 
-    if (name === "telefono") {
-      // Solo números
-      if (value === "" || /^\d+$/.test(value)) {
-        setForm((prev) => ({ ...prev, [name]: value }));
-      }
-      return;
-    }
+      case "telefono":
+        // Solo números, máximo 8 dígitos
+        if (value === "" || (/^\d+$/.test(value) && value.length <= 8)) {
+          setForm((prev) => ({ ...prev, [name]: value }));
+        }
+        break;
 
-    // Para el resto de campos (selects, etc.)
-    setForm((prev) => ({
-      ...prev,
-      [name]: value,
-      ...(name === "provincia" ? { canton: "" } : {}),
-    }));
+      default:
+        setForm((prev) => ({
+          ...prev,
+          [name]: value,
+          ...(name === "provincia" ? { canton: "" } : {}),
+        }));
+        break;
+    }
   };
 
   // Handle form submission
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validaciones
-    const nombreValido = /^[A-Za-zÁÉÍÓÚáéíóúÑñ][A-Za-z0-9ÁÉÍÓÚáéíóúÑñ ]*$/.test(
-      form.nombre
-    );
-    const telefonoValido = /^\d+$/.test(form.telefono);
-
-    if (!nombreValido) {
+    if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñ][A-Za-z0-9ÁÉÍÓÚáéíóúÑñ ]*$/.test(form.nombre)) {
       setAlert({
         type: "error",
-        message:
-          "El nombre debe comenzar con una letra y no puede ser solo números",
+        message: "El nombre debe comenzar con letra y no ser solo números",
       });
       return;
     }
 
-    if (!telefonoValido) {
+    if (!/^\d{8}$/.test(form.telefono)) {
       setAlert({
         type: "error",
-        message: "El teléfono solo puede contener números",
+        message: "El teléfono debe tener exactamente 8 dígitos y solo números",
       });
       return;
     }
@@ -353,7 +347,6 @@ export default function Branches() {
       }
 
       const data: Branch = await response.json();
-
       const negocio = businesses.find(
         (b) => b.negocio_id === Number(data.negocio_id)
       );
@@ -377,7 +370,6 @@ export default function Branches() {
       setShowEditModal(false);
       setBranchToEdit(null);
     } catch (error: any) {
-      console.error("Error saving branch:", error);
       setAlert({
         type: "error",
         message: error.message || "Error al procesar la solicitud",
@@ -505,243 +497,275 @@ export default function Branches() {
   }));
 
   return (
-<ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
-  <Container
-    page={
-      <div className="flex">
-        <SideBar role={userRole} />
-        <div className="w-full pl-10 pt-10">
-          <h1 className="text-2xl font-bold mb-6 text-left">
-            Gestionar Sucursales
-          </h1>
+    <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+      <Container
+        page={
+          <div className="flex">
+            <SideBar role={userRole} />
+            <div className="w-full pl-10 pt-10">
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Gestionar Sucursales
+              </h1>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
-            {/* SearchBar */}
-            <div className="w-full h-10">
-              <SearchBar<Branch>
-                data={branches}
-                displayField="sucursal_id"
-                searchFields={["sucursal_id", "nombre"]}
-                placeholder="Buscar por ID o nombre..."
-                onResultsChange={(results) => {
-                  setBranchesFiltered(results);
-                  if (results.length > 0) setAlert(null);
-                }}
-                onSelect={(item) => setBranchesFiltered([item])}
-                onNotFound={(q) => {
-                  if (!q || q.trim() === "") {
-                    setAlert({
-                      type: "error",
-                      message: "Por favor digite un ID o nombre para buscar.",
-                    });
-                  } else {
-                    setBranchesFiltered([]);
-                    setAlert({
-                      type: "error",
-                      message: `No existe ninguna sucursal con el ID o nombre "${q}".`,
-                    });
-                  }
-                }}
-                onClearAlert={() => {
-                  setAlert(null);
-                
-                }}
-              />
-            </div>
-
-            <Button
-              style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
-              onClick={() => {
-                setBranchToEdit(null);
-                setShowEditModal(true);
-              }}
-            >
-              <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-              <span className="whitespace-nowrap text-base">Añadir sucursal</span>
-            </Button>
-          </div>
-
-          {/* ALERTA CENTRALIZADA */}
-          {alert && (
-            <div
-              className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
-                alert.type === "success"
-                  ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                  : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-              }`}
-            >
-              {alert.message}
-            </div>
-          )}
-
-          {loading ? (
-            <p>Cargando sucursales...</p>
-          ) : (
-            <TableInformation headers={headers} tableContent={tableContent} />
-          )}
-
-          {/* Delete Confirmation Modal */}
-          {showModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
-              <div
-                className="relative bg-white p-6 rounded-lg shadow-lg pointer-events-auto
-                animate-modalShow transition-all duration-300"
-                style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem" }}
-              >
-                <h2 className="text-xl font-bold mb-4">Confirmar eliminación</h2>
-                <p className="mb-6">
-                  ¿Está seguro que desea eliminar esta sucursal?
-                </p>
-                <div className="flex justify-end gap-4">
-                  <button
-                    type="button"
-                    className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
-                    onClick={handleDelete}
-                  >
-                    Eliminar
-                  </button>
-                  <button
-                    type="button"
-                    className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                    onClick={() => setShowModal(false)}
-                  >
-                    Cancelar
-                  </button>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
+                {/* SearchBar */}
+                <div className="w-full h-10">
+                  <SearchBar<Branch>
+                    data={branches}
+                    displayField="sucursal_id"
+                    searchFields={["sucursal_id", "nombre"]}
+                    placeholder="Buscar por ID o nombre..."
+                    onResultsChange={(results) => {
+                      setBranchesFiltered(results);
+                      if (results.length > 0) setAlert(null);
+                    }}
+                    onSelect={(item) => setBranchesFiltered([item])}
+                    onNotFound={(q) => {
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID o nombre para buscar.",
+                        });
+                      } else {
+                        setBranchesFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ninguna sucursal con el ID o nombre "${q}".`,
+                        });
+                      }
+                    }}
+                    onClearAlert={() => {
+                      setAlert(null);
+                    }}
+                  />
                 </div>
+
+                <Button
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                  onClick={() => {
+                    setBranchToEdit(null);
+                    setShowEditModal(true);
+                  }}
+                >
+                  <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                  <span className="whitespace-nowrap text-base">
+                    Añadir sucursal
+                  </span>
+                </Button>
               </div>
-            </div>
-          )}
 
-          {/* Add/Edit Branch Modal */}
-          {showEditModal && (
-            <div className="fixed inset-0 z-50 flex items-center justify-center">
-              <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
-              <div
-                className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto
+              {loading ? (
+                <p>Cargando sucursales...</p>
+              ) : (
+                <TableInformation
+                  headers={headers}
+                  tableContent={tableContent}
+                />
+              )}
+
+              {/* Delete Confirmation Modal */}
+              {showModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div
+                    className="relative bg-white p-6 rounded-lg shadow-lg pointer-events-auto
                 animate-modalShow transition-all duration-300"
-                style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)", width: "32rem", maxHeight: "90vh" }}
-              >
-                <div className="p-6">
-                  <h2 className="text-xl font-bold mb-6">
-                    {branchToEdit ? "Editar Sucursal" : "Nueva Sucursal"}
-                  </h2>
-
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Campos del formulario */}
-                    {/* Negocio */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Negocio</label>
-                      <select
-                        name="negocio_id"
-                        value={form.negocio_id}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
-                        required
-                        disabled={!!branchToEdit}
-                      >
-                        <option value="">Seleccione un negocio</option>
-                        {businesses.map((business) => (
-                          <option key={business.negocio_id} value={business.negocio_id}>
-                            {business.nombre_comercial}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Nombre */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Nombre de la Sucursal</label>
-                      <input
-                        name="nombre"
-                        value={form.nombre}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-
-                    {/* Provincia / Cantón */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Provincia</label>
-                        <select
-                          name="provincia"
-                          value={form.provincia}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
-                          required
-                        >
-                          <option value="">Seleccione una provincia</option>
-                          {COSTA_RICA_PROVINCES.map((province) => (
-                            <option key={province.id} value={province.name}>
-                              {province.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Cantón</label>
-                        <select
-                          name="canton"
-                          value={form.canton}
-                          onChange={handleChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
-                          required
-                          disabled={!form.provincia}
-                        >
-                          <option value="">
-                            {form.provincia ? "Seleccione un cantón" : "Seleccione una provincia primero"}
-                          </option>
-                          {getAvailableCantons().map((canton, index) => (
-                            <option key={index} value={canton}>{canton}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-
-                    {/* Teléfono */}
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-                      <input
-                        name="telefono"
-                        type="tel"
-                        value={form.telefono}
-                        onChange={handleChange}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                        required
-                      />
-                    </div>
-
-                    {/* Botones */}
-                    <div className="flex justify-end gap-4 pt-4">
+                    style={{
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                      width: "32rem",
+                    }}
+                  >
+                    <h2 className="text-xl font-bold mb-4">
+                      Confirmar eliminación
+                    </h2>
+                    <p className="mb-6">
+                      ¿Está seguro que desea eliminar esta sucursal?
+                    </p>
+                    <div className="flex justify-end gap-4">
                       <button
-                        type="submit"
-                        className="px-6 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg cursor-pointer"
+                        type="button"
+                        className="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
+                        onClick={handleDelete}
                       >
-                        {branchToEdit ? "Guardar Cambios" : "Crear Sucursal"}
+                        Eliminar
                       </button>
                       <button
                         type="button"
                         className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                        onClick={() => {
-                          setShowEditModal(false);
-                          setBranchToEdit(null);
-                        }}
+                        onClick={() => setShowModal(false)}
                       >
                         Cancelar
                       </button>
                     </div>
-                  </form>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    }
-  />
-</ProtectedRoute>
+              )}
 
+              {/* Add/Edit Branch Modal */}
+              {showEditModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div
+                    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto
+                animate-modalShow transition-all duration-300"
+                    style={{
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+                      width: "32rem",
+                      maxHeight: "90vh",
+                    }}
+                  >
+                    <div className="p-6">
+                      <h2 className="text-xl font-bold mb-6">
+                        {branchToEdit ? "Editar Sucursal" : "Nueva Sucursal"}
+                      </h2>
+
+                      {/* ALERTA CENTRALIZADA */}
+                      {alert && (
+                        <div
+                          className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                            alert.type === "success"
+                              ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                              : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+                          }`}
+                        >
+                          {alert.message}
+                        </div>
+                      )}
+
+                      <form onSubmit={handleSubmit} className="space-y-4">
+                        {/* Campos del formulario */}
+                        {/* Negocio */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Negocio
+                          </label>
+                          <select
+                            name="negocio_id"
+                            value={form.negocio_id}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                            required
+                            disabled={!!branchToEdit}
+                          >
+                            <option value="">Seleccione un negocio</option>
+                            {businesses.map((business) => (
+                              <option
+                                key={business.negocio_id}
+                                value={business.negocio_id}
+                              >
+                                {business.nombre_comercial}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Nombre */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre de la Sucursal
+                          </label>
+                          <input
+                            name="nombre"
+                            value={form.nombre}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+
+                        {/* Provincia / Cantón */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Provincia
+                            </label>
+                            <select
+                              name="provincia"
+                              value={form.provincia}
+                              onChange={handleChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                              required
+                            >
+                              <option value="">Seleccione una provincia</option>
+                              {COSTA_RICA_PROVINCES.map((province) => (
+                                <option key={province.id} value={province.name}>
+                                  {province.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Cantón
+                            </label>
+                            <select
+                              name="canton"
+                              value={form.canton}
+                              onChange={handleChange}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                              required
+                              disabled={!form.provincia}
+                            >
+                              <option value="">
+                                {form.provincia
+                                  ? "Seleccione un cantón"
+                                  : "Seleccione una provincia primero"}
+                              </option>
+                              {getAvailableCantons().map((canton, index) => (
+                                <option key={index} value={canton}>
+                                  {canton}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* Teléfono */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Teléfono
+                          </label>
+                          <input
+                            name="telefono"
+                            type="tel"
+                            value={form.telefono}
+                            onChange={handleChange}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            required
+                          />
+                        </div>
+
+                        {/* Botones */}
+                        <div className="flex justify-end gap-4 pt-4">
+                          <button
+                            type="submit"
+                            className="px-6 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg cursor-pointer"
+                          >
+                            {branchToEdit
+                              ? "Guardar Cambios"
+                              : "Crear Sucursal"}
+                          </button>
+                          <button
+                            type="button"
+                            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                            onClick={() => {
+                              setShowEditModal(false);
+                              setBranchToEdit(null);
+                            }}
+                          >
+                            Cancelar
+                          </button>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        }
+      />
+    </ProtectedRoute>
   );
 }

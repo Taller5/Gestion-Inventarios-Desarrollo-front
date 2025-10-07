@@ -168,23 +168,27 @@ export default function Businesses() {
     setLoadingForm(true);
     setAlert(null);
 
-    const error = validateForm();
-    if (error) {
-      setAlert({ type: "error", message: error });
-      setTimeout(() => setAlert(null), 8000);
-      setLoadingForm(false);
-      return;
-    }
-
-    const formToSend = {
-      ...form,
-      margen_ganancia: Number(form.margen_ganancia) / 100,
-    };
-    const token = localStorage.getItem("token");
-    const url = businessToEdit
-      ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
-      : `${API_URL}/api/v1/businesses`;
     try {
+      // Validación
+      const error = validateForm();
+      if (error) throw new Error(error);
+
+      if (!/^\d{8}$/.test(form.telefono))
+        throw new Error("Teléfono inválido, debe tener exactamente 8 dígitos");
+
+      if (form.numero_identificacion.trim().length < 5)
+        throw new Error("Número de identificación mínimo 5 dígitos");
+
+      // Preparar datos
+      const formToSend = {
+        ...form,
+        margen_ganancia: Number(form.margen_ganancia) / 100,
+      };
+      const token = localStorage.getItem("token");
+      const url = businessToEdit
+        ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
+        : `${API_URL}/api/v1/businesses`;
+
       const method = businessToEdit ? "PUT" : "POST";
       const res = await fetch(url, {
         method,
@@ -194,38 +198,36 @@ export default function Businesses() {
         },
         body: JSON.stringify(formToSend),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setAlert({
-          type: "error",
-          message: data?.message || "Error al procesar",
-        });
-        setTimeout(() => setAlert(null), 8000);
-        return;
-      }
 
-      if (businessToEdit)
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data?.message || "Error al procesar");
+
+      if (businessToEdit) {
         setBusinesses(
           businesses.map((b) =>
             b.negocio_id === businessToEdit.negocio_id ? data : b
           )
         );
-      else setBusinesses([...businesses, data]);
+      } else {
+        setBusinesses([...businesses, data]);
+      }
 
       setAlert({
         type: "success",
         message: businessToEdit ? "Negocio actualizado" : "Negocio creado",
       });
+
       setTimeout(() => {
         setModalOpen(false);
         setBusinessToEdit(null);
         setAlert(null);
       }, 1200);
     } catch (err: any) {
-      setAlert({ type: "error", message: err.message || "Error al procesar" });
+      setAlert({ type: "error", message: err.message });
       setTimeout(() => setAlert(null), 8000);
     } finally {
-      setLoadingForm(false);
+      setLoadingForm(false); // <-- Siempre se ejecuta
     }
   };
 
@@ -335,7 +337,6 @@ export default function Businesses() {
                     }}
                     onClearAlert={() => {
                       setAlert(null); // Quita la alerta
-                     
                     }}
                   />
 
@@ -566,10 +567,9 @@ export default function Businesses() {
                             onChange={(e) =>
                               setForm({
                                 ...form,
-                                numero_identificacion: e.target.value.replace(
-                                  /\D/g,
-                                  ""
-                                ),
+                                numero_identificacion: e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 12), // <-- límite máximo según tu criterio
                               })
                             }
                             required
@@ -621,7 +621,9 @@ export default function Businesses() {
                             onChange={(e) =>
                               setForm({
                                 ...form,
-                                telefono: e.target.value.replace(/\D/g, ""),
+                                telefono: e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 8), // <-- slice limita a 8
                               })
                             }
                             required
