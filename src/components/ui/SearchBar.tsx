@@ -10,6 +10,9 @@ interface SearchProps<T> {
   onNotFound?: (query: string) => void;
   onResultsChange?: (results: T[]) => void;
   onClearAlert?: () => void; // <-- prop opcional
+  numericPrefixStartsWith?: boolean; //Si true y la query es numérica pura, se usa startsWith en lugar de includes 
+  // Formateador opcional para mostrar cada item en la lista de resultados 
+  resultFormatter?: (item: T) => string;
 }
 
 export function SearchBar<T extends Record<string, any>>({
@@ -21,31 +24,50 @@ export function SearchBar<T extends Record<string, any>>({
   onNotFound,
   onResultsChange,
   onClearAlert,
+  numericPrefixStartsWith,
+  resultFormatter,
 }: SearchProps<T>) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<T[]>([]);
   const [open, setOpen] = useState(false); // <-- estado para controlar dropdown
   const containerRef = useRef<HTMLDivElement>(null);
+  const lastSignatureRef = useRef<string>("");
 
   useEffect(() => {
+     // Función auxiliar para notificar solo si cambia la firma
+    const maybeNotify = (list: T[]) => {
+      const first = list[0] ? String(list[0][displayField]) : "";
+      const last = list.length > 1 ? String(list[list.length - 1][displayField]) : first;
+      const signature = `${list.length}|${first}|${last}`;
+      if (signature !== lastSignatureRef.current) {
+        lastSignatureRef.current = signature;
+        onResultsChange?.(list);
+      }
+    };
     if (!query.trim()) {
       setResults(data);
-      onResultsChange?.(data);
+      // Notificamos solo si cambia realmente
+      maybeNotify(data);
       setOpen(false);
       return;
     }
+     const lcQuery = query.toLowerCase();
+    const isNumeric = numericPrefixStartsWith && /^\d+$/.test(query.trim());
+    const fields = (searchFields && searchFields.length ? searchFields : [displayField]);
 
-    const filtered = data.filter(item =>
-      (searchFields || [displayField]).some(
-        field =>
-          item[field] &&
-          String(item[field]).toLowerCase().includes(query.toLowerCase())
-      )
-    );
+   const filtered = data.filter(item => fields.some(field => {
+      const raw = item[field];
+      if (raw == null) return false;
+      const val = String(raw).toLowerCase();
+      if (isNumeric) {
+        return val.startsWith(lcQuery);
+      }
+      return val.includes(lcQuery);
+    }));
     setResults(filtered);
-    onResultsChange?.(filtered);
+    maybeNotify(filtered);
     setOpen(true); // Abrir dropdown al escribir
-  }, [query, data, displayField]);
+  }, [query, data, displayField, searchFields, numericPrefixStartsWith]);
 
   const handleSearch = () => {
     const exactMatch = data.find(
@@ -121,7 +143,8 @@ export function SearchBar<T extends Record<string, any>>({
                 setOpen(false); // cerrar dropdown al seleccionar
               }}
             >
-              {displayField ? item[displayField] : JSON.stringify(item)}
+             {resultFormatter ? resultFormatter(item) : 
+             (displayField ? String(item[displayField] ?? "") : JSON.stringify(item))}
             </li>
           ))}
         </ul>

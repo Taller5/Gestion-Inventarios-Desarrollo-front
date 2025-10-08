@@ -1,7 +1,7 @@
 import axios from 'axios';
 // La URL base de tu API de FastAPI
 //const API_URL = import.meta.env.VITE_API_URL;
-const API_IA_URL = 'http://localhost:8001'; 
+const API_IA_URL = import.meta.env.VITE_IA_URL;
 
 // --- Tipos de Datos ---
 

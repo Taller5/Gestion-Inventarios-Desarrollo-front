@@ -18,6 +18,7 @@ type Business = {
   nombre_comercial: string;
   tipo_identificacion: string;
   numero_identificacion: string;
+  codigo_actividad_emisor: string; // nuevo campo (6 dígitos)
   descripcion?: string | null;
   telefono: string;
   email: string;
@@ -27,10 +28,8 @@ const headers = [
   "ID",
   "Nombre legal",
   "Nombre comercial",
-  "Tipo de identificación",
   "Identificación",
   "Margen de ganancia (%)",
-  "Margen decimal",
   "Descripción",
   "Teléfono",
   "Email",
@@ -61,6 +60,7 @@ export default function Businesses() {
     nombre_comercial: "",
     tipo_identificacion: "",
     numero_identificacion: "",
+    codigo_actividad_emisor: "",
     margen_ganancia: "",
     descripcion: "",
     telefono: "",
@@ -103,6 +103,7 @@ export default function Businesses() {
           nombre_comercial: businessToEdit.nombre_comercial,
           tipo_identificacion: businessToEdit.tipo_identificacion,
           numero_identificacion: businessToEdit.numero_identificacion,
+          codigo_actividad_emisor: businessToEdit.codigo_actividad_emisor || "",
           margen_ganancia: businessToEdit.margen_ganancia
             ? (Number(businessToEdit.margen_ganancia) * 100).toString()
             : "",
@@ -116,6 +117,7 @@ export default function Businesses() {
           nombre_comercial: "",
           tipo_identificacion: "",
           numero_identificacion: "",
+          codigo_actividad_emisor: "",
           margen_ganancia: "",
           descripcion: "",
           telefono: "",
@@ -150,6 +152,7 @@ export default function Businesses() {
         (!businessToEdit || b.negocio_id !== businessToEdit.negocio_id)
     );
     if (duplicado) return "Esta identificación ya está registrada";
+    if (!/^\d{6}$/.test(form.codigo_actividad_emisor)) return "Código actividad emisor debe tener exactamente 6 dígitos";
     if (
       !form.margen_ganancia ||
       Number(form.margen_ganancia) < 0 ||
@@ -270,6 +273,7 @@ export default function Businesses() {
     "Nombre legal": b.nombre_legal,
     "Nombre comercial": b.nombre_comercial,
     "Tipo de identificación": b.tipo_identificacion,
+    "Actividad (6 dígitos)": b.codigo_actividad_emisor,
     Identificación: b.numero_identificacion,
     "Margen de ganancia (%)": b.margen_ganancia
       ? parseFloat((Number(b.margen_ganancia) * 100).toFixed(2)) + " %"
@@ -620,6 +624,26 @@ export default function Businesses() {
                             }
                             required
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Código actividad emisor (6 dígitos)
+                          </label>
+                          <input
+                            name="codigo_actividad_emisor"
+                            value={form.codigo_actividad_emisor}
+                            onChange={(e) =>
+                              setForm({
+                                ...form,
+                                codigo_actividad_emisor: e.target.value.replace(/\D/g, "").slice(0,6),
+                              })
+                            }
+                            required
+                            maxLength={6}
+                            pattern="\d{6}"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm tracking-wider"
                           />
                         </div>
 
