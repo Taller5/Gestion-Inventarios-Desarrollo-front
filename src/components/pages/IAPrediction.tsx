@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import PredictionService, {
   type PredictionRequest,
   type PredictionResponse,
@@ -13,7 +13,6 @@ import Button from "../ui/Button";
 import ProtectedRoute from "../services/ProtectedRoute";
 import Container from "../ui/Container";
 import { SearchBar } from "../ui/SearchBar";
-import Producto from "./Inventary";
 
 // --- Tipos de Datos del Formulario ---
 interface IAFormState {
@@ -40,7 +39,6 @@ export const IAPrediction = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
-  const searchBarRef = useRef<any>(null);
 
   // Cargar productos al inicio
   useEffect(() => {
@@ -49,10 +47,13 @@ export const IAPrediction = () => {
       .then((res) => res.json())
       .then((data) => {
         setAllProducts(data);
-        setFilteredProducts(data);
+        setFilteredProducts(data); 
       })
-      .catch(() => setAllProducts([]))
-      .finally(() => setProductsLoading(false));
+      .catch(() => {
+        setAllProducts([]);
+        setFilteredProducts([]);
+      })
+      .finally(() => setProductsLoading(false)); 
   }, []);
 
   // Lógica de predicción que será llamada por el botón de consulta
@@ -83,10 +84,12 @@ export const IAPrediction = () => {
 
       const today = new Date();
       const selectedDate = new Date(formData.fecha_prediccion);
-      today.setHours(0,0,0,0);
-      selectedDate.setHours(0,0,0,0);
+      today.setHours(0, 0, 0, 0);
+      selectedDate.setHours(0, 0, 0, 0);
       if (selectedDate < today) {
-        setError("No puedes seleccionar una fecha anterior a hoy para la predicción.");
+        setError(
+          "No puedes seleccionar una fecha anterior a hoy para la predicción."
+        );
         setLoading(false);
         return;
       }
@@ -144,7 +147,9 @@ export const IAPrediction = () => {
   };
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}>
+    <ProtectedRoute
+      allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}
+    >
       <Container
         page={
           <div className="p-6 bg-white shadow-xl rounded-xl max-w-4xl mx-auto my-10">
@@ -168,30 +173,39 @@ export const IAPrediction = () => {
                   1. Ingresa Datos para la Predicción
                 </h2>
 
-                 <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
                   Seleccione un producto:
                 </label>
 
                 {/* SearchBar para filtrar productos por nombre */}
-                <SearchBar
-                  data={allProducts}
-                  displayField="nombre_producto"
-                  searchFields={["nombre_producto", "codigo_producto", "id"]}
-                  placeholder="Buscar producto por nombre, código o ID..."
-                  onSelect={handleProductSelect}
-                  onResultsChange={handleProductSearch}
-                  resultFormatter={(item) =>
-                    `${item.nombre_producto ?? "N/A"}, Codigo: ${item.codigo_producto}`
-                  }
-                  value={searchQuery}
-                  onInputChange={setSearchQuery}
-                />
+                {productsLoading ? (
+                  <div className="text-center text-gray-500">
+                    Cargando productos...
+                  </div>
+                ) : (
+                  <SearchBar
+                    data={filteredProducts}
+                    displayField="nombre_producto"
+                    searchFields={["nombre_producto", "codigo_producto", "id"]}
+                    placeholder="Buscar producto por nombre, código o ID..."
+                    onSelect={handleProductSelect}
+                    onResultsChange={handleProductSearch}
+                    resultFormatter={(item) =>
+                      `${item.nombre_producto ?? "N/A"}, Codigo: ${item.codigo_producto}`
+                    }
+                    value={searchQuery}
+                    onInputChange={setSearchQuery}
+                  />
+                )}
 
                 {/* Mostrar el producto seleccionado */}
                 {selectedProduct && (
                   <div className="my-2 text-sm text-gray-600">
-                    <span className="font-semibold">Producto seleccionado:</span>{" "}
-                    {selectedProduct.nombre_producto} (ID: {selectedProduct.codigo_producto})
+                    <span className="font-semibold">
+                      Producto seleccionado:
+                    </span>{" "}
+                    {selectedProduct.nombre_producto} (ID:{" "}
+                    {selectedProduct.codigo_producto})
                   </div>
                 )}
 
@@ -279,8 +293,6 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
 }) => {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      
-
       {/* 2. FECHA DE PREDICCIÓN */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">
@@ -327,7 +339,11 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
                 ? "bg-verde-claro text-white border-verde-oscuro"
                 : "bg-white text-gray-700 border-gray-300"
             }`}
-            onClick={() => handleChange({ target: { name: "promocion_activa", value: "1" } } as any)}
+            onClick={() =>
+              handleChange({
+                target: { name: "promocion_activa", value: "1" },
+              } as any)
+            }
           >
             Sí
           </button>
@@ -338,7 +354,11 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
                 ? "bg-rojo-claro text-white border-rojo-oscuro"
                 : "bg-white text-gray-700 border-gray-300"
             }`}
-            onClick={() => handleChange({ target: { name: "promocion_activa", value: "0" } } as any)}
+            onClick={() =>
+              handleChange({
+                target: { name: "promocion_activa", value: "0" },
+              } as any)
+            }
           >
             No
           </button>
