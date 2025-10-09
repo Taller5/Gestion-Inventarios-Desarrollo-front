@@ -510,35 +510,34 @@ export default function Branches() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 {/* SearchBar */}
                 <div className="w-full h-10">
-                  <SearchBar<Branch>
-                    data={branches}
-                    displayField="sucursal_id"
-                    searchFields={["sucursal_id", "nombre"]}
-                    placeholder="Buscar por ID o nombre..."
-                    onResultsChange={(results) => {
-                      setBranchesFiltered(results);
-                      if (results.length > 0) setAlert(null);
-                    }}
-                    onSelect={(item) => setBranchesFiltered([item])}
-                    onNotFound={(q) => {
-                      if (!q || q.trim() === "") {
-                        setAlert({
-                          type: "error",
-                          message:
-                            "Por favor digite un ID o nombre para buscar.",
-                        });
-                      } else {
-                        setBranchesFiltered([]);
-                        setAlert({
-                          type: "error",
-                          message: `No existe ninguna sucursal con el ID o nombre "${q}".`,
-                        });
-                      }
-                    }}
-                    onClearAlert={() => {
-                      setAlert(null);
-                    }}
-                  />
+                <SearchBar<Branch>
+  data={branches}
+  displayField="sucursal_id" // ⚠️ se mantiene para tipado, no afecta el formatter
+  searchFields={["sucursal_id", "nombre"]}
+  placeholder="Buscar por ID o nombre..."
+  onResultsChange={(results) => {
+    setBranchesFiltered(results);
+    if (results.length > 0) setAlert(null);
+  }}
+  onSelect={(item) => setBranchesFiltered([item])}
+  onNotFound={(q) => {
+    if (!q || q.trim() === "") {
+      setAlert({
+        type: "error",
+        message: "Por favor digite un ID o nombre para buscar.",
+      });
+    } else {
+      setBranchesFiltered([]);
+      setAlert({
+        type: "error",
+        message: `No existe ninguna sucursal con el ID o nombre "${q}".`,
+      });
+    }
+  }}
+  onClearAlert={() => setAlert(null)}
+  resultFormatter={(item) => `${item.sucursal_id} - ${item.nombre}`} // ✅ muestra ID + nombre
+/>
+
                 </div>
 
                 <Button

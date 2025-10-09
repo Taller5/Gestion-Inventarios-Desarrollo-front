@@ -522,6 +522,17 @@ setFacturaModal(false);
     }
   };
 
+  const [loadingFactura, setLoadingFactura] = useState(false);
+
+useEffect(() => {
+  if (loadingFactura && facturaCreada?.id) {
+    // ⚡ Solo genera factura cuando ya existe la id
+    invoiceRef.current?.generarFactura();
+    setLoadingFactura(false);
+  }
+}, [facturaCreada, loadingFactura]);
+
+
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
       <Container
@@ -644,80 +655,80 @@ setFacturaModal(false);
                   )}
                 </div>
 
-                {/* Navegador de productos */}
-                <div className="shadow-md rounded-lg p-4 mb-6">
-                  <h2 className="text-lg font-bold mb-2">Productos</h2>
+              {/* Navegador de productos */}
+<div className="shadow-md rounded-lg p-4 mb-6">
+  <h2 className="text-lg font-bold mb-2">Productos</h2>
 
-                  {/* Input con lupa */}
-                  <div className="relative mb-2">
-                    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
-                    <input
-                      type="text"
-                      placeholder="Buscar producto por código o nombre..."
-                      className="border rounded pl-10 pr-3 py-2 w-full"
-                      value={queryProducto}
-                      onChange={(e) => setQueryProducto(e.target.value)}
-                    />
-                  </div>
+  {/* Input con lupa */}
+  <div className="relative mb-2">
+    <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
+    <input
+      type="text"
+      placeholder="Buscar producto por código o nombre..."
+      className="border rounded pl-10 pr-3 py-2 w-full"
+      value={queryProducto}
+      onChange={(e) => setQueryProducto(e.target.value)}
+    />
+  </div>
 
-                  {/* Mostrar dropdown solo si se está digitando un código */}
-                  {queryProducto && /^\d+$/.test(queryProducto) && (
-                    <div className="max-h-40 overflow-y-auto border rounded bg-white">
-                      {productosFiltrados.map((producto) => {
-                        const getAvailableStock = (codigo: string) => {
-                          const itemEnCarrito = carrito.find(
-                            (i) => i.producto.codigo_producto === codigo
-                          );
-                          return (
-                            (producto.stock ?? 0) -
-                            (itemEnCarrito?.cantidad ?? 0)
-                          );
-                        };
-                        const stockDisponible = getAvailableStock(
-                          producto.codigo_producto
-                        );
+  {/* Mostrar dropdown solo si hay texto en el input */}
+  {queryProducto && (
+    <div className="max-h-40 overflow-y-auto border rounded bg-white">
+      {productos
+        .filter((producto) => {
+          const q = queryProducto.toLowerCase();
+          return (
+            producto.codigo_producto.toLowerCase().includes(q) ||
+            producto.nombre_producto.toLowerCase().includes(q)
+          );
+        })
+        .map((producto) => {
+          const getAvailableStock = (codigo: string) => {
+            const itemEnCarrito = carrito.find(
+              (i) => i.producto.codigo_producto === codigo
+            );
+            return (producto.stock ?? 0) - (itemEnCarrito?.cantidad ?? 0);
+          };
+          const stockDisponible = getAvailableStock(producto.codigo_producto);
 
-                        return (
-                          <div
-                            key={producto.codigo_producto}
-                            className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-ultra-claro ${
-                              productoSeleccionado?.codigo_producto ===
-                              producto.codigo_producto
-                                ? "bg-white font-bold"
-                                : ""
-                            }`}
-                            onClick={() => {
-                              setProductoSeleccionado(producto);
-                              setQueryProducto(""); // 🚀 Limpiar input al seleccionar
-                            }}
-                          >
-                            <div className="flex-1">
-                              <span>{producto.nombre_producto}</span>{" "}
-                              <span className="text-gray-500">
-                                ({producto.codigo_producto})
-                              </span>
-                            </div>
+          return (
+            <div
+              key={producto.codigo_producto}
+              className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-ultra-claro ${
+                productoSeleccionado?.codigo_producto === producto.codigo_producto
+                  ? "bg-white font-bold"
+                  : ""
+              }`}
+              onClick={() => {
+                setProductoSeleccionado(producto);
+                setQueryProducto(""); // Limpiar input al seleccionar
+              }}
+            >
+              <div className="flex-1">
+                <span>{producto.nombre_producto}</span>{" "}
+                <span className="text-gray-500">({producto.codigo_producto})</span>
+              </div>
 
-                            <div
-                              className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
-                                stockDisponible > 0
-                                  ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                                  : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-                              }`}
-                            >
-                              Stock: {stockDisponible}
-                            </div>
+              <div
+                className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
+                  stockDisponible > 0
+                    ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                    : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+                }`}
+              >
+                Stock: {stockDisponible}
+              </div>
 
-                            <Button
-                              style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
-                              onClick={() => setModalOpen(true)}
-                              disabled={stockDisponible <= 0}
-                            >
-                              <IoAddCircle className="mr-1" /> Añadir
-                            </Button>
-                          </div>
-                        );
-                      })}
+              <Button
+                style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
+                onClick={() => setModalOpen(true)}
+                disabled={stockDisponible <= 0}
+              >
+                <IoAddCircle className="mr-1" /> Añadir
+              </Button>
+            </div>
+          );
+        })}
 
                       {productosFiltrados.length === 0 && (
                         <p className="px-4 py-2 text-rojo-claro text-sm">
@@ -1297,7 +1308,7 @@ setFacturaModal(false);
                           {/* VUELTO */}
                           {mostrarVuelto && (
                             <div className="mt-4 text-2xl font-extrabold text-verde-claro">
-                              <strong>Vuelto:</strong> ₡{vuelto}
+                                     <strong>Vuelto:</strong> ₡{vuelto.toFixed(2)}
                             </div>
                           )}
                         </div>

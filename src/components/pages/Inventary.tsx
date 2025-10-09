@@ -22,8 +22,8 @@ type Warehouse = {
   codigo: string;
   sucursal_id: number;
   branch: {
-  nombre: string;
-  business: {
+    nombre: string;
+    business: {
       nombre_comercial: string;
     };
   };
@@ -41,7 +41,7 @@ type Producto = {
   precio_venta: number;
   bodega_id: string;
   codigo_cabys?: string;
-  impuesto?: number; 
+  impuesto?: number;
   unit_id?: string; // unidad de medida (ej: 'kg', 'unidad')
 };
 
@@ -78,11 +78,10 @@ type Provider = {
   products: { id: number; nombre: string }[];
 };
 
-
 type Unit = {
-  id: number; 
-  unidMedida: string; 
-  descripcion: string; 
+  id: number;
+  unidMedida: string;
+  descripcion: string;
 };
 
 // Catálogo CABYS
@@ -224,7 +223,8 @@ export default function Inventary() {
       return stored ? JSON.parse(stored) : null;
     }
   );
-  const [hasSearched, setHasSearched] = useState(false);
+  const [_hasSearched, _setHasSearched] = useState(false);
+
   // Lista de negocios únicos extraídos de las bodegas
   const [businesses, setBusinesses] = useState<Business[]>([]);
 
@@ -246,7 +246,7 @@ export default function Inventary() {
 
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
 
-   // unidades de medida
+  // unidades de medida
   const [units, setUnits] = useState<Unit[]>([]);
   useEffect(() => {
     // Intentar cargar unidades; si falla no bloquea el formulario
@@ -264,15 +264,23 @@ export default function Inventary() {
   const [cabysModalOpen, setCabysModalOpen] = useState(false);
   const [cabysLoading, setCabysLoading] = useState(false);
   const [cabysError, setCabysError] = useState<string | null>(null);
-  const [cabysLoadProgress, setCabysLoadProgress] = useState<{loaded:number; total:number}>({loaded:0,total:0});
-  const [cabysPageInfo, setCabysPageInfo] = useState<{page:number; last:number}>({page:0,last:0});
-  const [cabysSearchResults, setCabysSearchResults] = useState<CabysItem[] | null>(null);
+  const [cabysLoadProgress, setCabysLoadProgress] = useState<{
+    loaded: number;
+    total: number;
+  }>({ loaded: 0, total: 0 });
+  const [cabysPageInfo, setCabysPageInfo] = useState<{
+    page: number;
+    last: number;
+  }>({ page: 0, last: 0 });
+  const [cabysSearchResults, setCabysSearchResults] = useState<
+    CabysItem[] | null
+  >(null);
   const [searchBarResetKey, setSearchBarResetKey] = useState(0);
   // --- Configuración y caché CABYS (optimizada para catálogo estático) ---
   const AUTO_PRELOAD_CABYS = true; // activa precarga
-  const CABYS_CACHE_KEY_ITEMS = 'cabys_items_v1'; // catálogo completo
-  const CABYS_CACHE_KEY_CATEGORIES = 'cabys_categories_v1';
-  const CABYS_CACHE_KEY_ITEMS_SLIM = 'cabys_items_v1_slim2'; // nueva versión incremental
+  const CABYS_CACHE_KEY_ITEMS = "cabys_items_v1"; // catálogo completo
+  const CABYS_CACHE_KEY_CATEGORIES = "cabys_categories_v1";
+  const CABYS_CACHE_KEY_ITEMS_SLIM = "cabys_items_v1_slim2"; // nueva versión incremental
   const CABYS_CACHE_TTL_MS = Infinity; // catálogos estáticos: nunca expiran automáticamente
   const CABYS_REFRESH_IN_BG = false; // sin refresco silencioso (evita peticiones redundantes)
 
@@ -298,21 +306,22 @@ export default function Inventary() {
   })();
   const initialItems: CabysItem[] = (() => {
     if (initialItemsMeta?.data && Array.isArray(initialItemsMeta.data)) {
-      return initialItemsMeta.data.map((t: any) => (
-        Array.isArray(t)
-          ? { code: t[0], description: t[1], tax_rate: t[2] }
-          : t // soporte legacy full
-      ));
+      return initialItemsMeta.data.map((t: any) =>
+        Array.isArray(t) ? { code: t[0], description: t[1], tax_rate: t[2] } : t // soporte legacy full
+      );
     }
     return [];
   })();
   const initialItemsComplete: boolean = !!initialItemsMeta?.complete || false;
 
-  const [cabysCategories, setCabysCategories] = useState<CabysCategory[]>(initialCategories);
+  const [cabysCategories, setCabysCategories] =
+    useState<CabysCategory[]>(initialCategories);
   const [cabysItems, setCabysItems] = useState<CabysItem[]>(initialItems);
   const USING_CABYS_CACHE = initialItems.length > 0;
   useEffect(() => {
-    console.info(`[CABYS] Inicialización: categorias=${initialCategories.length} items=${initialItems.length} cacheItems=${USING_CABYS_CACHE}`);
+    console.info(
+      `[CABYS] Inicialización: categorias=${initialCategories.length} items=${initialItems.length} cacheItems=${USING_CABYS_CACHE}`
+    );
   }, []);
 
   // Refs para evitar doble carga por StrictMode (montar/desmontar en dev)
@@ -329,7 +338,7 @@ export default function Inventary() {
       if (m) code = m[1];
     }
     const description =
-      raw.label || 
+      raw.label ||
       raw.description ||
       raw.descripcion ||
       raw.name ||
@@ -355,24 +364,25 @@ export default function Inventary() {
       const raw = localStorage.getItem(key);
       if (!raw) return null;
       const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== 'object') return null;
+      if (!parsed || typeof parsed !== "object") return null;
       if (Date.now() - (parsed.ts || 0) > CABYS_CACHE_TTL_MS) return null;
       return parsed.data as T;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   };
 
   const saveCache = (key: string, data: any) => {
     try {
       localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
-    } catch (e) {
-    }
+    } catch (e) {}
   };
 
   // Carga de categorías CABYS (solo si no están en caché / memoria)
   useEffect(() => {
-  if (cabysCategories.length) return; // ya cargadas
-  if (cabysCategoriesLoadStarted.current) return; // prevenimos doble fetch StrictMode
-  cabysCategoriesLoadStarted.current = true;
+    if (cabysCategories.length) return; // ya cargadas
+    if (cabysCategoriesLoadStarted.current) return; // prevenimos doble fetch StrictMode
+    cabysCategoriesLoadStarted.current = true;
     if (!AUTO_PRELOAD_CABYS && !cabysModalOpen) return; // esperar apertura de modal
 
     // Intentar caché primero
@@ -387,21 +397,26 @@ export default function Inventary() {
       .then((data) => {
         if (Array.isArray(data) && data.length) {
           const norm = data.map(normalizeCategory);
-            setCabysCategories(norm);
-            saveCache(CABYS_CACHE_KEY_CATEGORIES, norm);
-           console.info(`[CABYS] Categorías cargadas desde red: ${norm.length}`);
+          setCabysCategories(norm);
+          saveCache(CABYS_CACHE_KEY_CATEGORIES, norm);
+          console.info(`[CABYS] Categorías cargadas desde red: ${norm.length}`);
         }
       })
-      .catch(() => {/* silencioso */});
+      .catch(() => {
+        /* silencioso */
+      });
   }, [cabysModalOpen, cabysCategories.length]);
   // Opciones por nivel
-  const cat1Options = useMemo(() => cabysCategories.filter((c) => c.level === 1), [cabysCategories]);
+  const cat1Options = useMemo(
+    () => cabysCategories.filter((c) => c.level === 1),
+    [cabysCategories]
+  );
 
   // Carga de items CABYS (solo si no están en caché / memoria)
   useEffect(() => {
-  if (cabysItems.length && cabysItemsCompleteRef.current) return; // ya cargados completos
-  if (cabysItemsLoadStarted.current) return; // evitar doble fetch StrictMode
-  cabysItemsLoadStarted.current = true;
+    if (cabysItems.length && cabysItemsCompleteRef.current) return; // ya cargados completos
+    if (cabysItemsLoadStarted.current) return; // evitar doble fetch StrictMode
+    cabysItemsLoadStarted.current = true;
     if (!AUTO_PRELOAD_CABYS && !cabysModalOpen) return; // espera apertura de modal
     const abort = new AbortController();
     (async () => {
@@ -412,41 +427,62 @@ export default function Inventary() {
       // Intentar caché primero
       // Si ya tiene items (aunque incompletos), continuamos sumando (resumen incremental)
       if (cabysItems.length && !cabysItemsCompleteRef.current) {
-        console.info('[CABYS] Reanudando descarga incremental desde caché parcial');
+        console.info(
+          "[CABYS] Reanudando descarga incremental desde caché parcial"
+        );
       }
 
       setCabysLoading(true);
-      setCabysLoadProgress({loaded:0,total:0});
-      setCabysPageInfo({page:0,last:0});
+      setCabysLoadProgress({ loaded: 0, total: 0 });
+      setCabysPageInfo({ page: 0, last: 0 });
       let all: CabysItem[] = [];
       if (cabysItems.length) all = [...cabysItems];
       try {
         let page = 1;
         let lastPage = 1;
-        console.info('[CABYS] Comenzando descarga completa de items (no cache)');
+        console.info(
+          "[CABYS] Comenzando descarga completa de items (no cache)"
+        );
         do {
           const url = `${API_URL}/api/v1/cabys?page=${page}`;
           const r = await fetch(url, { signal: abort.signal });
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const data: any = await r.json();
           let list: any[] | null = null;
-          if (Array.isArray(data)) list = data; else if (Array.isArray(data.data)) list = data.data; else if (Array.isArray(data.items)) list = data.items; else if (Array.isArray(data.results)) list = data.results;
+          if (Array.isArray(data)) list = data;
+          else if (Array.isArray(data.data)) list = data.data;
+          else if (Array.isArray(data.items)) list = data.items;
+          else if (Array.isArray(data.results)) list = data.results;
           if (!list) {
             for (const k of Object.keys(data)) {
               const v = data[k];
-              if (Array.isArray(v) && v.length && (v[0].code !== undefined || v[0].codigo !== undefined)) { list = v; break; }
+              if (
+                Array.isArray(v) &&
+                v.length &&
+                (v[0].code !== undefined || v[0].codigo !== undefined)
+              ) {
+                list = v;
+                break;
+              }
             }
           }
           if (!list) break;
-          lastPage = Number(data.last_page || data.total_pages || lastPage || 1);
+          lastPage = Number(
+            data.last_page || data.total_pages || lastPage || 1
+          );
           const normalized = list.map((raw: any) => {
             let codeStr = String(raw.code ?? raw.codigo ?? "");
             if (/^\d+$/.test(codeStr) && codeStr.length < CABYS_CODE_LENGTH) {
-              codeStr = codeStr.padStart(CABYS_CODE_LENGTH, '0');
+              codeStr = codeStr.padStart(CABYS_CODE_LENGTH, "0");
             }
             return {
               code: codeStr,
-              description: raw.description || raw.descripcion || raw.name || raw.nombre || "(Sin descripción)",
+              description:
+                raw.description ||
+                raw.descripcion ||
+                raw.name ||
+                raw.nombre ||
+                "(Sin descripción)",
               tax_rate: Number(raw.tax_rate ?? raw.tax ?? raw.impuesto ?? 0),
               category_main: raw.category_main || raw.category1,
               category_main_name: raw.category_main_name || raw.category1_name,
@@ -457,29 +493,41 @@ export default function Inventary() {
           });
           all = all.concat(normalized);
           const totalCalc = lastPage * (data.per_page || normalized.length);
-          setCabysLoadProgress({loaded: all.length, total: totalCalc});
-          setCabysPageInfo({page, last: lastPage});
+          setCabysLoadProgress({ loaded: all.length, total: totalCalc });
+          setCabysPageInfo({ page, last: lastPage });
           page++;
           if (page > lastPage) break;
-          if (all.length >= HARD_LIMIT_ITEMS) { console.warn('[CABYS] Se alcanzó HARD_LIMIT_ITEMS, truncando.'); break; }
-        } while(true);
+          if (all.length >= HARD_LIMIT_ITEMS) {
+            console.warn("[CABYS] Se alcanzó HARD_LIMIT_ITEMS, truncando.");
+            break;
+          }
+        } while (true);
         if (!abort.signal.aborted && all.length) {
           setCabysItems(all);
           const complete = page > lastPage;
           cabysItemsCompleteRef.current = complete;
           try {
-            const slim = all.map(i => [i.code, i.description, i.tax_rate]);
-            const slimPayload = JSON.stringify({ ts: Date.now(), data: slim, complete });
+            const slim = all.map((i) => [i.code, i.description, i.tax_rate]);
+            const slimPayload = JSON.stringify({
+              ts: Date.now(),
+              data: slim,
+              complete,
+            });
             localStorage.setItem(CABYS_CACHE_KEY_ITEMS_SLIM, slimPayload);
-            console.info(`[CABYS] Items cacheados incremental (${all.length}) complete=${complete}`);
+            console.info(
+              `[CABYS] Items cacheados incremental (${all.length}) complete=${complete}`
+            );
           } catch (e) {
-            console.warn('[CABYS] No se pudo guardar progreso CABYS (quota?)', e);
+            console.warn(
+              "[CABYS] No se pudo guardar progreso CABYS (quota?)",
+              e
+            );
           }
         }
       } catch (e) {
-        if (!(e instanceof DOMException && e.name === 'AbortError')) {
-          console.error('[CABYS] Error carga paginada', e);
-          setCabysError('Error cargando CABYS');
+        if (!(e instanceof DOMException && e.name === "AbortError")) {
+          console.error("[CABYS] Error carga paginada", e);
+          setCabysError("Error cargando CABYS");
         }
       } finally {
         if (!abort.signal.aborted) setCabysLoading(false);
@@ -488,7 +536,7 @@ export default function Inventary() {
     return () => abort.abort();
   }, [cabysModalOpen, cabysItems.length]);
 
-  // Filtrado base sólo por categorías seleccionadas 
+  // Filtrado base sólo por categorías seleccionadas
   const baseCabysFiltered = useMemo(() => {
     return cabysItems.filter((i: CabysItem) => {
       // Filtro por código prefijo según categoría principal seleccionada (id "0" -> códigos que inician con "0")
@@ -501,7 +549,7 @@ export default function Inventary() {
 
   const cabysSearchDataset = useMemo(() => {
     const map: Record<string, CabysItem> = {};
-    const extended = baseCabysFiltered.map(item => {
+    const extended = baseCabysFiltered.map((item) => {
       const codeNorm = String(item.code).trim();
       map[codeNorm] = item;
       if (!item._combo) {
@@ -535,19 +583,17 @@ export default function Inventary() {
       );
     }
 
-    if (!selectedBusiness && !categorySearchMain) {
-      setBaseProducts([]);
-    } else {
-      setBaseProducts(productosAgrupados);
-    }
+    setBaseProducts(productosAgrupados);
 
-    // 🔹 reset búsqueda cuando cambian filtros base
-    setSearchedProducts([]);
+    // ❌ NO borrar los resultados de búsqueda, mantener input
+    // setSearchedProducts([]);
   }, [productos, selectedBusiness, categorySearchMain, warehouses]);
 
   // decide qué mostrar en la tabla
-  const finalProducts =
-    searchedProducts.length > 0 ? searchedProducts : baseProducts;
+  const finalProducts = useMemo(() => {
+    // si hay búsqueda activa en el input, usamos esos resultados
+    return searchedProducts.length > 0 ? searchedProducts : baseProducts;
+  }, [searchedProducts, baseProducts]);
 
   const [productsFiltered, setProductsFiltered] = useState<Producto[]>([]);
 
@@ -955,29 +1001,28 @@ export default function Inventary() {
                     <div className="flex items-center gap-3 w-full mt-auto">
                       <div className="flex-1">
                         <SearchBar<Producto>
-                          data={baseProducts}
+                          data={baseProducts} // base filtrada por negocio y categoría
                           displayField="codigo_producto"
                           searchFields={["codigo_producto", "nombre_producto"]}
                           placeholder="Buscar por código o nombre..."
                           onResultsChange={(results) => {
                             setSearchedProducts(results);
 
-                            if (hasSearched) {
-                              // ⚠️ solo mostrar alerta si ya se buscó
-                              if (results.length === 0) {
-                                setAlert({
-                                  type: "error",
-                                  message:
-                                    "No existe ningún producto con ese código o nombre.",
-                                });
-                              } else {
-                                setAlert(null);
-                              }
+                            if (
+                              results.length === 0 &&
+                              finalProducts.length > 0
+                            ) {
+                              setAlert({
+                                type: "error",
+                                message:
+                                  "No existe ningún producto con ese código o nombre.",
+                              });
+                            } else {
+                              setAlert(null);
                             }
                           }}
                           onSelect={(item) => setSearchedProducts([item])}
                           onNotFound={(query) => {
-                            setHasSearched(true); // ⚡ marca que se hizo búsqueda
                             if (!query || query.trim() === "") {
                               setAlert({
                                 type: "error",
@@ -993,6 +1038,9 @@ export default function Inventary() {
                             }
                           }}
                           onClearAlert={() => setAlert(null)}
+                          resultFormatter={(item) =>
+                            `${item.codigo_producto} - ${item.nombre_producto}`
+                          }
                         />
                       </div>
 
@@ -1925,9 +1973,15 @@ export default function Inventary() {
                               placeholder="Seleccione una categoría"
                               isSearchable
                               isClearable
+                              menuPosition="fixed"
+                              menuPortalTarget={document.body}
                               styles={{
-                                menu: (provided) => ({
-                                  ...provided,
+                                menuPortal: (base) => ({
+                                  ...base,
+                                  zIndex: 9999,
+                                }),
+                                menuList: (base) => ({
+                                  ...base,
                                   maxHeight: 200,
                                   overflowY: "auto",
                                 }),
@@ -2014,7 +2068,7 @@ export default function Inventary() {
                               propio.
                             </p>
                           </label>
-                             <label className="font-semibold">
+                          <label className="font-semibold">
                             Código CABYS
                             <div className="relative flex items-center">
                               <input
@@ -2043,20 +2097,44 @@ export default function Inventary() {
                                   setCabysModalOpen(true);
                                 }}
                                 className="absolute right-2 text-azul-medio hover:text-azul-hover transition disabled:opacity-50"
-                                title={cabysLoading ? "Cargando catálogo..." : "Buscar en catálogo CABYS"}
-                                disabled={cabysLoading && cabysItems.length === 0}
+                                title={
+                                  cabysLoading
+                                    ? "Cargando catálogo..."
+                                    : "Buscar en catálogo CABYS"
+                                }
+                                disabled={
+                                  cabysLoading && cabysItems.length === 0
+                                }
                               >
                                 {cabysLoading && cabysItems.length === 0 ? (
-                                  <svg className="animate-spin h-5 w-5 text-azul-medio" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                  <svg
+                                    className="animate-spin h-5 w-5 text-azul-medio"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <circle
+                                      className="opacity-25"
+                                      cx="12"
+                                      cy="12"
+                                      r="10"
+                                      stroke="currentColor"
+                                      strokeWidth="4"
+                                    ></circle>
+                                    <path
+                                      className="opacity-75"
+                                      fill="currentColor"
+                                      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                                    ></path>
                                   </svg>
                                 ) : (
                                   <FaSearch />
                                 )}
                               </button>
                             </div>
-                            <p className="text-gray-500 text-sm mt-1">Usa la lupa para abrir el catálogo.</p>
+                            <p className="text-gray-500 text-sm mt-1">
+                              Usa la lupa para abrir el catálogo.
+                            </p>
                           </label>
                           <label className="font-semibold">
                             Impuesto (%):
@@ -2092,12 +2170,16 @@ export default function Inventary() {
                               <option value="">Seleccione una unidad</option>
                               {units.map((u) => (
                                 <option key={u.id} value={u.id}>
-                                  {u.unidMedida} {u.descripcion ? `(${u.descripcion})` : ""}
+                                  {u.unidMedida}{" "}
+                                  {u.descripcion ? `(${u.descripcion})` : ""}
                                 </option>
                               ))}
                             </select>
                             {units.length === 0 && (
-                              <p className="text-xs text-gray-500 mt-1">No se cargaron unidades (verifique el endpoint /units).</p>
+                              <p className="text-xs text-gray-500 mt-1">
+                                No se cargaron unidades (verifique el endpoint
+                                /units).
+                              </p>
                             )}
                           </label>
 
@@ -2330,9 +2412,14 @@ export default function Inventary() {
                                 setFormLote((f) => {
                                   const nuevaEntrada = e.target.value;
                                   // Si al cambiar entrada las otras fechas ahora son válidas, limpiar error
-                                  const salidaOk = !f.fecha_salida_lote || f.fecha_salida_lote >= nuevaEntrada;
-                                  const vencOk = !f.fecha_vencimiento || f.fecha_vencimiento >= nuevaEntrada;
-                                  if (salidaOk && vencOk) setLoteDateError(null);
+                                  const salidaOk =
+                                    !f.fecha_salida_lote ||
+                                    f.fecha_salida_lote >= nuevaEntrada;
+                                  const vencOk =
+                                    !f.fecha_vencimiento ||
+                                    f.fecha_vencimiento >= nuevaEntrada;
+                                  if (salidaOk && vencOk)
+                                    setLoteDateError(null);
                                   return {
                                     ...f,
                                     fecha_entrada: nuevaEntrada,
@@ -2343,7 +2430,6 @@ export default function Inventary() {
                               className="w-full border rounded-lg px-3 py-2"
                               required
                             />
-
                           </label>
                           <label className="font-semibold">
                             Fecha de salida de bodega
@@ -2356,15 +2442,26 @@ export default function Inventary() {
                                 // si el usuario limpia con el control nativo
                                 if (!nuevaFechaSalida) {
                                   setLoteDateError(null);
-                                  setFormLote(f => ({...f, fecha_salida_lote: ""}));
+                                  setFormLote((f) => ({
+                                    ...f,
+                                    fecha_salida_lote: "",
+                                  }));
                                   return;
                                 }
-                                if (formLote.fecha_entrada && nuevaFechaSalida < formLote.fecha_entrada) {
-                                  setLoteDateError("La fecha de salida no puede ser menor que la de entrada");
+                                if (
+                                  formLote.fecha_entrada &&
+                                  nuevaFechaSalida < formLote.fecha_entrada
+                                ) {
+                                  setLoteDateError(
+                                    "La fecha de salida no puede ser menor que la de entrada"
+                                  );
                                   return;
                                 }
                                 setLoteDateError(null);
-                                setFormLote(f => ({...f, fecha_salida_lote: nuevaFechaSalida }));
+                                setFormLote((f) => ({
+                                  ...f,
+                                  fecha_salida_lote: nuevaFechaSalida,
+                                }));
                               }}
                               placeholder="Fecha de salida"
                               className="w-full border rounded-lg px-3 py-2"
@@ -2408,12 +2505,21 @@ export default function Inventary() {
                               value={formLote.fecha_vencimiento}
                               onChange={(e) => {
                                 const nueva = e.target.value;
-                                if (formLote.fecha_entrada && nueva && nueva < formLote.fecha_entrada) {
-                                  setLoteDateError("La fecha de vencimiento no puede ser menor que la fecha de entrada");
+                                if (
+                                  formLote.fecha_entrada &&
+                                  nueva &&
+                                  nueva < formLote.fecha_entrada
+                                ) {
+                                  setLoteDateError(
+                                    "La fecha de vencimiento no puede ser menor que la fecha de entrada"
+                                  );
                                   return; // no actualiza
                                 }
                                 setLoteDateError(null);
-                                setFormLote(f => ({...f, fecha_vencimiento: nueva }));
+                                setFormLote((f) => ({
+                                  ...f,
+                                  fecha_vencimiento: nueva,
+                                }));
                               }}
                               placeholder="Fecha de vencimiento"
                               className="w-full border rounded-lg px-3 py-2"
@@ -2638,15 +2744,26 @@ export default function Inventary() {
                                   const salida = e.target.value;
                                   if (!salida) {
                                     setLoteDateError(null);
-                                    setFormLote(f => ({...f, fecha_salida_lote: ""}));
+                                    setFormLote((f) => ({
+                                      ...f,
+                                      fecha_salida_lote: "",
+                                    }));
                                     return;
                                   }
-                                  if (formLote.fecha_entrada && salida < formLote.fecha_entrada) {
-                                    setLoteDateError("La fecha de salida no puede ser menor que la fecha de entrada");
+                                  if (
+                                    formLote.fecha_entrada &&
+                                    salida < formLote.fecha_entrada
+                                  ) {
+                                    setLoteDateError(
+                                      "La fecha de salida no puede ser menor que la fecha de entrada"
+                                    );
                                     return;
                                   }
                                   setLoteDateError(null);
-                                  setFormLote(f => ({...f, fecha_salida_lote: salida }));
+                                  setFormLote((f) => ({
+                                    ...f,
+                                    fecha_salida_lote: salida,
+                                  }));
                                 }}
                                 placeholder="Fecha de salida"
                                 className="w-full border rounded-lg px-3 py-2"
@@ -2706,12 +2823,21 @@ export default function Inventary() {
                                 onChange={(e) => {
                                   if (!editMode) return;
                                   const nueva = e.target.value;
-                                  if (formLote.fecha_entrada && nueva && nueva < formLote.fecha_entrada) {
-                                    setLoteDateError("La fecha de vencimiento no puede ser menor que la fecha de entrada");
+                                  if (
+                                    formLote.fecha_entrada &&
+                                    nueva &&
+                                    nueva < formLote.fecha_entrada
+                                  ) {
+                                    setLoteDateError(
+                                      "La fecha de vencimiento no puede ser menor que la fecha de entrada"
+                                    );
                                     return;
                                   }
                                   setLoteDateError(null);
-                                  setFormLote(f => ({...f, fecha_vencimiento: nueva }));
+                                  setFormLote((f) => ({
+                                    ...f,
+                                    fecha_vencimiento: nueva,
+                                  }));
                                 }}
                                 placeholder="Fecha de vencimiento"
                                 className="w-full border rounded-lg px-3 py-2"
@@ -2763,7 +2889,7 @@ export default function Inventary() {
                       </form>
                     </SimpleModal>
                   )}
-                   {cabysModalOpen && (
+                {cabysModalOpen && (
                   <SimpleModal
                     open={true}
                     onClose={() => {
@@ -2776,11 +2902,15 @@ export default function Inventary() {
                     isWide
                   >
                     <div className="flex flex-col gap-4 relative bg-white rounded-2xl w-[100%] mx-auto overflow-y-auto p-8">
-                      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Catálogo CABYS</h2>
+                      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                        Catálogo CABYS
+                      </h2>
                       {/* Categoría principal arriba */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                         <label className=" flex flex-col md:col-span-1">
-                       <span className="text-sm mb-1 font-semibold text-gray-700">Categoría principal</span> 
+                          <span className="text-sm mb-1 font-semibold text-gray-700">
+                            Categoría principal
+                          </span>
                           <select
                             value={selectedCat1}
                             onChange={(e) => setSelectedCat1(e.target.value)}
@@ -2789,8 +2919,12 @@ export default function Inventary() {
                             <option value="">Todas</option>
                             {cat1Options.map((c) => {
                               const descTrim = (c.description || "").trim();
-                              const startsWithCode = descTrim.toLowerCase().startsWith(c.code.toLowerCase());
-                              const label = startsWithCode ? descTrim : `${c.code} - ${descTrim}`;
+                              const startsWithCode = descTrim
+                                .toLowerCase()
+                                .startsWith(c.code.toLowerCase());
+                              const label = startsWithCode
+                                ? descTrim
+                                : `${c.code} - ${descTrim}`;
                               return (
                                 <option key={c.code} value={c.code}>
                                   {label}
@@ -2804,7 +2938,9 @@ export default function Inventary() {
                       {/* Búsqueda */}
                       <div className="flex flex-col md:flex-row gap-3 md:items-end">
                         <div className="flex-1 flex flex-col">
-                          <span className="text-gray-500 text-sm my-1">Búsqueda (código o descripción)</span>
+                          <span className="text-gray-500 text-sm my-1">
+                            Búsqueda (código o descripción)
+                          </span>
                           <SearchBar<CabysItem>
                             key={searchBarResetKey}
                             data={cabysSearchDataset.extended}
@@ -2812,7 +2948,9 @@ export default function Inventary() {
                             searchFields={["code", "description", "_combo"]}
                             placeholder="Ej: 0101 o arroz"
                             numericPrefixStartsWith
-                            resultFormatter={(it) => `${it.code} - ${it.description}`}
+                            resultFormatter={(it) =>
+                              `${it.code} - ${it.description}`
+                            }
                             onResultsChange={(results) => {
                               if (results.length === baseCabysFiltered.length) {
                                 setCabysSearchResults(null);
@@ -2821,7 +2959,11 @@ export default function Inventary() {
                               }
                             }}
                             onSelect={(item) => {
-                              setFormProducto(prev => ({...prev, codigo_cabys: item.code, impuesto: item.tax_rate }));
+                              setFormProducto((prev) => ({
+                                ...prev,
+                                codigo_cabys: item.code,
+                                impuesto: item.tax_rate,
+                              }));
                             }}
                           />
                         </div>
@@ -2829,20 +2971,33 @@ export default function Inventary() {
                           {cabysLoading && (
                             <span>
                               Cargando CABYS
-                              {cabysLoadProgress.total>0 && ` ${cabysLoadProgress.loaded}/${cabysLoadProgress.total}`}
-                              {cabysPageInfo.last>1 && ` (página ${cabysPageInfo.page}/${cabysPageInfo.last})`}
+                              {cabysLoadProgress.total > 0 &&
+                                ` ${cabysLoadProgress.loaded}/${cabysLoadProgress.total}`}
+                              {cabysPageInfo.last > 1 &&
+                                ` (página ${cabysPageInfo.page}/${cabysPageInfo.last})`}
                             </span>
                           )}
-                          {!cabysLoading && cabysPageInfo.last>0 && cabysLoadProgress.loaded < cabysLoadProgress.total && (
-                            <span className="text-[10px] text-orange-600">Descarga truncada (seguridad). {cabysLoadProgress.loaded}/{cabysLoadProgress.total}</span>
-                          )}
+                          {!cabysLoading &&
+                            cabysPageInfo.last > 0 &&
+                            cabysLoadProgress.loaded <
+                              cabysLoadProgress.total && (
+                              <span className="text-[10px] text-orange-600">
+                                Descarga truncada (seguridad).{" "}
+                                {cabysLoadProgress.loaded}/
+                                {cabysLoadProgress.total}
+                              </span>
+                            )}
                           {cabysError && (
-                            <span className="text-rojo-oscuro">{cabysError}</span>
+                            <span className="text-rojo-oscuro">
+                              {cabysError}
+                            </span>
                           )}
                           {!cabysLoading && !cabysError && (
                             <span className="text-gray-500 text-sm">
-                              {(cabysSearchResults ?? baseCabysFiltered).length} resultado
-                              {(cabysSearchResults ?? baseCabysFiltered).length !== 1 && 's'}
+                              {(cabysSearchResults ?? baseCabysFiltered).length}{" "}
+                              resultado
+                              {(cabysSearchResults ?? baseCabysFiltered)
+                                .length !== 1 && "s"}
                             </span>
                           )}
                           <button
@@ -2851,8 +3006,12 @@ export default function Inventary() {
                             onClick={() => {
                               setSelectedCat1("");
                               setCabysSearchResults(null);
-                              setSearchBarResetKey(k => k + 1);
-                              setFormProducto(prev => ({...prev, codigo_cabys: "", impuesto: undefined }));
+                              setSearchBarResetKey((k) => k + 1);
+                              setFormProducto((prev) => ({
+                                ...prev,
+                                codigo_cabys: "",
+                                impuesto: undefined,
+                              }));
                             }}
                           >
                             Limpiar
@@ -2866,68 +3025,101 @@ export default function Inventary() {
                           <table className="min-w-full text-xs md:text-sm">
                             <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
                               <tr>
-                                <th className="px-3 py-2 text-left font-semibold w-32">CÓDIGO</th>
-                                <th className="px-3 py-2 text-left font-semibold">DESCRIPCIÓN DEL BIEN O SERVICIO</th>
-                                <th className="px-3 py-2 text-left font-semibold w-20">IMPUESTO</th>
-                                <th className="px-3 py-2 text-left font-semibold w-24">ACCIÓN</th>
+                                <th className="px-3 py-2 text-left font-semibold w-32">
+                                  CÓDIGO
+                                </th>
+                                <th className="px-3 py-2 text-left font-semibold">
+                                  DESCRIPCIÓN DEL BIEN O SERVICIO
+                                </th>
+                                <th className="px-3 py-2 text-left font-semibold w-20">
+                                  IMPUESTO
+                                </th>
+                                <th className="px-3 py-2 text-left font-semibold w-24">
+                                  ACCIÓN
+                                </th>
                               </tr>
                             </thead>
                             <tbody className="divide-y">
-                              {!cabysLoading && !cabysError && cabysItems.length === 0 && (
-                                <tr>
-                                  <td colSpan={4} className="px-3 py-6 text-center text-gray-500">
-                                    Catálogo vacío (0 registros). Ver consola para diagnóstico de respuesta.
-                                  </td>
-                                </tr>
-                              )}
-                              {(cabysSearchResults ?? baseCabysFiltered).length === 0 && !cabysLoading ? (
-                                <tr>
-                                  <td colSpan={4} className="px-3 py-6 text-center text-gray-500">Sin resultados</td>
-                                </tr>
-                              ) : (
-                                (cabysSearchResults ?? baseCabysFiltered).slice(0, 500).map((item) => (
-                                  <tr
-                                    key={item.code}
-                                    className="hover:bg-gray-50 cursor-pointer"
-                                    onClick={() => {
-                                      setFormProducto((f) => ({
-                                        ...f,
-                                        codigo_cabys: item.code,
-                                        impuesto: item.tax_rate ?? f.impuesto,
-                                      }));
-                                      setCabysModalOpen(false);
-                                      setCabysSearchResults(null);
-                                    }}
-                                  >
-                                    <td className="px-3 py-2 font-mono whitespace-nowrap">{item.code}</td>
-                                    <td className="px-3 py-2">{item.description}</td>
-                                    <td className="px-3 py-2">{item.tax_rate}%</td>
-                                    <td className="px-3 py-2">
-                                      <button
-                                        type="button"
-                                        className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold text-sm px-4 py-2 rounded-lg shadow-sm transition cursor-pointer"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setFormProducto((f) => ({
-                                            ...f,
-                                            codigo_cabys: item.code,
-                                            impuesto: item.tax_rate ?? f.impuesto,
-                                          }));
-                                          setCabysModalOpen(false);
-                                          setCabysSearchResults(null);
-                                        }}
-                                      >
-                                        Seleccionar
-                                      </button>
+                              {!cabysLoading &&
+                                !cabysError &&
+                                cabysItems.length === 0 && (
+                                  <tr>
+                                    <td
+                                      colSpan={4}
+                                      className="px-3 py-6 text-center text-gray-500"
+                                    >
+                                      Catálogo vacío (0 registros). Ver consola
+                                      para diagnóstico de respuesta.
                                     </td>
                                   </tr>
-                                ))
+                                )}
+                              {(cabysSearchResults ?? baseCabysFiltered)
+                                .length === 0 && !cabysLoading ? (
+                                <tr>
+                                  <td
+                                    colSpan={4}
+                                    className="px-3 py-6 text-center text-gray-500"
+                                  >
+                                    Sin resultados
+                                  </td>
+                                </tr>
+                              ) : (
+                                (cabysSearchResults ?? baseCabysFiltered)
+                                  .slice(0, 500)
+                                  .map((item) => (
+                                    <tr
+                                      key={item.code}
+                                      className="hover:bg-gray-50 cursor-pointer"
+                                      onClick={() => {
+                                        setFormProducto((f) => ({
+                                          ...f,
+                                          codigo_cabys: item.code,
+                                          impuesto: item.tax_rate ?? f.impuesto,
+                                        }));
+                                        setCabysModalOpen(false);
+                                        setCabysSearchResults(null);
+                                      }}
+                                    >
+                                      <td className="px-3 py-2 font-mono whitespace-nowrap">
+                                        {item.code}
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        {item.description}
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        {item.tax_rate}%
+                                      </td>
+                                      <td className="px-3 py-2">
+                                        <button
+                                          type="button"
+                                          className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold text-sm px-4 py-2 rounded-lg shadow-sm transition cursor-pointer"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setFormProducto((f) => ({
+                                              ...f,
+                                              codigo_cabys: item.code,
+                                              impuesto:
+                                                item.tax_rate ?? f.impuesto,
+                                            }));
+                                            setCabysModalOpen(false);
+                                            setCabysSearchResults(null);
+                                          }}
+                                        >
+                                          Seleccionar
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  ))
                               )}
                             </tbody>
                           </table>
                         </div>
-                        {(cabysSearchResults ?? baseCabysFiltered).length > 500 && (
-                          <p className="text-gray-500 text-sm px-3 py-2 bg-gray-50 border-t">Mostrando primeros 500 resultados. Refina la búsqueda.</p>
+                        {(cabysSearchResults ?? baseCabysFiltered).length >
+                          500 && (
+                          <p className="text-gray-500 text-sm px-3 py-2 bg-gray-50 border-t">
+                            Mostrando primeros 500 resultados. Refina la
+                            búsqueda.
+                          </p>
                         )}
                       </div>
                       {/* Botones */}
