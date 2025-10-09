@@ -13,6 +13,8 @@ interface SearchProps<T> {
   numericPrefixStartsWith?: boolean; //Si true y la query es numérica pura, se usa startsWith en lugar de includes 
   // Formateador opcional para mostrar cada item en la lista de resultados 
   resultFormatter?: (item: T) => string;
+  value?: string;
+  onInputChange?: (value: string) => void;
 }
 
 export function SearchBar<T extends Record<string, any>>({
@@ -26,8 +28,10 @@ export function SearchBar<T extends Record<string, any>>({
   onClearAlert,
   numericPrefixStartsWith,
   resultFormatter,
+  value,
+  onInputChange,
 }: SearchProps<T>) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(value ?? "");
   const [results, setResults] = useState<T[]>([]);
   const [open, setOpen] = useState(false); // <-- estado para controlar dropdown
   const containerRef = useRef<HTMLDivElement>(null);
@@ -111,13 +115,26 @@ export function SearchBar<T extends Record<string, any>>({
     };
   }, [onClearAlert]);
 
+  // Sincroniza el estado interno con el valor externo
+  useEffect(() => {
+    if (typeof value === "string" && value !== query) {
+      setQuery(value);
+    }
+  }, [value]);
+
+  // Cuando el usuario escribe, actualiza ambos estados
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setQuery(e.target.value);
+    onInputChange?.(e.target.value);
+  };
+
   return (
     <div ref={containerRef} className="w-full relative">
       <div className="flex border border-gray-300 rounded-md overflow-hidden">
         <input
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
           className="w-full px-3 py-2 focus:outline-none"

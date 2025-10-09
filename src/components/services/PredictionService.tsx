@@ -1,9 +1,5 @@
 import axios from 'axios';
-// La URL base de tu API de FastAPI
-//const API_URL = import.meta.env.VITE_API_URL;
 const API_IA_URL = import.meta.env.VITE_IA_URL;
-
-// --- Tipos de Datos ---
 
 /**
  * Define la estructura de los datos que el Frontend envía al API.
@@ -45,7 +41,7 @@ class PredictionService {
       }
       return response.data;
       
-    } catch (error) {
+    } catch (error: any) {
       // Manejo de errores de red/backend
       if (axios.isAxiosError(error)) {
         // Devuelve el detalle del error si lo proporciona FastAPI
