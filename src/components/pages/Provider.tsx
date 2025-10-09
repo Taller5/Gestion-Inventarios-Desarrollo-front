@@ -536,35 +536,35 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-                  <SearchBar<Provider>
-                    data={providers}
-                    displayField="id"
-                    searchFields={["id", "name", "contact"]}
-                    placeholder="Buscar por ID, nombre o contacto..."
-                    onResultsChange={(results) => {
-                      setProvidersFiltered(results);
-                      if (results.length > 0) setAlert(null);
-                    }}
-                    onSelect={(item) => setProvidersFiltered([item])}
-                    onNotFound={(q) => {
-                      if (!q || q.trim() === "") {
-                        setAlert({
-                          type: "error",
-                          message:
-                            "Por favor digite un ID, nombre o contacto para buscar.",
-                        });
-                      } else {
-                        setProvidersFiltered([]);
-                        setAlert({
-                          type: "error",
-                          message: `No existe ningún proveedor con el criterio "${q}".`,
-                        });
-                      }
-                    }}
-                    onClearAlert={() => {
-                      setAlert(null); // Quita la alerta
-                    }}
-                  />
+        <SearchBar<Provider>
+  data={providers}
+  displayField="name"   // lo que aparece en el input mientras escribes
+  searchFields={["id", "name", "contact"]} // campos que se buscan
+  placeholder="Buscar por ID, nombre o contacto..."
+  resultFormatter={(item) => `${item.id} - ${item.name}`} // ✅ muestra ID y nombre
+  onResultsChange={(results) => {
+    setProvidersFiltered(results);
+    if (results.length > 0) setAlert(null);
+  }}
+  onSelect={(item) => setProvidersFiltered([item])}
+  onNotFound={(q) => {
+    if (!q || q.trim() === "") {
+      setAlert({
+        type: "error",
+        message: "Por favor digite un ID, nombre o contacto para buscar.",
+      });
+    } else {
+      setProvidersFiltered([]);
+      setAlert({
+        type: "error",
+        message: `No existe ningún proveedor con el criterio "${q}".`,
+      });
+    }
+  }}
+  onClearAlert={() => setAlert(null)}
+/>
+
+
 
                   {alert && (
                     <div

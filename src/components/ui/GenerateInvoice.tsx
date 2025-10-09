@@ -59,6 +59,12 @@ const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>((pr
       doc.setFontSize(18);
       doc.text(`Factura #${numeroFactura}`, 105, y, { align: "center" });
       y += 10;
+      
+      const sistemaFactura = " de Facturación: Gestior";
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(18);
+      doc.text(`Sistema ${sistemaFactura}`, 105, y, { align: "center" });
+      y += 10;
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);

@@ -30,6 +30,7 @@ export const IAPrediction = () => {
     precio_de_venta_esperado: "",
     promocion_activa: "0",
   };
+
   const [formData, setFormData] = useState<IAFormState>(initialFormState);
   const [result, setResult] = useState<PredictionResponse | null>(null);
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -39,6 +40,8 @@ export const IAPrediction = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
+const [showDropdown, setShowDropdown] = useState(false); // Control del dropdown
+showDropdown; // <-- Esto evita el error de variable no usada
 
   // Cargar productos al inicio
   useEffect(() => {
@@ -47,16 +50,16 @@ export const IAPrediction = () => {
       .then((res) => res.json())
       .then((data) => {
         setAllProducts(data);
-        setFilteredProducts(data); 
+        setFilteredProducts(data);
       })
       .catch(() => {
         setAllProducts([]);
         setFilteredProducts([]);
       })
-      .finally(() => setProductsLoading(false)); 
+      .finally(() => setProductsLoading(false));
   }, []);
 
-  // Lógica de predicción que será llamada por el botón de consulta
+  // Manejo de la predicción
   const handlePrediction = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -64,7 +67,6 @@ export const IAPrediction = () => {
     setResult(null);
 
     try {
-      // 1. Conversión y validación de tipos
       const data: PredictionRequest = {
         id_products: parseInt(formData.id_products),
         fecha_prediccion: formData.fecha_prediccion,
@@ -72,14 +74,8 @@ export const IAPrediction = () => {
         promocion_activa: parseInt(formData.promocion_activa) as 0 | 1,
       };
 
-      if (
-        isNaN(data.id_products) ||
-        isNaN(data.precio_de_venta_esperado) ||
-        data.id_products <= 0
-      ) {
-        throw new Error(
-          "Por favor, introduce ID de producto y precio válidos."
-        );
+      if (isNaN(data.id_products) || isNaN(data.precio_de_venta_esperado) || data.id_products <= 0) {
+        throw new Error("Por favor, introduce ID de producto y precio válidos.");
       }
 
       const today = new Date();
@@ -87,17 +83,12 @@ export const IAPrediction = () => {
       today.setHours(0, 0, 0, 0);
       selectedDate.setHours(0, 0, 0, 0);
       if (selectedDate < today) {
-        setError(
-          "No puedes seleccionar una fecha anterior a hoy para la predicción."
-        );
+        setError("No puedes seleccionar una fecha anterior a hoy para la predicción.");
         setLoading(false);
         return;
       }
 
-      // 2. Llamada al Servicio
       const response = await PredictionService.getPrediction(data);
-
-      // 3. Resultado listo para mostrar
       setResult(response);
     } catch (err: any) {
       setError(err.message || "Error al obtener la predicción.");
@@ -106,29 +97,37 @@ export const IAPrediction = () => {
     }
   };
 
-  // Función llamada cuando el usuario selecciona un item del SearchBar
+  // Manejo de selección de producto
   const handleProductSelect = (product: any) => {
     if (!product.id) {
       alert("Error: El producto seleccionado no tiene un ID válido.");
       return;
     }
     setSelectedProduct(product);
-    setFormData((prev) => ({
-      ...prev,
-      id_products: String(product.id),
-    }));
-    setSearchQuery(product.nombre_producto); // muestra el nombre seleccionado en el input
+    setFormData((prev) => ({ ...prev, id_products: String(product.id) }));
+    setSearchQuery(product.nombre_producto);
+    setFilteredProducts([]);
+    setShowDropdown(false); // Cerrar dropdown al seleccionar
   };
 
-  // Lógica para el manejo de inputs
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+  // Manejo de input del SearchBar
+  const handleInputChange = (input: string) => {
+    setSearchQuery(input);
+
+    if (input.trim() === "") {
+      setFilteredProducts([]);
+      setShowDropdown(false);
+    } else {
+      const results = allProducts.filter((p) =>
+        [p.nombre_producto, p.codigo_producto, String(p.id)]
+          .some((field: string) => field.toLowerCase().includes(input.toLowerCase()))
+      );
+      setFilteredProducts(results);
+      setShowDropdown(results.length > 0);
+    }
   };
 
-  // Nueva función para reiniciar los campos
+  // Reiniciar campos
   const handleReset = () => {
     setFormData({
       ...initialFormState,
@@ -137,19 +136,27 @@ export const IAPrediction = () => {
     setResult(null);
     setError(undefined);
     setSelectedProduct(null);
-    setFilteredProducts(allProducts);
-    setSearchQuery(""); // limpia el input del SearchBar
+    setFilteredProducts([]);
+    setSearchQuery("");
+    setShowDropdown(false); // cerrar dropdown
   };
 
-  // Filtrar productos por nombre en el SearchBar
+  // Manejo de cambios de inputs
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Filtrar productos (callback para SearchBar)
   const handleProductSearch = (results: any[]) => {
     setFilteredProducts(results);
+    setShowDropdown(results.length > 0);
   };
 
   return (
-    <ProtectedRoute
-      allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}
-    >
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}>
       <Container
         page={
           <div className="p-6 bg-white shadow-xl rounded-xl max-w-4xl mx-auto my-10">
@@ -161,9 +168,7 @@ export const IAPrediction = () => {
               onClick={() => window.history.back()}
               style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-3 mb-4 cursor-pointer mr-20 rounded-lg flex items-center gap-2"
             >
-              <span className="whitespace-nowrap text-base">
-                Volver a Inventario
-              </span>
+              <span className="whitespace-nowrap text-base">Volver a Inventario</span>
             </Button>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -177,11 +182,8 @@ export const IAPrediction = () => {
                   Seleccione un producto:
                 </label>
 
-                {/* SearchBar para filtrar productos por nombre */}
                 {productsLoading ? (
-                  <div className="text-center text-gray-500">
-                    Cargando productos...
-                  </div>
+                  <div className="text-center text-gray-500">Cargando productos...</div>
                 ) : (
                   <SearchBar
                     data={filteredProducts}
@@ -194,18 +196,15 @@ export const IAPrediction = () => {
                       `${item.nombre_producto ?? "N/A"}, Codigo: ${item.codigo_producto}`
                     }
                     value={searchQuery}
-                    onInputChange={setSearchQuery}
+                    onInputChange={handleInputChange}
+                   
                   />
                 )}
 
-                {/* Mostrar el producto seleccionado */}
                 {selectedProduct && (
                   <div className="my-2 text-sm text-gray-600">
-                    <span className="font-semibold">
-                      Producto seleccionado:
-                    </span>{" "}
-                    {selectedProduct.nombre_producto} (ID:{" "}
-                    {selectedProduct.codigo_producto})
+                    <span className="font-semibold">Producto seleccionado:</span>{" "}
+                    {selectedProduct.nombre_producto} (ID: {selectedProduct.codigo_producto})
                   </div>
                 )}
 
@@ -217,7 +216,6 @@ export const IAPrediction = () => {
                   error={error}
                 />
 
-                {/* Botón de reiniciar campos */}
                 <button
                   type="button"
                   className="w-full py-2 mt-2 rounded-lg font-bold text-white shadow-md transition duration-150 bg-gray-400 hover:bg-gray-500 cursor-pointer"
@@ -237,26 +235,17 @@ export const IAPrediction = () => {
                 {loading && (
                   <div className="flex items-center justify-center h-full">
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-sky-500"></div>
-                    <p className="ml-3 text-azul-medio">
-                      Calculando demanda...
-                    </p>
+                    <p className="ml-3 text-azul-medio">Calculando demanda...</p>
                   </div>
                 )}
 
-                {error && !loading && (
-                  <AlertMessage type="error" message={error} />
-                )}
-
-                {result && !loading && !error && (
-                  <PredictionResult result={result} />
-                )}
+                {error && !loading && <AlertMessage type="error" message={error} />}
+                {result && !loading && !error && <PredictionResult result={result} />}
 
                 {!result && !loading && !error && (
                   <div className="text-center p-8 text-gray-400">
                     <FaChartLine size={48} className="mx-auto mb-2" />
-                    <p>
-                      Presiona "Consultar Predicción" para ver los resultados.
-                    </p>
+                    <p>Presiona "Consultar Predicción" para ver los resultados.</p>
                   </div>
                 )}
               </div>
@@ -270,34 +259,23 @@ export const IAPrediction = () => {
 
 export default IAPrediction;
 
-// -----------------------------------------------------------------
-// --- Sub-Componentes (Formulario, Resultado, Alerta) ---
-// -----------------------------------------------------------------
+// ---------------------------
+// --- Sub-Componentes
+// ---------------------------
 
 interface PredictionFormProps {
   formData: IAFormState;
-  handleChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => void;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   onSubmit: (e: React.FormEvent) => void;
   loading: boolean;
   error: string | undefined;
 }
 
-const PredictionForm: React.FC<PredictionFormProps> = ({
-  formData,
-  handleChange,
-  onSubmit,
-  loading,
-  error,
-}) => {
+const PredictionForm: React.FC<PredictionFormProps> = ({ formData, handleChange, onSubmit, loading, error }) => {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
-      {/* 2. FECHA DE PREDICCIÓN */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">
-          Fecha de Predicción:
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1 mt-4">Fecha de Predicción:</label>
         <input
           type="date"
           name="fecha_prediccion"
@@ -309,11 +287,8 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
         />
       </div>
 
-      {/* 3. PRECIO ESPERADO */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Precio Propuesto (₡):
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Precio Propuesto (₡):</label>
         <input
           type="number"
           name="precio_de_venta_esperado"
@@ -326,11 +301,8 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
         />
       </div>
 
-      {/* 4. Selector de Promoción */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Promoción Activa:
-        </label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">Promoción Activa:</label>
         <div className="flex gap-2">
           <button
             type="button"
@@ -340,9 +312,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
                 : "bg-white text-gray-700 border-gray-300"
             }`}
             onClick={() =>
-              handleChange({
-                target: { name: "promocion_activa", value: "1" },
-              } as any)
+              handleChange({ target: { name: "promocion_activa", value: "1" } } as any)
             }
           >
             Sí
@@ -355,9 +325,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
                 : "bg-white text-gray-700 border-gray-300"
             }`}
             onClick={() =>
-              handleChange({
-                target: { name: "promocion_activa", value: "0" },
-              } as any)
+              handleChange({ target: { name: "promocion_activa", value: "0" } } as any)
             }
           >
             No
@@ -365,20 +333,16 @@ const PredictionForm: React.FC<PredictionFormProps> = ({
         </div>
       </div>
 
-      {/* Mensaje de Error (Si lo hay) */}
       {error && (
         <div className="bg-rojo-ultra-claro text-rojo-claro border-rojo-oscuro px-4 py-2 rounded-lg text-sm font-semibold">
           Error: {error}
         </div>
       )}
 
-      {/* Botón de Envío */}
       <button
         type="submit"
         className={`w-full py-2 mt-4 rounded-lg font-bold text-white shadow-md transition duration-150 ${
-          loading
-            ? "bg-gray-400 cursor-not-allowed"
-            : "bg-azul-medio hover:bg-azul-hover cursor-pointer"
+          loading ? "bg-gray-400 cursor-not-allowed" : "bg-azul-medio hover:bg-azul-hover cursor-pointer"
         }`}
         disabled={loading}
       >
@@ -396,9 +360,7 @@ const PredictionResult: React.FC<PredictionResultProps> = ({ result }) => (
   <div className="p-6 bg-white rounded-lg border-2 border-verde-claro">
     <div className="flex items-center mb-4">
       <FaCheckCircle size={32} className="text-verde-claro mr-3" />
-      <h3 className="text-2xl font-bold text-verde-oscuro">
-        Predicción Finalizada
-      </h3>
+      <h3 className="text-2xl font-bold text-verde-oscuro">Predicción Finalizada</h3>
     </div>
     <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
       <p className="font-semibold">Producto ID:</p>
@@ -409,14 +371,9 @@ const PredictionResult: React.FC<PredictionResultProps> = ({ result }) => (
       <p>₡{result.precio_usado.toFixed(2)}</p>
     </div>
     <div className="mt-4 pt-3 border-t border-gray-200">
-      <p className="text-base font-semibold text-gray-800">
-        Cantidad Estimada:
-      </p>
+      <p className="text-base font-semibold text-gray-800">Cantidad Estimada:</p>
       <p className="text-5xl font-extrabold text-azul-medio mt-1">
-        {result.cantidad_vendida_estimada}{" "}
-        <span className="text-lg font-normal text-gray-500">
-          {result.unidad}
-        </span>
+        {result.cantidad_vendida_estimada} <span className="text-lg font-normal text-gray-500">{result.unidad}</span>
       </p>
     </div>
   </div>
@@ -436,11 +393,7 @@ const AlertMessage: React.FC<AlertMessageProps> = ({ type, message }) => (
     } border`}
     role="alert"
   >
-    {type === "error" ? (
-      <FaExclamationTriangle className="mr-3" />
-    ) : (
-      <FaCheckCircle className="mr-3" />
-    )}
+    {type === "error" ? <FaExclamationTriangle className="mr-3" /> : <FaCheckCircle className="mr-3" />}
     <span className="text-sm font-medium">{message}</span>
   </div>
 );
