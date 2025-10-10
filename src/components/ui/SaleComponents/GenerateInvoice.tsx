@@ -1,6 +1,6 @@
 import { useState, forwardRef, useImperativeHandle } from "react";
 import { jsPDF } from "jspdf";
-import Button from "./Button";
+import Button from "../Button";
 
 export interface GenerateInvoiceRef {
   generarFactura: () => void;

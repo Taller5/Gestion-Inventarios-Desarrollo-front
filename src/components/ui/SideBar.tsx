@@ -2,7 +2,7 @@ import React, { useState, useEffect, type JSX } from "react";
 import Button from "./Button";
 import {
   MdInventory,
-  MdAttachMoney,
+  MdSwapHoriz,
   MdPeople,
   MdPerson,
   MdBusiness,
@@ -78,8 +78,9 @@ export default function SideBar({ role }: SideBarProps) {
   );
   const btnRegistroIngresos = (
     <Button style={btnStyle} to="/finance">
-      <MdAttachMoney size={20} color="white" /> Registro de Ingresos
-    </Button>
+  <MdSwapHoriz size={28} color="white" />  Ingresos y egresos
+</Button>
+
   );
   const btnClientes = (
     <Button style={btnStyle} to="/customer">
@@ -153,10 +154,10 @@ export default function SideBar({ role }: SideBarProps) {
       "Administración de Productos": [
         btnInventario,
         btnProvider,
-        btnSalesPages,
+        btnRegistroIngresos,
       ],
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
-      Finanzas: [btnRegistroIngresos, btnCashRegisterPage],
+      Finanzas: [ btnSalesPages, btnCashRegisterPage],
       "Administración de Usuarios": [btnClientes, btnPersonal],
     };
   }

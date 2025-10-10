@@ -13,21 +13,14 @@ import { CgDetailsMore } from "react-icons/cg";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaSearch } from "react-icons/fa";
 import Select from "react-select";
+import ProductFilters from "../ui/InventaryComponents/ProductsFillter";
+import type { Warehouse, Business } from "../../types/inventario";
+import CategoryModals from "../ui/InventaryComponents/CategoryModals";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 //type bodega
-type Warehouse = {
-  bodega_id: number;
-  codigo: string;
-  sucursal_id: number;
-  branch: {
-    nombre: string;
-    business: {
-      nombre_comercial: string;
-    };
-  };
-};
+
 
 //type producto
 type Producto = {
@@ -45,17 +38,7 @@ type Producto = {
   unit_id?: string; // unidad de medida (ej: 'kg', 'unidad')
 };
 
-type Business = {
-  margen_ganancia: string;
-  negocio_id: number;
-  nombre_legal: string;
-  nombre_comercial: string;
-  tipo_identificacion: string;
-  numero_identificacion: string;
-  descripcion?: string | null;
-  telefono: string;
-  email: string;
-};
+
 //type lote
 type Lote = {
   lote_id: number;
@@ -585,7 +568,7 @@ export default function Inventary() {
 
     setBaseProducts(productosAgrupados);
 
-    // ❌ NO borrar los resultados de búsqueda, mantener input
+    // NO borrar los resultados de búsqueda, mantener input
     // setSearchedProducts([]);
   }, [productos, selectedBusiness, categorySearchMain, warehouses]);
 
@@ -698,6 +681,21 @@ export default function Inventary() {
       setCategoryLoadingForm(false);
     }
   };
+  const deleteCategory = async (nombre: string) => {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/categories/${encodeURIComponent(nombre)}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("No se pudo eliminar la categoría");
+
+    setCategories((prev) => prev.filter((c) => c.nombre !== nombre));
+  } catch {
+    setAlertMessage("No se pudo eliminar la categoría.");
+  } finally {
+    setCategoryToDelete(null);
+  }
+};
+
 
   // 1️ Cargar bodegas y extraer negocios únicos
   useEffect(() => {
@@ -886,6 +884,8 @@ export default function Inventary() {
       setProductsFiltered(productosAgrupados);
     }
   }, [productos, lotes, selectedBusiness, categorySearchMain, warehouses]);
+// Estado inicial del formulario
+
 
   return (
     <ProtectedRoute
@@ -903,198 +903,31 @@ export default function Inventary() {
                 {/* Barra de búsqueda y botones principales */}
                 <div className="flex flex-col sm:flex-row justify-between gap-10 mb-4 w-full">
                   {/* 🟦 Sección Izquierda: Filtros */}
-                  <div className="w-full sm:w-1/2 flex flex-col gap-6">
-                    {/* Selección de negocio */}
-                    <Select
-                      placeholder="Seleccione un negocio..."
-                      value={
-                        selectedBusiness
-                          ? {
-                              value: selectedBusiness.negocio_id,
-                              label: selectedBusiness.nombre_comercial,
-                            }
-                          : null
-                      }
-                      onChange={(option: any) => {
-                        if (!option) {
-                          setSelectedBusiness(null);
-                        } else {
-                          const business =
-                            businesses.find(
-                              (b) => b.negocio_id === option.value
-                            ) || null;
-                          setSelectedBusiness(business);
-                        }
-                      }}
-                      options={businesses.map((b) => ({
-                        value: b.negocio_id,
-                        label: b.nombre_comercial,
-                      }))}
-                      isClearable
-                      isLoading={businesses.length === 0}
-                    />
-
-                    {/* Mensaje si no hay negocio */}
-                    {!selectedBusiness && (
-                      <div className="p-4 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold">
-                        Por favor, seleccione un negocio para ver los productos.
-                      </div>
-                    )}
-
-                    {/* Selección de categoría */}
-                    <div>
-                      <h3 className="font-bold text-gray-700 mb-2">
-                        Categorías existentes
-                      </h3>
-                      <Select
-                        placeholder="Seleccione una categoría..."
-                        value={
-                          categorySearchMain
-                            ? {
-                                value: categorySearchMain,
-                                label: categorySearchMain,
-                              }
-                            : null
-                        }
-                        onChange={(option: any) => {
-                          if (!option) {
-                            setCategorySearchMain("");
-                          } else {
-                            setCategorySearchMain(option.value);
-                          }
-
-                          const filtered = productos.filter((p) => {
-                            const warehouse = warehouses.find(
-                              (w) => String(w.bodega_id) === String(p.bodega_id)
-                            );
-                            const b = warehouse?.branch.business as Business;
-
-                            if (
-                              selectedBusiness &&
-                              b?.negocio_id !== selectedBusiness?.negocio_id
-                            ) {
-                              return false;
-                            }
-
-                            if (option?.value) {
-                              return (
-                                p.categoria &&
-                                p.categoria.toLowerCase() ===
-                                  option.value.toLowerCase()
-                              );
-                            }
-                            return true;
-                          });
-
-                          setProductsFiltered(filtered);
-                        }}
-                        options={[...new Set(productos.map((p) => p.categoria))]
-                          .filter(Boolean)
-                          .map((c) => ({ value: c!, label: c! }))}
-                        isClearable
-                        isLoading={productos.length === 0}
+                
+                    <ProductFilters
+                        products={productos}
+                        warehouses={warehouses}
+                        businesses={businesses}
+                        selectedBusiness={selectedBusiness}
+                        setSelectedBusiness={setSelectedBusiness}
+                        categorySearchMain={categorySearchMain}
+                        setCategorySearchMain={setCategorySearchMain}
+                        searchedProducts={searchedProducts}
+                        setSearchedProducts={setSearchedProducts}
+                        productsFiltered={productsFiltered}
+                        setProductsFiltered={setProductsFiltered}
+                        setEditProductMode={setEditProductMode}
+                        setFormProducto={setFormProducto}
+                        setModalOpen={setModalOpen}
+                        alert={alert}                
+                        setAlert={setAlert}        
                       />
-                    </div>
-                  </div>
-                  {/* 🟩 Sección Derecha: Buscador y Botones */}
-                  <div className="w-full sm:w-1/2 flex flex-col gap-2 mr-10 h-full">
-                    <div className="flex items-center gap-3 w-full mt-auto">
-                      <div className="flex-1">
-                        <SearchBar<Producto>
-                          data={baseProducts} // base filtrada por negocio y categoría
-                          displayField="codigo_producto"
-                          searchFields={["codigo_producto", "nombre_producto"]}
-                          placeholder="Buscar por código o nombre..."
-                          onResultsChange={(results) => {
-                            setSearchedProducts(results);
 
-                            if (
-                              results.length === 0 &&
-                              finalProducts.length > 0
-                            ) {
-                              setAlert({
-                                type: "error",
-                                message:
-                                  "No existe ningún producto con ese código o nombre.",
-                              });
-                            } else {
-                              setAlert(null);
-                            }
-                          }}
-                          onSelect={(item) => setSearchedProducts([item])}
-                          onNotFound={(query) => {
-                            if (!query || query.trim() === "") {
-                              setAlert({
-                                type: "error",
-                                message:
-                                  "Por favor digite un código o nombre para buscar.",
-                              });
-                            } else {
-                              setSearchedProducts([]);
-                              setAlert({
-                                type: "error",
-                                message: `No existe ningún producto con el código o nombre "${query}".`,
-                              });
-                            }
-                          }}
-                          onClearAlert={() => setAlert(null)}
-                          resultFormatter={(item) =>
-                            `${item.codigo_producto} - ${item.nombre_producto}`
-                          }
-                        />
-                      </div>
 
-                      {/* Botones al lado */}
-                      <Button
-                        style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center"
-                        onClick={() => {
-                          setEditProductMode(false);
-                          setFormProducto({
-                            codigo_producto: "",
-                            nombre_producto: "",
-                            categoria: "",
-                            descripcion: "",
-                            stock: 0,
-                            precio_compra: 0,
-                            precio_venta: 0,
-                            bodega_id: "",
-                            codigo_cabys: "",
-                            impuesto: 0,
-                            unit_id: "",
-                          });
-                          setModalOpen("add-product");
-                        }}
-                      >
-                        <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                        <span className="whitespace-nowrap text-base">
-                          Agregar Producto
-                        </span>
-                      </Button>
-
-                      <Button
-                        to="/iaprediction"
-                        style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center gap-2"
-                      >
-                        <FaSearch />
-                        <span className="whitespace-nowrap text-base">
-                          Ver predicciones
-                        </span>
-                      </Button>
-                    </div>
-
-                    {alert && (
-                      <div
-                        className={`mt-2 px-4 py-2 rounded-lg text-center font-semibold ${
-                          alert.type === "success"
-                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                            : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-                        }`}
-                      >
-                        {alert.message}
-                      </div>
-                    )}
-                  </div>
+                
                 </div>
+            
+                  
 
                 {/* Tabla de productos agrupados */}
                 <div className="shadow-md rounded-lg max-h-[63vh] overflow-y-auto mb-10 mr-10">
@@ -1189,308 +1022,6 @@ export default function Inventary() {
                                   <IoAddCircle />
                                   Agregar lote
                                 </Button>
-
-                                {/* Modal de Agregar / Editar Categoría */}
-                                {categoryModalOpen && (
-                                  <SimpleModal
-                                    open={true}
-                                    onClose={() => {
-                                      setCategoryModalOpen(false);
-                                      setCategoryEditMode(false);
-                                    }}
-                                    className={`max-w-lg ${
-                                      categoryEditMode
-                                        ? "bg-orange-50"
-                                        : "bg-blue-50"
-                                    }`} // Diferencia visual entre agregar y editar
-                                    title={
-                                      categoryEditMode
-                                        ? "Editar Categoría"
-                                        : "Gestionar Categorías"
-                                    }
-                                  >
-                                    {/* BOTÓN DE CERRAR MODAL EN LA ESQUINA */}
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setCategoryModalOpen(false);
-                                        setCategoryEditMode(false);
-                                      }}
-                                      className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition cursor-pointer"
-                                    >
-                                      {/* SVG de X más gruesa */}
-                                      <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        className="h-6 w-6 text-[var(--color-rojo-oscuro)]"
-                                        fill="none"
-                                        viewBox="0 0 24 24"
-                                        stroke="currentColor"
-                                        strokeWidth={3} // 🔹 más grueso
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          d="M6 18L18 6M6 6l12 12"
-                                        />
-                                      </svg>
-                                    </button>
-
-                                    <form
-                                      onSubmit={(e) => {
-                                        e.preventDefault();
-
-                                        // Validar campos obligatorios
-                                        if (
-                                          !categoryForm.nombre.trim() ||
-                                          !categoryForm.descripcion?.trim()
-                                        ) {
-                                          setAlert({
-                                            type: "error",
-                                            message:
-                                              "Por favor, completa todos los campos antes de guardar.",
-                                          });
-                                          return;
-                                        }
-
-                                        saveCategory();
-                                      }}
-                                      className="relative bg-white rounded-2xl w-full p-8 overflow-y-auto"
-                                    >
-                                      {/* Selector de categorías con búsqueda */}
-                                      <div className="mb-4 ">
-                                        <h3 className="font-bold text-gray-700 mb-2">
-                                          Categorías existentes
-                                        </h3>
-
-                                        <input
-                                          type="text"
-                                          placeholder="Buscar categoría..."
-                                          value={categorySearchModal}
-                                          onChange={(e) =>
-                                            setCategorySearchModal(
-                                              e.target.value
-                                            )
-                                          }
-                                          className="w-full border rounded-lg px-3 py-2 mb-4"
-                                        />
-
-                                        {categorySearchModal.trim() !== "" && (
-                                          <ul className="max-h-64 overflow-y-auto border rounded-lg">
-                                            {categories
-                                              .filter((cat) =>
-                                                cat.nombre
-                                                  .toLowerCase()
-                                                  .includes(
-                                                    categorySearchModal.toLowerCase()
-                                                  )
-                                              )
-                                              .map((cat) => (
-                                                <li
-                                                  key={cat.nombre}
-                                                  className="flex justify-between items-center py-2 px-3 border-b last:border-b-0"
-                                                >
-                                                  <div>
-                                                    <span className="font-semibold">
-                                                      {cat.nombre}
-                                                    </span>{" "}
-                                                    <span className="text-gray-500">
-                                                      {cat.descripcion}
-                                                    </span>
-                                                  </div>
-                                                  <div className="flex gap-2">
-                                                    <button
-                                                      type="button"
-                                                      className="bg-azul-medio hover:bg-azul-hover text-white px-4 py-1 rounded-lg font-semibold transition"
-                                                      onClick={() =>
-                                                        openEditCategory(cat)
-                                                      }
-                                                    >
-                                                      Editar
-                                                    </button>
-                                                    <button
-                                                      type="button"
-                                                      className="bg-rojo-claro hover:bg-rojo-oscuro text-white px-4 py-1 rounded-lg font-semibold transition"
-                                                      onClick={() =>
-                                                        setCategoryToDelete(
-                                                          cat.nombre
-                                                        )
-                                                      }
-                                                    >
-                                                      Eliminar
-                                                    </button>
-                                                  </div>
-                                                </li>
-                                              ))}
-                                          </ul>
-                                        )}
-                                      </div>
-                                      <div className="flex flex-col gap-4 mt-10">
-                                        <label className="w-full font-bold">
-                                          {categoryEditMode
-                                            ? "Edita los datos de la categoría"
-                                            : "Digite los datos de la nueva categoría"}
-                                        </label>
-
-                                        <label className="font-semibold">
-                                          Nombre
-                                          <input
-                                            name="nombre"
-                                            value={categoryForm.nombre}
-                                            onChange={(e) => {
-                                              const value =
-                                                e.target.value.replace(
-                                                  /[0-9]/g,
-                                                  ""
-                                                ); // No permitir números
-                                              setCategoryForm((f) => ({
-                                                ...f,
-                                                nombre: value,
-                                              }));
-                                            }}
-                                            placeholder="Nombre de la categoría"
-                                            className="w-full border rounded-lg px-3 py-2"
-                                            required
-                                          />
-                                        </label>
-
-                                        <label className="font-semibold">
-                                          Descripción
-                                          <textarea
-                                            name="descripcion"
-                                            value={
-                                              categoryForm.descripcion || ""
-                                            }
-                                            onChange={(e) => {
-                                              const value =
-                                                e.target.value.replace(
-                                                  /[0-9]/g,
-                                                  ""
-                                                ); // eliminar números
-                                              setCategoryForm((f) => ({
-                                                ...f,
-                                                descripcion: value,
-                                              }));
-                                            }}
-                                            placeholder="Descripción de la categoría"
-                                            className="w-full border rounded-lg px-3 py-2 min-h-[60px]"
-                                            required
-                                          />
-                                        </label>
-                                      </div>
-                                      <div className="flex gap-4 justify-end mt-6">
-                                        <button
-                                          type="submit"
-                                          disabled={categoryLoadingForm}
-                                          className={`font-bold rounded-lg shadow-md transition w-40 h-12 cursor-pointer ${
-                                            categoryEditMode
-                                              ? "bg-amarillo-claro hover:bg-amarillo-oscuro text-white"
-                                              : "bg-azul-medio hover:bg-azul-hover text-white"
-                                          }`}
-                                        >
-                                          {categoryLoadingForm
-                                            ? "Guardando..."
-                                            : categoryEditMode
-                                              ? "Guardar cambios"
-                                              : "Agregar"}
-                                        </button>
-
-                                        {categoryEditMode && (
-                                          <button
-                                            type="button"
-                                            className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold rounded-lg shadow-md transition w-40 h-12"
-                                            onClick={() => {
-                                              setCategoryForm({
-                                                nombre: "",
-                                                descripcion: "",
-                                              });
-                                              setCategoryEditMode(false);
-                                              setCategoryOriginalNombre(null);
-                                            }}
-                                          >
-                                            Volver
-                                          </button>
-                                        )}
-                                      </div>
-                                    </form>
-                                  </SimpleModal>
-                                )}
-
-                                {/* Modal de confirmación para eliminar categoría */}
-                                {categoryToDelete && (
-                                  <SimpleModal
-                                    open={true}
-                                    onClose={() => setCategoryToDelete(null)}
-                                    title="Eliminar categoría"
-                                  >
-                                    <p className="mb-6 text-center">
-                                      ¿Seguro que deseas eliminar la categoría{" "}
-                                      <b>{categoryToDelete}</b>? Esto no se
-                                      puede deshacer.
-                                    </p>
-                                    <div className="flex gap-4 justify-center">
-                                      <Button
-                                        text="Eliminar"
-                                        style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
-                                        onClick={async () => {
-                                          try {
-                                            const res = await fetch(
-                                              `${API_URL}/api/v1/categories/${encodeURIComponent(categoryToDelete)}`,
-                                              { method: "DELETE" }
-                                            );
-                                            if (!res.ok)
-                                              throw new Error(
-                                                "Error eliminando categoría"
-                                              );
-
-                                            setCategories((prev) =>
-                                              prev.filter(
-                                                (c) =>
-                                                  c.nombre !== categoryToDelete
-                                              )
-                                            );
-                                          } catch (err) {
-                                            setAlert({
-                                              type: "error",
-                                              message:
-                                                "No se pudo eliminar la categoría.",
-                                            });
-                                          } finally {
-                                            setCategoryToDelete(null);
-                                          }
-                                        }}
-                                      />
-                                      <Button
-                                        text="Cancelar"
-                                        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                                        onClick={() =>
-                                          setCategoryToDelete(null)
-                                        }
-                                      />
-                                    </div>
-                                  </SimpleModal>
-                                )}
-
-                                {/* ALERTA GENERAL */}
-                                {alertMessage && (
-                                  <SimpleModal
-                                    open={true}
-                                    onClose={() => setAlertMessage(null)}
-                                    title="Atención"
-                                  >
-                                    <p className="text-center">
-                                      {alertMessage}
-                                    </p>
-                                    <div className="flex justify-center mt-6">
-                                      <button
-                                        type="button"
-                                        className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg"
-                                        onClick={() => setAlertMessage(null)}
-                                      >
-                                        Aceptar
-                                      </button>
-                                    </div>
-                                  </SimpleModal>
-                                )}
 
                                 {/* Botón Editar Producto */}
                                 <Button
@@ -1775,6 +1306,27 @@ export default function Inventary() {
                     </tbody>
                   </table>
                 </div>
+
+                  <CategoryModals
+                              categoryModalOpen={categoryModalOpen}
+                              setCategoryModalOpen={setCategoryModalOpen}
+                              categoryEditMode={categoryEditMode}
+                              setCategoryEditMode={setCategoryEditMode}
+                              categoryForm={categoryForm}
+                              setCategoryForm={setCategoryForm}
+                              categorySearchModal={categorySearchModal}
+                              setCategorySearchModal={setCategorySearchModal}
+                              categories={categories}
+                              openEditCategory={openEditCategory}
+                              categoryLoadingForm={categoryLoadingForm}
+                              saveCategory={saveCategory}
+                              categoryToDelete={categoryToDelete}
+                              setCategoryToDelete={setCategoryToDelete}
+                              alertMessage={alertMessage}
+                              setAlertMessage={setAlertMessage}
+                              setCategoryOriginalNombre={setCategoryOriginalNombre}
+                              deleteCategory={deleteCategory}
+                            />
                 {/* Modal para agregar/editar producto */}
                 {modalOpen === "add-product" && (
                   <SimpleModal
