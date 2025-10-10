@@ -320,33 +320,33 @@ export default function Businesses() {
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-<SearchBar<Business>
-  data={businesses}
-  displayField="negocio_id"  // ⚠️ se deja cualquier campo para tipado, no afecta el formatter
-  searchFields={["negocio_id", "nombre_legal"]}
-  placeholder="Buscar por ID o nombre legal..."
-  onResultsChange={(results) => {
-    setBusinessesFiltered(results);
-    if (results.length > 0) setAlert(null);
-  }}
-  onSelect={(item) => setBusinessesFiltered([item])}
-  onNotFound={(q) => {
-    if (!q || q.trim() === "") {
-      setAlert({
-        type: "error",
-        message: "Por favor digite un ID o nombre legal para buscar.",
-      });
-    } else {
-      setBusinessesFiltered([]);
-      setAlert({
-        type: "error",
-        message: `No existe ningún negocio con el ID o nombre legal "${q}".`,
-      });
-    }
-  }}
-  onClearAlert={() => setAlert(null)}
-  resultFormatter={(item) => `${item.negocio_id} - ${item.nombre_legal}`} // ✅ muestra ID + nombre
-/>
+                    <SearchBar<Business>
+                      data={businesses}
+                      displayField="negocio_id"  // ⚠️ se deja cualquier campo para tipado, no afecta el formatter
+                      searchFields={["negocio_id", "nombre_legal"]}
+                      placeholder="Buscar por ID o nombre legal..."
+                      onResultsChange={(results) => {
+                        setBusinessesFiltered(results);
+                        if (results.length > 0) setAlert(null);
+                      }}
+                      onSelect={(item) => setBusinessesFiltered([item])}
+                      onNotFound={(q) => {
+                        if (!q || q.trim() === "") {
+                          setAlert({
+                            type: "error",
+                            message: "Por favor digite un ID o nombre legal para buscar.",
+                          });
+                        } else {
+                          setBusinessesFiltered([]);
+                          setAlert({
+                            type: "error",
+                            message: `No existe ningún negocio con el ID o nombre legal "${q}".`,
+                          });
+                        }
+                      }}
+                      onClearAlert={() => setAlert(null)}
+                      resultFormatter={(item) => `${item.negocio_id} - ${item.nombre_legal}`} // ✅ muestra ID + nombre
+                    />
 
 
                   {/* Mostrar solo un alert de búsqueda */}

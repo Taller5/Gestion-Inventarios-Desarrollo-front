@@ -131,7 +131,7 @@ export default function Employees() {
                 <div className="w-full h-10">
                   <SearchBar<User>
                     data={users}
-                    displayField="id"
+                    displayField="id" // ⚠️ se deja cualquier campo para tipado, no afecta el formatter
                     searchFields={["id", "name"]}
                     placeholder="Buscar por ID o nombre..."
                     onResultsChange={(results) => {
@@ -150,13 +150,12 @@ export default function Employees() {
                         setEmployeesFiltered([]);
                         setAlert({
                           type: "error",
-                          message: `No existe ningún empleado con el ID o nombre "${q}".`,
+                          message: `No existe ningún colaborador con el ID o nombre "${q}".`,
                         });
                       }
                     }}
-                    onClearAlert={() => {
-                      setAlert(null); // Quita la alerta
-                    }}
+                    onClearAlert={() => setAlert(null)}
+                    resultFormatter={(item) => `${item.id} - ${item.name}`} //  muestra ID + nombre
                   />
 
                   {/* Mostrar solo un alert de búsqueda */}
@@ -180,7 +179,7 @@ export default function Employees() {
                   <IoAddCircle className="w-6 h-6 flex-shrink-0" />
                   <span className="whitespace-nowrap text-base">
                     {/* Ícono de usuario con "+" usando IoAddCircle */}
-                    Añadir empleado
+                    Añadir colaborador
                   </span>
                 </Button>
               </div>
