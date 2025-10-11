@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
+import Container from "../ui/Container";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
-import Container from "../ui/Container";
+import UseBusiness from "../../hooks/Businesses/UseBusiness";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
@@ -40,15 +41,15 @@ export default function Businesses() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
+  const {} = UseBusiness();
+
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [businessesFiltered, setBusinessesFiltered] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [businessToDelete, setBusinessToDelete] = useState<Business | null>(
-    null
-  );
+  const [businessToDelete, setBusinessToDelete] = useState<Business | null>( null);
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
