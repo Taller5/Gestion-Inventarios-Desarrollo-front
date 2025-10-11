@@ -9,7 +9,6 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
-import { get } from "http";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
