@@ -9,6 +9,7 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
+import { get } from "http";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -41,7 +42,9 @@ export default function Businesses() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
-  const {} = UseBusiness();
+  const {  fetchBusinesses } = UseBusiness();
+
+  console.log('clase principal' , fetchBusinesses);
 
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [businessesFiltered, setBusinessesFiltered] = useState<Business[]>([]);
@@ -54,6 +57,7 @@ export default function Businesses() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+
   const [loadingForm, setLoadingForm] = useState(false);
 
   const [form, setForm] = useState({
@@ -72,19 +76,10 @@ export default function Businesses() {
 
   // Cargar negocios
   useEffect(() => {
-    const fetchBusinesses = async () => {
+    const getFetchedBusinesses = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_URL}/api/v1/businesses`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
-        if (!res.ok) throw new Error("Error al cargar negocios");
-        const data = await res.json();
-        setBusinesses(data);
+        setBusinesses(fetchBusinesses);
+        console.log('useeffect busines',fetchBusinesses);
       } catch (error) {
         console.error(error);
         setAlert({ type: "error", message: "Error al cargar los negocios" });
@@ -92,8 +87,8 @@ export default function Businesses() {
         setLoading(false);
       }
     };
-    fetchBusinesses();
-  }, []);
+    getFetchedBusinesses();
+  }, [fetchBusinesses]);
 
   // Inicializar modal
   useEffect(() => {
@@ -308,6 +303,7 @@ export default function Businesses() {
       </div>
     ),
   }));
+  {console.log('table content', tableContent)}
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
@@ -384,7 +380,6 @@ export default function Businesses() {
                   tableContent={tableContent}
                 />
               )}
-
               {/* Modal Agregar/Editar */}
               {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">

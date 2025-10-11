@@ -64,5 +64,7 @@ export const UseBusiness = () => {
     loadData();
   }, []);
 
+  // console.log('useBusiness', fetchBusinesses);
+
   return { fetchBusinesses, errors, alert };
 };
