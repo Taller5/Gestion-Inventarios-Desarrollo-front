@@ -4,7 +4,7 @@ import Container from "../ui/Container";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
-import UseBusiness from "../../hooks/Businesses/UseBusiness";
+import { UseBusiness } from "../../hooks/Businesses/UseBusiness";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
