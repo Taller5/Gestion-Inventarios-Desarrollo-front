@@ -31,9 +31,11 @@ type Business = {
 
 // Puedes obtener el token desde localStorage, contexto, o como parámetro
 const token = localStorage.getItem("token");
+console.log('token business api', token);
 
 export const fetchBusinesses = async (): Promise<Business[]> => {
   const res = await fetch(`${API_URL}/api/v1/businesses`, {
+    
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
@@ -46,5 +48,6 @@ export const fetchBusinesses = async (): Promise<Business[]> => {
   }
 
   const data: Business[] = await res.json();
+  // console.log('business api', data);
   return data;
 };

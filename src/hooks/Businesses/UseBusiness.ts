@@ -44,7 +44,7 @@ type Business = {
 };
 
 export const UseBusiness = () => {
-  const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [fetchBusinesses, setBusinesses] = useState<Business[]>([]);
   const [errors, setErrors] = useState<string | null>(null);
   const [alert, setAlert] = useState<{
     type: "success" | "error";
@@ -64,5 +64,5 @@ export const UseBusiness = () => {
     loadData();
   }, []);
 
-  return { businesses, errors, alert };
+  return { fetchBusinesses, errors, alert };
 };

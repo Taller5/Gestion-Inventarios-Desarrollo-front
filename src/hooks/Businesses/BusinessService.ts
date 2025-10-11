@@ -15,5 +15,8 @@ type Business = {
 };
 
 export const getBusinesses = async (): Promise<Business[]> => {
+  // const pene = await fetchBusinesses();
+  // await console.log('businessesService', pene);
   return await fetchBusinesses();
+  
 };
