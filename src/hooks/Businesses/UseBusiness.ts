@@ -27,7 +27,7 @@
 
 
 import { useState, useEffect } from "react";
-import { getBusinesses } from "./BusinessService";
+import { getBusinesses, deleteBusiness } from "./BusinessService";
 
 // Define el tipo de negocio si lo conoces
 type Business = {
@@ -66,5 +66,18 @@ export const UseBusiness = () => {
 
   // console.log('useBusiness', fetchBusinesses);
 
-  return { fetchBusinesses, errors, alert };
+  const handleDelete = async (businessToDelete: Business) => {
+    if (!businessToDelete) return;
+    try {
+      await deleteBusiness(businessToDelete.negocio_id);
+      setAlert({ type: "success", message: "Negocio eliminado" });
+
+    } catch(error){
+      setAlert({ type: "error", message: "Error al eliminar el negocio" });
+        }
+  };
+
+
+
+  return { fetchBusinesses, handleDelete, errors, alert };
 };

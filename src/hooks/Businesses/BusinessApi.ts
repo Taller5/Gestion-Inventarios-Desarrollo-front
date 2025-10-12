@@ -46,8 +46,20 @@ export const fetchBusinesses = async (): Promise<Business[]> => {
   if (!res.ok) {
     throw new Error("Error al obtener los negocios");
   }
-
   const data: Business[] = await res.json();
   // console.log('business api', data);
   return data;
+};
+
+
+export const deleteBusinessApi = async (id: number): Promise<void> => {
+  const res = await fetch(`${API_URL}/api/v1/businesses/${id}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  if (!res.ok) {
+    throw new Error("Error al eliminar el negocio");
+  }
 };
