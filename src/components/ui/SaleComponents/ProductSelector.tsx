@@ -167,7 +167,7 @@ const ProductItem = ({
     </div>
 
     <Button
-      style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center"
+      style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center cursor-pointer"
       onClick={onAdd}
       disabled={stockDisponible <= 0}
     >

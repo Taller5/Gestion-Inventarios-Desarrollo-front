@@ -52,7 +52,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
 
         <div className="flex justify-end gap-4 mt-6">
           <Button
-            style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded flex items-center gap-1"
+            style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded flex items-center gap-1 cursor-pointer"
             onClick={() => {
               agregarAlCarrito(productoSeleccionado, cantidadSeleccionada);
               setModalOpen(false);
@@ -63,7 +63,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
             <IoAddCircle /> Agregar
           </Button>
           <Button
-            style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-4 py-2 rounded"
+            style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-4 py-2 rounded cursor-pointer"
             onClick={() => {
               setModalOpen(false);
               setCantidadSeleccionada(1);
