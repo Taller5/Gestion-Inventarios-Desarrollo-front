@@ -66,10 +66,10 @@ export const UseBusiness = () => {
 
   // console.log('useBusiness', fetchBusinesses);
 
-  const handleDelete = async (businessToDelete: Business) => {
-    if (!businessToDelete) return;
+  const handleDeleteBusiness = async (id: number) => {
+    if (!id) return;
     try {
-      await deleteBusiness(businessToDelete.negocio_id);
+      await deleteBusiness(id);
       setAlert({ type: "success", message: "Negocio eliminado" });
 
     } catch(error){
@@ -77,7 +77,10 @@ export const UseBusiness = () => {
         }
   };
 
+  setTimeout(() => {
+        setAlert(null);
+      }, 1200);
 
 
-  return { fetchBusinesses, handleDelete, errors, alert };
+  return { fetchBusinesses, handleDeleteBusiness, errors, alert };
 };

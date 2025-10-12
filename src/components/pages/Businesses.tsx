@@ -41,7 +41,7 @@ export default function Businesses() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
-  const {  fetchBusinesses } = UseBusiness();
+  const { fetchBusinesses, handleDeleteBusiness, errors, alert } = UseBusiness();
 
   console.log('clase principal' , fetchBusinesses);
 
@@ -52,7 +52,7 @@ export default function Businesses() {
   const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState<Business | null>( null);
-  const [alert, setAlert] = useState<{
+  const [alert2, setAlert] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
@@ -225,7 +225,6 @@ export default function Businesses() {
       setTimeout(() => {
         setModalOpen(false);
         setBusinessToEdit(null);
-        setAlert(null);
       }, 1200);
     } catch (err: any) {
       setAlert({ type: "error", message: err.message });
@@ -238,18 +237,7 @@ export default function Businesses() {
   const handleDelete = async () => {
     if (!businessToDelete) return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${API_URL}/api/v1/businesses/${businessToDelete.negocio_id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (!res.ok) throw new Error("No se pudo eliminar");
+      await handleDeleteBusiness(businessToDelete.negocio_id);
       setBusinesses(
         businesses.filter((b) => b.negocio_id !== businessToDelete.negocio_id)
       );
