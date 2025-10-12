@@ -1,4 +1,4 @@
-import { fetchBusinesses, deleteBusinessApi } from "./BusinessApi";
+import { fetchBusinesses, deleteBusinessApi, createBusinessApi } from "./BusinessApi";
 
 // Define el tipo de negocio (debe coincidir con el usado en UseBusiness)
 type Business = {
@@ -24,3 +24,11 @@ export const getBusinesses = async (): Promise<Business[]> => {
 export const deleteBusiness = async (id: number): Promise<void> => {
   await deleteBusinessApi(id);
 }
+
+export const createBusiness = async (form: Business): Promise<void> => {
+  await createBusinessApi(form, null);
+};
+
+export const updateBusiness = async (form: Business, businessesToEdit: Business): Promise<void> => {
+  await createBusinessApi(form, businessesToEdit);
+};

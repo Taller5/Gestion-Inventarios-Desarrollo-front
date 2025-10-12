@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getBusinesses, deleteBusiness } from "./BusinessService";
+import { getBusinesses, deleteBusiness, createBusiness, updateBusiness } from "./BusinessService";
 
 // Define el tipo de negocio si lo conoces
 type Business = {
@@ -49,10 +49,25 @@ export const UseBusiness = () => {
         }
   };
 
-  // setTimeout(() => {
-  //       setFetchAlert(null);
-  //     }, 1200);
+  const handleSubmit = async (e: React.FormEvent, form: Business, businessToEdit: Business | null) => {
+    e.preventDefault();
+    if (businessToEdit) {
+      try {
+        await updateBusiness(form, businessToEdit);
+        setFetchAlert({ type: "success", message: "Negocio actualizado" });
+      } catch (error) {
+        setFetchAlert({ type: "error", message: "Error al actualizar el negocio" });
+      }
+    } else {
+      try {
+        await createBusiness(form);
+        setFetchAlert({ type: "success", message: "Negocio creado" });
+      } catch (error) {
+        setFetchAlert({ type: "error", message: "Error al crear el negocio" });
+      }
+    }
+  };
 
 
-  return { fetchBusinesses, handleDeleteBusiness, fetchAlert };
+  return { fetchBusinesses, handleDeleteBusiness, handleSubmit, fetchAlert };
 };
