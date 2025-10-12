@@ -10,8 +10,6 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 type Business = {
   margen_ganancia: number;
   negocio_id: number;
