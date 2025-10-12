@@ -1,18 +1,17 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
+import Container from "../ui/Container";
 import SideBar from "../ui/SideBar";
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
-import Container from "../ui/Container";
+import { UseBusiness } from "../../hooks/Businesses/UseBusiness";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
 
-const API_URL = import.meta.env.VITE_API_URL;
-
 type Business = {
-  margen_ganancia: string;
+  margen_ganancia: number;
   negocio_id: number;
   nombre_legal: string;
   nombre_comercial: string;
@@ -40,19 +39,25 @@ export default function Businesses() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
+  const { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert } = UseBusiness();
+
+
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [businessesFiltered, setBusinessesFiltered] = useState<Business[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [businessToDelete, setBusinessToDelete] = useState<Business | null>(
-    null
-  );
+  const [businessToDelete, setBusinessToDelete] = useState<Business | null>( null);
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
-  } | null>(null);
+  } | null>(null); //muy posible eliminación
+
+  useEffect(() => {
+  setAlert(fetchAlert);
+}, [fetchAlert]);
+
   const [loadingForm, setLoadingForm] = useState(false);
 
   const [form, setForm] = useState({
@@ -71,19 +76,9 @@ export default function Businesses() {
 
   // Cargar negocios
   useEffect(() => {
-    const fetchBusinesses = async () => {
+    const getFetchedBusinesses = async () => {
       try {
-        const token = localStorage.getItem("token");
-        const res = await fetch(`${API_URL}/api/v1/businesses`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        });
-        if (!res.ok) throw new Error("Error al cargar negocios");
-        const data = await res.json();
-        setBusinesses(data);
+        setBusinesses(fetchBusinesses);
       } catch (error) {
         console.error(error);
         setAlert({ type: "error", message: "Error al cargar los negocios" });
@@ -91,8 +86,8 @@ export default function Businesses() {
         setLoading(false);
       }
     };
-    fetchBusinesses();
-  }, []);
+    getFetchedBusinesses();
+  }, [fetchBusinesses]);
 
   // Inicializar modal
   useEffect(() => {
@@ -187,39 +182,23 @@ export default function Businesses() {
         ...form,
         margen_ganancia: Number(form.margen_ganancia) / 100,
       };
-      const token = localStorage.getItem("token");
-      const url = businessToEdit
-        ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
-        : `${API_URL}/api/v1/businesses`;
 
-      const method = businessToEdit ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formToSend),
-      });
+      let response: Business = {} as Business;
 
-      const data = await res.json();
-
-      // Caso especial: correo ya registrado
-      if (!res.ok) {
-        if (data?.message?.toLowerCase().includes("correo")) {
-          throw new Error("El correo ya está registrado en otro negocio");
-        }
-        throw new Error(data?.message || "Error al procesar");
+      if(businessToEdit){
+        response = await handleSubmitBusiness(formToSend, businessToEdit);
+      }else{
+        response = await handleSubmitBusiness(formToSend);
       }
 
       if (businessToEdit) {
         setBusinesses(
           businesses.map((b) =>
-            b.negocio_id === businessToEdit.negocio_id ? data : b
+            b.negocio_id === businessToEdit.negocio_id ? response : b
           )
         );
       } else {
-        setBusinesses([...businesses, data]);
+        setBusinesses([...businesses, response]);
       }
 
       setAlert({
@@ -243,18 +222,7 @@ export default function Businesses() {
   const handleDelete = async () => {
     if (!businessToDelete) return;
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${API_URL}/api/v1/businesses/${businessToDelete.negocio_id}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      if (!res.ok) throw new Error("No se pudo eliminar");
+      await handleDeleteBusiness(businessToDelete.negocio_id);
       setBusinesses(
         businesses.filter((b) => b.negocio_id !== businessToDelete.negocio_id)
       );
@@ -383,7 +351,6 @@ export default function Businesses() {
                   tableContent={tableContent}
                 />
               )}
-
               {/* Modal Agregar/Editar */}
               {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
