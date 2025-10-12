@@ -41,7 +41,7 @@ export default function Businesses() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
-  const { fetchBusinesses, handleDeleteBusiness, errors, alert } = UseBusiness();
+  const { fetchBusinesses, handleDeleteBusiness, fetchAlert } = UseBusiness();
 
   console.log('clase principal' , fetchBusinesses);
 
@@ -52,10 +52,14 @@ export default function Businesses() {
   const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [businessToDelete, setBusinessToDelete] = useState<Business | null>( null);
-  const [alert2, setAlert] = useState<{
+  const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
-  } | null>(null);
+  } | null>(null); //muy posible eliminación
+
+  useEffect(() => {
+  setAlert(fetchAlert);
+}, [fetchAlert]);
 
   const [loadingForm, setLoadingForm] = useState(false);
 

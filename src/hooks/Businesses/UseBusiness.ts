@@ -1,31 +1,3 @@
-// import { useState, useEffect } from "react";
-// import { getBusinesses } from "./BusinessService";
-
-// export const UseBusiness = () => {
-//     const [businesses, setBusinesses] = useState([]);
-//     const [errors, setErrors] = useState({});
-//     const [alert, setAlert] = useState({});
-
-// useEffect(() => {
-
-//     const loadData = async () => {
-//       try {
-//         if (errors === 'pene') throw new Error("Error al cargar negocios");
-//         const data = await getBusinesses();
-//         setBusinesses(data);
-//       } catch (error) {
-//         setAlert({ type: "error", message: "Error al cargar los negocios" });
-//         setErrors('pene'); //borraaaaaaaaaaaaaaaaaaaaar
-//     };
-// }
-//     loadData();
-// }, []);
-
-
-//     return { businesses, errors, alert };
-// }
-
-
 import { useState, useEffect } from "react";
 import { getBusinesses, deleteBusiness } from "./BusinessService";
 
@@ -45,8 +17,8 @@ type Business = {
 
 export const UseBusiness = () => {
   const [fetchBusinesses, setBusinesses] = useState<Business[]>([]);
-  const [errors, setErrors] = useState<string | null>(null);
-  const [alert, setAlert] = useState<{
+  // const [errors, setErrors] = useState<string | null>(null);
+  const [fetchAlert, setFetchAlert] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
@@ -57,8 +29,8 @@ export const UseBusiness = () => {
         const data = await getBusinesses();
         setBusinesses(data);
       } catch (error) {
-        setAlert({ type: "error", message: "Error al cargar los negocios" });
-        setErrors("Error al cargar negocios");
+        setFetchAlert({ type: "error", message: "Error al cargar los negocios" });
+        // setErrors("Error al cargar negocios");
       }
     };
     loadData();
@@ -70,17 +42,17 @@ export const UseBusiness = () => {
     if (!id) return;
     try {
       await deleteBusiness(id);
-      setAlert({ type: "success", message: "Negocio eliminado" });
+      setFetchAlert({ type: "success", message: "Negocio eliminado" });
 
     } catch(error){
-      setAlert({ type: "error", message: "Error al eliminar el negocio" });
+      setFetchAlert({ type: "error", message: "Error al eliminar el negocio" });
         }
   };
 
-  setTimeout(() => {
-        setAlert(null);
-      }, 1200);
+  // setTimeout(() => {
+  //       setFetchAlert(null);
+  //     }, 1200);
 
 
-  return { fetchBusinesses, handleDeleteBusiness, errors, alert };
+  return { fetchBusinesses, handleDeleteBusiness, fetchAlert };
 };

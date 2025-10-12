@@ -1,21 +1,5 @@
-// const API_URL = import.meta.env.VITE_API_URL;
-
-// export const fetchBusinesses = async () => {
-//     const res = await fetch(`${API_URL}/api/v1/businesses`, {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//             "Content-Type": "application/json",
-//             Accept: "application/json",
-//           },
-//         });
-//     const data = await response.json();
-//     return data;
-
-// };
-
 const API_URL = import.meta.env.VITE_API_URL;
 
-// Define el tipo de negocio si lo conoces
 type Business = {
   margen_ganancia: string;
   negocio_id: number;
@@ -29,7 +13,6 @@ type Business = {
   email: string;
 };
 
-// Puedes obtener el token desde localStorage, contexto, o como parámetro
 const token = localStorage.getItem("token");
 console.log('token business api', token);
 
@@ -47,7 +30,6 @@ export const fetchBusinesses = async (): Promise<Business[]> => {
     throw new Error("Error al obtener los negocios");
   }
   const data: Business[] = await res.json();
-  // console.log('business api', data);
   return data;
 };
 
