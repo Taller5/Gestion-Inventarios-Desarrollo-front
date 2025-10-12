@@ -15,8 +15,7 @@ type Business = {
 };
 
 export const UseBusiness = () => {
-  const [fetchBusinesses, setBusinesses] = useState<Business[]>([]);
-  // const [errors, setErrors] = useState<string | null>(null);
+  const [fetchBusinesses, setFetchBusinesses] = useState<Business[]>([]);
   const [fetchAlert, setFetchAlert] = useState<{
     type: "success" | "error";
     message: string;
@@ -26,9 +25,10 @@ export const UseBusiness = () => {
     const loadData = async () => {
       try {
         const data = await getBusinesses();
-        setBusinesses(data);
+        setFetchBusinesses(data);
       } catch (error) {
         setFetchAlert({ type: "error", message: "Error al cargar los negocios" });
+        throw new Error(error as string);
       }
     };
     loadData();
@@ -43,6 +43,7 @@ export const UseBusiness = () => {
 
     } catch(error){
       setFetchAlert({ type: "error", message: "Error al eliminar el negocio" });
+      throw new Error(error as string);
         }
   };
 
@@ -54,6 +55,7 @@ export const UseBusiness = () => {
         return updated;
       } catch (error) {
         setFetchAlert({ type: "error", message: "Error al actualizar el negocio" });
+        throw new Error(error as string);
       }
     } else {
       try {
@@ -62,6 +64,7 @@ export const UseBusiness = () => {
         return created;
       } catch (error) {
         setFetchAlert({ type: "error", message: "Error al crear el negocio" });
+        throw new Error(error as string);
       }
     }
     return {} as Business;

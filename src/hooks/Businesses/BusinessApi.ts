@@ -14,7 +14,6 @@ type Business = {
 };
 
 const token = localStorage.getItem("token");
-console.log('token business api', token);
 
 export const fetchBusinesses = async (): Promise<Business[]> => {
   const res = await fetch(`${API_URL}/api/v1/businesses`, {
@@ -74,8 +73,8 @@ export const createBusinessApi = async (formToSend: Business, businessToEdit: Bu
       }
 
       return data;
-      
+
     } catch (err: any) {
-      return Promise.reject(err.message || "Error desconocido" );
+      return {} as Business;
     }
   };

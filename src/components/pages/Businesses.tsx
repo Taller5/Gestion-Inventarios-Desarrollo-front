@@ -41,7 +41,6 @@ export default function Businesses() {
 
   const { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert } = UseBusiness();
 
-  console.log('clase principal' , fetchBusinesses);
 
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [businessesFiltered, setBusinessesFiltered] = useState<Business[]>([]);
@@ -80,7 +79,6 @@ export default function Businesses() {
     const getFetchedBusinesses = async () => {
       try {
         setBusinesses(fetchBusinesses);
-        console.log('useeffect busines',fetchBusinesses);
       } catch (error) {
         console.error(error);
         setAlert({ type: "error", message: "Error al cargar los negocios" });
@@ -185,7 +183,6 @@ export default function Businesses() {
         margen_ganancia: Number(form.margen_ganancia) / 100,
       };
 
-      console.log('form to send', formToSend);
       let response: Business = {} as Business;
 
       if(businessToEdit){
@@ -278,7 +275,6 @@ export default function Businesses() {
       </div>
     ),
   }));
-  {console.log('table content', tableContent)}
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
