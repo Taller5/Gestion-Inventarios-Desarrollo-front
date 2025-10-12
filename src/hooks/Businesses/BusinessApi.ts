@@ -75,6 +75,6 @@ export const createBusinessApi = async (formToSend: Business, businessToEdit: Bu
       return data;
 
     } catch (err: any) {
-      return {} as Business;
+      throw new Error(err as string);
     }
   };

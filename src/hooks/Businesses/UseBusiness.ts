@@ -67,7 +67,6 @@ export const UseBusiness = () => {
         throw new Error(error as string);
       }
     }
-    return {} as Business;
   };
 
 
