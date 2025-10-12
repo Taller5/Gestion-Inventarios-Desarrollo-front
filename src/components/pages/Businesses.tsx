@@ -13,7 +13,7 @@ import { SearchBar } from "../ui/SearchBar";
 const API_URL = import.meta.env.VITE_API_URL;
 
 type Business = {
-  margen_ganancia: string;
+  margen_ganancia: number;
   negocio_id: number;
   nombre_legal: string;
   nombre_comercial: string;
@@ -41,7 +41,7 @@ export default function Businesses() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
-  const { fetchBusinesses, handleDeleteBusiness, fetchAlert } = UseBusiness();
+  const { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert } = UseBusiness();
 
   console.log('clase principal' , fetchBusinesses);
 
@@ -186,39 +186,24 @@ export default function Businesses() {
         ...form,
         margen_ganancia: Number(form.margen_ganancia) / 100,
       };
-      const token = localStorage.getItem("token");
-      const url = businessToEdit
-        ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
-        : `${API_URL}/api/v1/businesses`;
 
-      const method = businessToEdit ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formToSend),
-      });
+      console.log('form to send', formToSend);
+      let response: Business = {} as Business;
 
-      const data = await res.json();
-
-      // Caso especial: correo ya registrado
-      if (!res.ok) {
-        if (data?.message?.toLowerCase().includes("correo")) {
-          throw new Error("El correo ya está registrado en otro negocio");
-        }
-        throw new Error(data?.message || "Error al procesar");
+      if(businessToEdit){
+        response = await handleSubmitBusiness(formToSend, businessToEdit);
+      }else{
+        response = await handleSubmitBusiness(formToSend);
       }
 
       if (businessToEdit) {
         setBusinesses(
           businesses.map((b) =>
-            b.negocio_id === businessToEdit.negocio_id ? data : b
+            b.negocio_id === businessToEdit.negocio_id ? response : b
           )
         );
       } else {
-        setBusinesses([...businesses, data]);
+        setBusinesses([...businesses, response]);
       }
 
       setAlert({
@@ -229,6 +214,7 @@ export default function Businesses() {
       setTimeout(() => {
         setModalOpen(false);
         setBusinessToEdit(null);
+        setAlert(null);
       }, 1200);
     } catch (err: any) {
       setAlert({ type: "error", message: err.message });

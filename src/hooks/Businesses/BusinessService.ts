@@ -2,7 +2,7 @@ import { fetchBusinesses, deleteBusinessApi, createBusinessApi } from "./Busines
 
 // Define el tipo de negocio (debe coincidir con el usado en UseBusiness)
 type Business = {
-  margen_ganancia: string;
+  margen_ganancia: number;
   negocio_id: number;
   nombre_legal: string;
   nombre_comercial: string;
@@ -15,8 +15,6 @@ type Business = {
 };
 
 export const getBusinesses = async (): Promise<Business[]> => {
-  // const pene = await fetchBusinesses();
-  // await console.log('businessesService', pene);
   return await fetchBusinesses();
   
 };
@@ -25,10 +23,10 @@ export const deleteBusiness = async (id: number): Promise<void> => {
   await deleteBusinessApi(id);
 }
 
-export const createBusiness = async (form: Business): Promise<void> => {
-  await createBusinessApi(form, null);
+export const createBusiness = async (form: Business): Promise<Business> => {
+  return await createBusinessApi(form, null);
 };
 
-export const updateBusiness = async (form: Business, businessesToEdit: Business): Promise<void> => {
-  await createBusinessApi(form, businessesToEdit);
+export const updateBusiness = async (form: Business, businessesToEdit: Business): Promise<Business> => {
+  return await createBusinessApi(form, businessesToEdit);
 };

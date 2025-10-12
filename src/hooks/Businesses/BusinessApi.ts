@@ -1,7 +1,7 @@
 const API_URL = import.meta.env.VITE_API_URL;
 
 type Business = {
-  margen_ganancia: string;
+  margen_ganancia: number;
   negocio_id: number;
   nombre_legal: string;
   nombre_comercial: string;
@@ -47,20 +47,8 @@ export const deleteBusinessApi = async (id: number): Promise<void> => {
 };
 
 export const createBusinessApi = async (formToSend: Business, businessToEdit: Business | null) => {
-    // e.preventDefault();
 
     try {
-      // if (!/^\d{8}$/.test(form.telefono))
-      //   throw new Error("Teléfono inválido, debe tener exactamente 8 dígitos");
-
-      // if (form.numero_identificacion.trim().length < 5)
-      //   throw new Error("Número de identificación mínimo 5 dígitos");
-
-      // Preparar datos
-      // const formToSend = {
-      //   ...form,
-      //   margen_ganancia: Number(form.margen_ganancia) / 100,
-      // };
       const url = businessToEdit
         ? `${API_URL}/api/v1/businesses/${businessToEdit.negocio_id}`
         : `${API_URL}/api/v1/businesses`;
@@ -85,26 +73,9 @@ export const createBusinessApi = async (formToSend: Business, businessToEdit: Bu
         throw new Error(data?.message || "Error al procesar");
       }
 
-      // if (businessToEdit) {
-      //   setBusinesses(
-      //     businesses.map((b) =>
-      //       b.negocio_id === businessToEdit.negocio_id ? data : b
-      //     )
-      //   );
-      // } else {
-      //   setBusinesses([...businesses, data]);
-      // }
-
-      // setAlert({
-      //   type: "success",
-      //   message: businessToEdit ? "Negocio actualizado" : "Negocio creado",
-      // });
-
-      // setTimeout(() => {
-      //   setModalOpen(false);
-      //   setBusinessToEdit(null);
-      // }, 1200);
+      return data;
+      
     } catch (err: any) {
-      console.error(err);
+      return Promise.reject(err.message || "Error desconocido" );
     }
   };

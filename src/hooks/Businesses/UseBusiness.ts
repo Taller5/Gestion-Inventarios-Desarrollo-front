@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
 import { getBusinesses, deleteBusiness, createBusiness, updateBusiness } from "./BusinessService";
 
-// Define el tipo de negocio si lo conoces
 type Business = {
-  margen_ganancia: string;
+  margen_ganancia: number;
   negocio_id: number;
   nombre_legal: string;
   nombre_comercial: string;
@@ -30,13 +29,11 @@ export const UseBusiness = () => {
         setBusinesses(data);
       } catch (error) {
         setFetchAlert({ type: "error", message: "Error al cargar los negocios" });
-        // setErrors("Error al cargar negocios");
       }
     };
     loadData();
   }, []);
 
-  // console.log('useBusiness', fetchBusinesses);
 
   const handleDeleteBusiness = async (id: number) => {
     if (!id) return;
@@ -49,25 +46,27 @@ export const UseBusiness = () => {
         }
   };
 
-  const handleSubmit = async (e: React.FormEvent, form: Business, businessToEdit: Business | null) => {
-    e.preventDefault();
+  const handleSubmitBusiness = async ( form: any, businessToEdit?: Business) : Promise<Business> => {
     if (businessToEdit) {
       try {
-        await updateBusiness(form, businessToEdit);
+        const updated = await updateBusiness(form, businessToEdit);
         setFetchAlert({ type: "success", message: "Negocio actualizado" });
+        return updated;
       } catch (error) {
         setFetchAlert({ type: "error", message: "Error al actualizar el negocio" });
       }
     } else {
       try {
-        await createBusiness(form);
+        const created = await createBusiness(form);
         setFetchAlert({ type: "success", message: "Negocio creado" });
+        return created;
       } catch (error) {
         setFetchAlert({ type: "error", message: "Error al crear el negocio" });
       }
     }
+    return {} as Business;
   };
 
 
-  return { fetchBusinesses, handleDeleteBusiness, handleSubmit, fetchAlert };
+  return { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert };
 };
