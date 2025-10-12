@@ -1,5 +1,5 @@
 
-import type { Sucursal } from "../../../types/types";
+import type { Sucursal } from "../../../types/salePage";
 
 interface SucursalModalProps {
   sucursales: Sucursal[];

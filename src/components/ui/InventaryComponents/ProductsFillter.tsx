@@ -86,24 +86,47 @@ export default function ProductFilters({
     <div className="flex flex-col sm:flex-row justify-between gap-10 mb-4 w-full">
       {/* 🟦 Filtros */}
       <div className="w-full sm:w-1/2 flex flex-col gap-6">
-        <Select
-          placeholder="Seleccione un negocio..."
-          value={
-            selectedBusiness
-              ? { value: selectedBusiness.negocio_id, label: selectedBusiness.nombre_comercial }
-              : null
-          }
-          onChange={(option: any) => {
-            if (!option) setSelectedBusiness(null);
-            else {
-              const business = businesses.find((b) => b.negocio_id === option.value) || null;
-              setSelectedBusiness(business);
-            }
-          }}
-          options={businesses.map((b) => ({ value: b.negocio_id, label: b.nombre_comercial }))}
-          isClearable
-          isLoading={businesses.length === 0}
-        />
+  <Select
+  placeholder="Seleccione un negocio..."
+  value={
+    selectedBusiness
+      ? {
+          value: selectedBusiness.negocio_id,
+          label: selectedBusiness.nombre_comercial,
+        }
+      : null
+  }
+  onChange={(option: any) => {
+    if (!option) setSelectedBusiness(null);
+    else {
+      const business =
+        businesses.find((b) => b.negocio_id === option.value) || null;
+      setSelectedBusiness(business);
+    }
+  }}
+  options={businesses.map((b) => ({
+    value: b.negocio_id,
+    label: b.nombre_comercial,
+  }))}
+  isClearable
+  isLoading={businesses.length === 0}
+  styles={{
+    control: (base) => ({
+      ...base,
+      cursor: "pointer", //  cursor sobre el control principal
+    }),
+    option: (base, state) => ({
+      ...base,
+      cursor: "pointer", // 👈 cursor sobre cada opción
+      backgroundColor: state.isFocused ? "#E5F1FF" : "white", //  hover azul suave
+      color: "black",
+    }),
+    menu: (base) => ({
+      ...base,
+      cursor: "pointer", //  cursor sobre el menú desplegado
+    }),
+  }}
+/>
 
         {!selectedBusiness && (
           <div className="p-4 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold">
@@ -112,26 +135,51 @@ export default function ProductFilters({
         )}
 
         <div>
-          <h3 className="font-bold text-gray-700 mb-2">Categorías existentes</h3>
-          <Select
-            placeholder="Seleccione una categoría..."
-            value={categorySearchMain ? { value: categorySearchMain, label: categorySearchMain } : null}
-            onChange={(option: any) => {
-              setCategorySearchMain(option?.value || "");
-              const filtered = products.filter((p) => {
-                const warehouse = warehouses.find((w) => String(w.bodega_id) === String(p.bodega_id));
-                const b = warehouse?.branch.business as Business;
-                if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id) return false;
-                if (option?.value) return p.categoria?.toLowerCase() === option.value.toLowerCase();
-                return true;
-              });
-              setProductsFiltered(filtered.length > 0 ? filtered : []); // vaciar si no hay
-            }}
-            options={[...new Set(products.map((p) => p.categoria))].filter(Boolean)
-              .map((c) => ({ value: c!, label: c! }))}
-            isClearable
-            isLoading={products.length === 0}
-          />
+          <h3 className="font-bold text-gray-700 mb-2 ">Categorías existentes</h3>
+        <Select
+    placeholder="Seleccione una categoría..."
+    value={
+      categorySearchMain
+        ? { value: categorySearchMain, label: categorySearchMain }
+        : null
+    }
+    onChange={(option: any) => {
+      setCategorySearchMain(option?.value || "");
+      const filtered = products.filter((p) => {
+        const warehouse = warehouses.find(
+          (w) => String(w.bodega_id) === String(p.bodega_id)
+        );
+        const b = warehouse?.branch.business as Business;
+        if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id)
+          return false;
+        if (option?.value)
+          return p.categoria?.toLowerCase() === option.value.toLowerCase();
+        return true;
+      });
+      setProductsFiltered(filtered.length > 0 ? filtered : []); // Vaciar si no hay
+    }}
+    options={[...new Set(products.map((p) => p.categoria))]
+      .filter(Boolean)
+      .map((c) => ({ value: c!, label: c! }))}
+    isClearable
+    isLoading={products.length === 0}
+    styles={{
+      control: (base) => ({
+        ...base,
+        cursor: "pointer", //  cursor sobre el control principal
+      }),
+      option: (base, state) => ({
+        ...base,
+        cursor: "pointer", // cursor sobre cada opción
+        backgroundColor: state.isFocused ? "#E5F1FF" : "white", // 👌 hover bonito
+        color: "black",
+      }),
+      menu: (base) => ({
+        ...base,
+        cursor: "pointer", //  cursor sobre el menú desplegado
+      }),
+    }}
+  />
         </div>
       </div>
 
@@ -169,7 +217,7 @@ export default function ProductFilters({
 
           <div className="flex gap-4 flex-none">
             <Button
-              style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-4 rounded flex items-center whitespace-nowrap"
+              style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-4 rounded flex items-center whitespace-nowrap cursor-pointer"
               onClick={() => {
                 setEditProductMode(false);
                 setFormProducto({
@@ -194,7 +242,7 @@ export default function ProductFilters({
 
             <Button
               to="/iaprediction"
-              style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-4 px-4 rounded flex items-center gap-2 whitespace-nowrap"
+              style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-4 px-4 rounded flex items-center gap-2 whitespace-nowrap cursor-pointer"
             >
               <FaSearch />
               <span className="text-base">Ver predicciones</span>

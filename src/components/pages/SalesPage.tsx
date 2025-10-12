@@ -36,7 +36,7 @@ type Customer = {
   phone?: string;
   email?: string;
 };
-import type { Warehouse } from "../../types/types";
+import type { Warehouse } from "../../types/salePage";
 import AddProductModal from "../ui/SaleComponents/AddProductModal";
 import SucursalModal from "../ui/SaleComponents/SucursalModal";
 import FacturaModal from "../ui/SaleComponents/FacturaModal";

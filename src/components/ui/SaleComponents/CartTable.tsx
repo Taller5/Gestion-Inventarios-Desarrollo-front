@@ -113,11 +113,11 @@ export default function CartTable({
                 const pct = Number(e.target.value);
                 setCarrito((prev) => prev.map((item) => ({ ...item, descuento: pct })));
               }}
-              className="border rounded px-2 py-1 w-20"
+              className="border rounded px-2 py-1 w-20 cursor-pointer"
               defaultValue={0}
             >
               {Array.from({ length: 21 }, (_, i) => i * 5).map((pct) => (
-                <option key={pct} value={pct}>
+                <option  key={pct} value={pct}>
                   {pct}%
                 </option>
               ))}
@@ -219,10 +219,10 @@ const CartItem = ({
           </>
         ) : (
           <>
-            <Button text="Editar" style="bg-amarillo-claro text-white px-2 py-1 rounded flex items-center gap-1" onClick={() => iniciarEdicion(idx)}>
+            <Button text="Editar" style="bg-amarillo-claro  hover:bg-amarillo-oscuro text-white px-2 py-1 rounded flex items-center gap-1 cursor-pointer" onClick={() => iniciarEdicion(idx)}>
               <IoPencil />
             </Button>
-            <Button text="Eliminar" style="bg-rojo-claro text-white px-2 py-1 rounded" onClick={() => eliminarDelCarrito(item.producto.codigo_producto)} />
+            <Button text="Eliminar" style="bg-rojo-claro hover:bg-rojo-oscuro text-white px-2 py-1 rounded flex items-center gap-1 cursor-pointer" onClick={() => eliminarDelCarrito(item.producto.codigo_producto)} />
           </>
         )}
       </td>

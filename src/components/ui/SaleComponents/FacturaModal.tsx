@@ -1,7 +1,7 @@
 
 import Button from "../Button";
 import GenerateInvoice, { type GenerateInvoiceRef } from "./GenerateInvoice";
-import type { Producto, Customer, Sucursal } from "../../../types/types";
+import type { Producto, Customer, Sucursal } from "../../../types/salePage";
 
 interface FacturaModalProps {
   facturaModal: boolean;

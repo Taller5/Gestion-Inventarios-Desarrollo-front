@@ -2,7 +2,7 @@
 import { IoSearch, IoPersonAdd } from "react-icons/io5";
 import Button from "../Button";
 
-import type { Customer } from "../../../types/types";
+import type { Customer } from "../../../types/salePage";
 
 interface Props {
   queryCliente: string;
