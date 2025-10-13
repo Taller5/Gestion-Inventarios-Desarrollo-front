@@ -300,12 +300,6 @@ export default function Inventary() {
   const [cabysCategories, setCabysCategories] =
     useState<CabysCategory[]>(initialCategories);
   const [cabysItems, setCabysItems] = useState<CabysItem[]>(initialItems);
-  const USING_CABYS_CACHE = initialItems.length > 0;
-  useEffect(() => {
-    console.info(
-      `[CABYS] Inicialización: categorias=${initialCategories.length} items=${initialItems.length} cacheItems=${USING_CABYS_CACHE}`
-    );
-  }, []);
 
   // Refs para evitar doble carga por StrictMode (montar/desmontar en dev)
   const cabysCategoriesLoadStarted = useRef(false);
@@ -382,7 +376,7 @@ export default function Inventary() {
           const norm = data.map(normalizeCategory);
           setCabysCategories(norm);
           saveCache(CABYS_CACHE_KEY_CATEGORIES, norm);
-          console.info(`[CABYS] Categorías cargadas desde red: ${norm.length}`);
+          
         }
       })
       .catch(() => {
@@ -423,9 +417,7 @@ export default function Inventary() {
       try {
         let page = 1;
         let lastPage = 1;
-        console.info(
-          "[CABYS] Comenzando descarga completa de items (no cache)"
-        );
+        
         do {
           const url = `${API_URL}/api/v1/cabys?page=${page}`;
           const r = await fetch(url, { signal: abort.signal });
@@ -501,7 +493,7 @@ export default function Inventary() {
               `[CABYS] Items cacheados incremental (${all.length}) complete=${complete}`
             );
           } catch (e) {
-            console.warn(
+             console.warn(
               "[CABYS] No se pudo guardar progreso CABYS (quota?)",
               e
             );
@@ -826,7 +818,7 @@ export default function Inventary() {
         setLotes(lotesData);
       })
       .catch(() => {
-        console.error("Error al obtener productos y lotes");
+         console.error("Error al obtener productos y lotes");
         setProductos([]);
         setLotes([]);
       })
@@ -837,7 +829,7 @@ export default function Inventary() {
     fetch(`${API_URL}/api/v1/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(data))
-      .catch((err) => console.error("Error cargando categorías:", err));
+       .catch((err) => console.error("Error cargando categorías:", err));
   }, []);
 
   // Une productos y lotes para mostrar todos los productos aunque no tengan lotes
@@ -1878,7 +1870,7 @@ export default function Inventary() {
                           ).then((r) => r.json());
                           setProductos(productosActualizados);
                         } catch (error) {
-                          console.error("Error al agregar lote:", error);
+                         console.error("Error al agregar lote:", error); 
                         } finally {
                           setLoadingForm(false);
                           setModalOpen(false);
