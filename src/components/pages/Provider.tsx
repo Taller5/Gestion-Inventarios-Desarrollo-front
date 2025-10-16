@@ -8,7 +8,8 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
-import Select from "react-select";
+import Select from "react-select"; //revisar luego
+import ProductSelectorModal from "../ui/ProviderComponents/ProductSelectorModal";
 
 type Provider = {
   id: number;
@@ -295,6 +296,7 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
     const [nameError, setNameError] = useState<string>("");
     const [emailError, setEmailError] = useState<string>("");
     const [phoneError, setPhoneError] = useState<string>("");
+    const [productSelectorOpen, setProductSelectorOpen] = useState(false);
 
     const [formData, setFormData] = useState<ProviderForm>({
       id: 0,
@@ -378,6 +380,7 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
           <h2 className="text-xl font-bold mb-4">
             {providerToEdit ? "Editar Proveedor" : "Añadir Proveedor"}
           </h2>
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input
               className="border p-2 rounded"
@@ -450,55 +453,44 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
               <option value="Inactivo">Inactivo</option>
             </select>
 
-      <div>
-  <label className="font-semibold mb-2 block">
-    Productos que distribuye:
-  </label>
-  <Select
-    options={products.map((p) => ({
-      value: p.nombre_producto,
-      label: (
-        <div>
-          <span className="font-semibold">{p.nombre_producto}</span>
-          <span className="text-gray-500 text-sm block">
-            {p.descripcion || "Sin descripción"}
-          </span>
-        </div>
-      ),
-    }))}
-    isMulti
-    value={formData.products.map((p) => {
-      const prod = products.find((prod) => prod.nombre_producto === p);
-      return {
-        value: p,
-        label: (
-          <div>
-            <span className="font-semibold">{prod?.nombre_producto || p}</span>
-            <span className="text-gray-500 text-sm block">
-              {prod?.descripcion || ""}
-            </span>
-          </div>
-        ),
-      };
-    })}
-    onChange={(selectedOptions) =>
-      setFormData({
-        ...formData,
-        products: selectedOptions ? selectedOptions.map((opt) => opt.value) : [],
-      })
-    }
-    className="basic-multi-select"
-    classNamePrefix="select"
-    placeholder="Selecciona productos..." 
-    // Estas props aseguran que al hacer clic afuera se cierre automáticamente
-    closeMenuOnSelect={false} // deja abierto para multi-select mientras seleccionas
-    escapeClearsValue={true} // permite cerrar con ESC
-  />
-  <p className="text-sm text-gray-500 mt-1">
-    Selecciona los productos que distribuye el proveedor.
-  </p>
-</div>
+            <div>
+              <label className="font-semibold mb-2 block">Productos que distribuye:</label>
 
+              {/* Mostrar badges y botón para abrir modal */}
+              <div className="flex flex-wrap gap-2 mb-2">
+                {formData.products.length === 0 && (
+                  <span className="text-sm text-gray-500">Ninguno seleccionado</span>
+                )}
+                {formData.products.map((name) => (
+                  <span key={name} className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm flex items-center gap-2">
+                    {name}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData({ ...formData, products: formData.products.filter(p => p !== name) })
+                      }
+                      className="text-xs text-gray-500 hover:text-gray-700 ml-1"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setProductSelectorOpen(true)}
+                  className="w-full text-left border p-2 rounded bg-white hover:bg-gray-50"
+                >
+                  Seleccionar productos...
+                </button>
+              </div>
+
+              <p className="text-sm text-gray-500 mt-1">
+                Selecciona los productos que distribuye el proveedor.
+              </p>
+            </div>
 
             <div className="flex justify-end gap-4 mt-4">
               <button
@@ -519,6 +511,17 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
               </button>
             </div>
           </form>
+
+          {/* Product selector modal */}
+          <ProductSelectorModal
+            open={productSelectorOpen}
+            products={products}
+            selected={formData.products}
+            onClose={() => setProductSelectorOpen(false)}
+            onConfirm={(selectedNames) => {
+              setFormData({ ...formData, products: selectedNames });
+            }}
+          />
         </div>
       </div>
     );
