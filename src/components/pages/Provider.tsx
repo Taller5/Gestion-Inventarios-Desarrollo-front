@@ -489,7 +489,7 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
     }
     className="basic-multi-select"
     classNamePrefix="select"
-    placeholder="Selecciona productos..."
+    placeholder="Selecciona productos..." 
     // Estas props aseguran que al hacer clic afuera se cierre automáticamente
     closeMenuOnSelect={false} // deja abierto para multi-select mientras seleccionas
     escapeClearsValue={true} // permite cerrar con ESC
