@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 
 type Product = {
   id: number;
+  codigo_producto?: string;
   nombre_producto: string;
   descripcion?: string | null;
   categoria?: string | null;
@@ -42,6 +43,8 @@ export default function ProductSelectorModal({
       setShowSelectedOnly(false);
       setNameSort("none");
       setCategoryFilter("");
+      setOrderNameOpen(false);
+      setOrderCatOpen(false);
     }
   }, [open, selected]);
 
@@ -55,7 +58,7 @@ export default function ProductSelectorModal({
     return Array.from(setCat).sort();
   }, [products]);
 
-  // filtrado por búsqueda + categoría
+  // filtrado por búsqueda + categoría (ahora busca por nombre, descripcion y código)
   const baseFiltered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return products.filter((p) => {
@@ -64,7 +67,13 @@ export default function ProductSelectorModal({
         if (cat !== categoryFilter.toLowerCase()) return false;
       }
       if (!q) return true;
-      const hay = (p.nombre_producto + " " + (p.descripcion || "")).toLowerCase();
+      const hay = (
+        p.nombre_producto +
+        " " +
+        (p.descripcion || "") +
+        " " +
+        (p.codigo_producto || "")
+      ).toLowerCase();
       return hay.includes(q);
     });
   }, [products, query, categoryFilter]);
@@ -121,11 +130,11 @@ export default function ProductSelectorModal({
             <button
               type="button"
               onClick={() => setShowSelectedOnly(s => !s)}
-              className={`px-3 py-1 rounded border ${showSelectedOnly ? 'bg-azul-medio text-white' : 'bg-white text-gray-700'}`}
+              className={`px-3 py-1 rounded border ${showSelectedOnly ? 'bg-azul-medio text-white' : 'bg-white text-gray-700'} cursor-pointer hover:opacity-90`}
             >
               {showSelectedOnly ? 'Seleccionados: ON' : 'Seleccionados'}
             </button>
-            <label className="flex items-center gap-2 text-sm">
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="checkbox"
                 checked={allVisibleSelected}
@@ -134,6 +143,7 @@ export default function ProductSelectorModal({
                   if (!el) return;
                   el.indeterminate = !allVisibleSelected && someVisibleSelected;
                 }}
+                className="cursor-pointer"
               />
               Seleccionar todo
             </label>
@@ -144,15 +154,15 @@ export default function ProductSelectorModal({
             <button
               type="button"
               onClick={() => { setOrderNameOpen(o => !o); setOrderCatOpen(false); }}
-              className="px-3 py-1 border rounded bg-white text-gray-700"
+              className="px-3 py-1 border rounded bg-white text-gray-700 cursor-pointer hover:opacity-90"
             >
               Ordenar por nombre
             </button>
             {orderNameOpen && (
-              <div className="absolute mt-2 bg-white border rounded shadow-md z-20">
-                <button className={`block px-4 py-2 w-full text-left ${nameSort==='asc'?'bg-gray-100':''}`} onClick={() => { setNameSort('asc'); setOrderNameOpen(false); }}>A → Z</button>
-                <button className={`block px-4 py-2 w-full text-left ${nameSort==='desc'?'bg-gray-100':''}`} onClick={() => { setNameSort('desc'); setOrderNameOpen(false); }}>Z → A</button>
-                <button className={`block px-4 py-2 w-full text-left ${nameSort==='none'?'bg-gray-100':''}`} onClick={() => { setNameSort('none'); setOrderNameOpen(false); }}>Sin ordenar</button>
+              <div className="absolute mt-2 bg-white border rounded shadow-md z-20 min-w-[160px]">
+                <button className={`block px-4 py-2 w-full text-left ${nameSort==='asc'?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setNameSort('asc'); setOrderNameOpen(false); }}>A → Z</button>
+                <button className={`block px-4 py-2 w-full text-left ${nameSort==='desc'?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setNameSort('desc'); setOrderNameOpen(false); }}>Z → A</button>
+                <button className={`block px-4 py-2 w-full text-left ${nameSort==='none'?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setNameSort('none'); setOrderNameOpen(false); }}>Sin ordenar</button>
               </div>
             )}
           </div>
@@ -162,19 +172,19 @@ export default function ProductSelectorModal({
             <button
               type="button"
               onClick={() => { setOrderCatOpen(o => !o); setOrderNameOpen(false); }}
-              className="px-3 py-1 border rounded bg-white text-gray-700"
+              className="px-3 py-1 border rounded bg-white text-gray-700 cursor-pointer hover:opacity-90"
             >
               Categoría
             </button>
             {orderCatOpen && (
-              <div className="absolute mt-2 bg-white border rounded shadow-md z-20 max-h-48 overflow-auto">
-                <button className={`block px-4 py-2 w-full text-left ${categoryFilter===''?'bg-gray-100':''}`} onClick={() => { setCategoryFilter(''); setOrderCatOpen(false); }}>
+              <div className="absolute mt-2 bg-white border rounded shadow-md z-20 max-h-48 overflow-auto min-w-[200px]">
+                <button className={`block px-4 py-2 w-full text-left ${categoryFilter===''?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setCategoryFilter(''); setOrderCatOpen(false); }}>
                   Todas
                 </button>
                 {categories.map((c) => (
                   <button
                     key={c}
-                    className={`block px-4 py-2 w-full text-left ${categoryFilter===c?'bg-gray-100':''}`}
+                    className={`block px-4 py-2 w-full text-left ${categoryFilter===c?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`}
                     onClick={() => { setCategoryFilter(c); setOrderCatOpen(false); }}
                   >
                     {c}
@@ -190,8 +200,8 @@ export default function ProductSelectorModal({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar producto..."
-              className="w-full border rounded px-3 py-2"
+              placeholder="Buscar por nombre o código..."
+              className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-medio"
             />
           </div>
         </div>
@@ -202,15 +212,15 @@ export default function ProductSelectorModal({
             <div className="text-center text-gray-500 py-6">Sin resultados</div>
           ) : (
             visibleProducts.map((p) => (
-              <label key={p.id} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded">
+              <label key={p.id} className="flex items-start gap-3 p-2 rounded hover:bg-gray-50 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={!!checked[p.nombre_producto]}
                   onChange={() => toggleItem(p.nombre_producto)}
-                  className="mt-1"
+                  className="mt-1 cursor-pointer"
                 />
                 <div className="flex-1">
-                  <div className="font-semibold">{p.nombre_producto}</div>
+                  <div className="font-semibold">{p.nombre_producto} {p.codigo_producto && <span className="text-xs text-gray-400 ml-2">({p.codigo_producto})</span>}</div>
                   {p.categoria && <div className="text-xs text-gray-400">{p.categoria}</div>}
                   <div className="text-sm text-gray-500">{p.descripcion || "Sin descripción"}</div>
                 </div>
@@ -222,14 +232,14 @@ export default function ProductSelectorModal({
         <div className="flex justify-end gap-3">
           <button
             type="button"
-            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-4 py-2 rounded"
+            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-4 py-2 rounded cursor-pointer"
             onClick={onClose}
           >
             Cancelar
           </button>
           <button
             type="button"
-            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded"
+            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded cursor-pointer"
             onClick={() => {
               const selectedNames = Object.keys(checked).filter(k => checked[k]);
               onConfirm(selectedNames);
