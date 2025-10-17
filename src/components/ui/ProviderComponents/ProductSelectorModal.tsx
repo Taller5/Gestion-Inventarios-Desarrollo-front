@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 
 type Product = {
   id: number;
@@ -130,7 +130,7 @@ export default function ProductSelectorModal({
             <button
               type="button"
               onClick={() => setShowSelectedOnly(s => !s)}
-              className={`px-3 py-1 rounded border ${showSelectedOnly ? 'bg-azul-medio text-white' : 'bg-white text-gray-700'} cursor-pointer hover:opacity-90`}
+              className={`px-3 py-1 rounded border ${showSelectedOnly ? 'bg-azul-medio hover:bg-azul-hover text-white' : 'bg-white text-gray-700 hover:bg-gris-ultra-claro'} cursor-pointer`}
             >
               {showSelectedOnly ? 'Seleccionados: ON' : 'Seleccionados'}
             </button>
@@ -154,15 +154,15 @@ export default function ProductSelectorModal({
             <button
               type="button"
               onClick={() => { setOrderNameOpen(o => !o); setOrderCatOpen(false); }}
-              className="px-3 py-1 border rounded bg-white text-gray-700 cursor-pointer hover:opacity-90"
+              className="px-3 py-1 border rounded bg-white text-gray-700 cursor-pointer hover:bg-gris-ultra-claro"
             >
               Ordenar por nombre
             </button>
             {orderNameOpen && (
               <div className="absolute mt-2 bg-white border rounded shadow-md z-20 min-w-[160px]">
-                <button className={`block px-4 py-2 w-full text-left ${nameSort==='asc'?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setNameSort('asc'); setOrderNameOpen(false); }}>A → Z</button>
-                <button className={`block px-4 py-2 w-full text-left ${nameSort==='desc'?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setNameSort('desc'); setOrderNameOpen(false); }}>Z → A</button>
-                <button className={`block px-4 py-2 w-full text-left ${nameSort==='none'?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setNameSort('none'); setOrderNameOpen(false); }}>Sin ordenar</button>
+                <button className={`block px-4 py-2 w-full text-left ${nameSort==='asc'?'bg-white':''} cursor-pointer hover:bg-gris-ultra-claro`} onClick={() => { setNameSort('asc'); setOrderNameOpen(false); }}>A → Z</button>
+                <button className={`block px-4 py-2 w-full text-left ${nameSort==='desc'?'bg-white':''} cursor-pointer hover:bg-gris-ultra-claro`} onClick={() => { setNameSort('desc'); setOrderNameOpen(false); }}>Z → A</button>
+                <button className={`block px-4 py-2 w-full text-left ${nameSort==='none'?'bg-white':''} cursor-pointer hover:bg-gris-ultra-claro`} onClick={() => { setNameSort('none'); setOrderNameOpen(false); }}>Sin ordenar</button>
               </div>
             )}
           </div>
@@ -172,19 +172,19 @@ export default function ProductSelectorModal({
             <button
               type="button"
               onClick={() => { setOrderCatOpen(o => !o); setOrderNameOpen(false); }}
-              className="px-3 py-1 border rounded bg-white text-gray-700 cursor-pointer hover:opacity-90"
+              className="px-3 py-1 border rounded bg-white hover:bg-gris-ultra-claro text-gray-700 cursor-pointer"
             >
               Categoría
             </button>
             {orderCatOpen && (
               <div className="absolute mt-2 bg-white border rounded shadow-md z-20 max-h-48 overflow-auto min-w-[200px]">
-                <button className={`block px-4 py-2 w-full text-left ${categoryFilter===''?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`} onClick={() => { setCategoryFilter(''); setOrderCatOpen(false); }}>
+                <button className={`block px-4 py-2 w-full text-left ${categoryFilter===''?'bg-white':''} cursor-pointer hover:bg-gris-ultra-claro`} onClick={() => { setCategoryFilter(''); setOrderCatOpen(false); }}>
                   Todas
                 </button>
                 {categories.map((c) => (
                   <button
                     key={c}
-                    className={`block px-4 py-2 w-full text-left ${categoryFilter===c?'bg-gray-100':''} cursor-pointer hover:bg-gray-50`}
+                    className={`block px-4 py-2 w-full text-left ${categoryFilter===c?'bg-white':''} cursor-pointer hover:bg-gris-ultra-claro`}
                     onClick={() => { setCategoryFilter(c); setOrderCatOpen(false); }}
                   >
                     {c}

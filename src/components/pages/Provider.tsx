@@ -36,7 +36,6 @@ const headers = [
   "email",
   "phone",
   "state",
-  "products",
   "actions",
 ];
 
@@ -258,10 +257,6 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
     email: prov.email,
     phone: prov.phone,
     state: prov.state,
-    products:
-      prov.products && Array.isArray(prov.products)
-        ? prov.products.map((p) => p.nombre_producto).join(", ")
-        : "",
     actions: getActions(prov),
   }));
 
@@ -460,21 +455,35 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
               <div className="flex flex-wrap gap-2 mb-2">
                 {formData.products.length === 0 && (
                   <span className="text-sm text-gray-500">Ninguno seleccionado</span>
-                )}
-                {formData.products.map((name) => (
-                  <span key={name} className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm flex items-center gap-2">
-                    {name}
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setFormData({ ...formData, products: formData.products.filter(p => p !== name) })
-                      }
-                      className="text-xs text-gray-500 hover:text-gray-700 ml-1"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
+                )  }
+
+                {formData.products.slice(0, 4).map((name) => (
+                <span
+                  key={name}
+                  className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm flex items-center gap-2"
+                >
+                  {name}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        products: formData.products.filter((p) => p !== name),
+                      })
+                    }
+                    className="text-xs text-gray-500 hover:text-gray-700 ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+
+{formData.products.length > 4 && (
+  <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-sm">
+    ...
+  </span>
+)}
+
               </div>
 
               <div className="flex gap-2">
