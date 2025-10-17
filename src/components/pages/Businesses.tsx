@@ -623,7 +623,7 @@ export default function Businesses() {
                             value={form.margen_ganancia}
                             min={0}
                             max={100}
-                            step={0.01}
+                            step={1}
                             onChange={(e) =>
                               setForm({
                                 ...form,
