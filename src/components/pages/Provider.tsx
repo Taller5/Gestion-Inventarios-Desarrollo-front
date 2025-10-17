@@ -8,7 +8,6 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
-import Select from "react-select"; //revisar luego
 import ProductSelectorModal from "../ui/ProviderComponents/ProductSelectorModal";
 
 type Provider = {
@@ -463,26 +462,17 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
                   className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm flex items-center gap-2"
                 >
                   {name}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        products: formData.products.filter((p) => p !== name),
-                      })
-                    }
-                    className="text-xs text-gray-500 hover:text-gray-700 ml-1"
-                  >
-                    ×
-                  </button>
                 </span>
               ))}
 
-{formData.products.length > 4 && (
-  <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-sm">
-    ...
-  </span>
-)}
+            {formData.products.length > 4 && (
+              <button 
+              type="button"
+              onClick={() => setProductSelectorOpen(true)}
+              className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-sm cursor-pointer"
+              >...
+              </button>
+            )}
 
               </div>
 
