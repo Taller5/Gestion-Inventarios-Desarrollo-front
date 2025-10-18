@@ -38,8 +38,6 @@ export default function Profile(props: ProfileProps) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changing, setChanging] = useState(false);
-  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
-
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -357,8 +355,6 @@ export default function Profile(props: ProfileProps) {
                             required
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            onFocus={() => setNewPasswordFocused(true)}
-                            onBlur={() => setNewPasswordFocused(false)}
                           />
                           <div
                             className="absolute right-3 bottom-1 text-gray-600 cursor-pointer"
@@ -405,8 +401,6 @@ export default function Profile(props: ProfileProps) {
                             required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            onFocus={() => setNewPasswordFocused(true)}
-                            onBlur={() => setNewPasswordFocused(false)}
                           />
                           <div
                             className="absolute right-3 bottom-1 text-gray-600 cursor-pointer"
