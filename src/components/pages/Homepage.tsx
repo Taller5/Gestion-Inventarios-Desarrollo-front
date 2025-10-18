@@ -4,17 +4,26 @@ import Button from "../ui/Button";
 import { CiFacebook, CiInstagram, CiPhone, CiClock1 } from "react-icons/ci";
 import { FaWhatsapp } from "react-icons/fa";
 import { MdLogin } from "react-icons/md";
-
 import { RiMoneyDollarCircleFill } from "react-icons/ri";
 
 export default function Homepage() {
-  //todo esto es para el modal
+  // Estados para el modal y formulario
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState("");
+
+  // Estado de alerta
+  const [alerta, setAlerta] = useState<{ mensaje: string; tipo: "error" | "info" } | null>(null);
+
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
+
+  // Función para mostrar alerta temporal
+  const mostrarAlerta = (mensaje: string, tipo: "error" | "info" = "info") => {
+    setAlerta({ mensaje, tipo });
+    setTimeout(() => setAlerta(null), 3000);
+  };
 
   const navProps = {
     button: (
@@ -27,7 +36,6 @@ export default function Homepage() {
     ),
   };
 
-  // Secciones InformationCards
   const informationCardsProps = [
     {
       title: "Bienvenido a Gestior",
@@ -35,7 +43,7 @@ export default function Homepage() {
       containerClassName: "bg-sky-700 text-white py-20 px-8 md:px-20",
       alignment: "center",
       buttonText: "Acceder a la app",
-      buttonIcon: <MdLogin className="w-10 h-10 text-white" />, // icono dinámico
+      buttonIcon: <MdLogin className="w-10 h-10 text-white" />,
       onButtonClick: () => {
         const user = localStorage.getItem("user");
         if (user) window.location.href = "/Inventary";
@@ -50,7 +58,6 @@ export default function Homepage() {
       alignment: "center",
       isMiniCard: true,
     },
-
     {
       title: "Planes Disponibles",
       text: "Elige el plan que mejor se adapte a tu negocio",
@@ -61,7 +68,7 @@ export default function Homepage() {
           description: "Hasta 5GB de almacenamiento\n5 usuarios\nSoporte básico",
           price: "$20/mes",
           bgColor: "bg-sky-300",
-          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
         },
         {
           id: "estandar",
@@ -69,7 +76,7 @@ export default function Homepage() {
           description: "Hasta 50GB de almacenamiento\n15 usuarios\nManejo de sucursales",
           price: "$45/mes",
           bgColor: "bg-sky-600",
-          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
         },
         {
           id: "avanzado",
@@ -77,7 +84,7 @@ export default function Homepage() {
           description: "Hasta 500GB de almacenamiento\n200 usuarios\nAsistente IA",
           price: "$60/mes",
           bgColor: "bg-sky-800",
-          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
         },
         {
           id: "corporativo",
@@ -85,23 +92,20 @@ export default function Homepage() {
           description: "Hasta 1TB de almacenamiento\nAnálisis de datos de mercado\nSoporte 24/7",
           price: "$80/mes",
           bgColor: "bg-sky-900",
-          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />
-        }
+          icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
+        },
       ],
-    
-
-       cardClassName: "flex flex-col items-center w-40 sm:w-44 md:w-48 group bg-white rounded-xl shadow-md p-4",
-  cardButtonClassName: "rounded-full w-20 h-20 md:w-24 md:h-24 flex items-center justify-center mb-3 transition-transform duration-300 transform group-hover:scale-125 group-hover:shadow-cyan",
-
-  buttonText: "Contáctanos",
-  onButtonClick: handleOpenModal,
-  buttonIcon: <FaWhatsapp className="w-1 h-10 text-white" />,
-  containerClassName: "bg-sky-100 text-gray-900 py-20 px-8 md:px-20",
-  buttonClassName: "bg-sky-500 text-black hover:bg-sky-600 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
-  alignment: "center",
-  direction: "row",
-
-    }
+      cardClassName: "flex flex-col items-center w-40 sm:w-44 md:w-48 group bg-white rounded-xl shadow-md p-4",
+      cardButtonClassName:
+        "rounded-full w-20 h-20 md:w-24 md:h-24 flex items-center justify-center mb-3 transition-transform duration-300 transform group-hover:scale-125 group-hover:shadow-cyan",
+      buttonText: "Contáctanos",
+      onButtonClick: handleOpenModal,
+      buttonIcon: <FaWhatsapp className="w-1 h-10 text-white" />,
+      containerClassName: "bg-sky-100 text-gray-900 py-20 px-8 md:px-20",
+      buttonClassName: "bg-sky-500 text-black hover:bg-sky-600 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
+      alignment: "center",
+      direction: "row",
+    },
   ];
 
   const miniCardsProps = [
@@ -152,31 +156,31 @@ export default function Homepage() {
 
   return (
     <>
-      <Container
-        nav={navProps}
-        informationCardsProps={informationCardsProps}
-        miniCards={miniCardsProps}
-      />
+      <Container nav={navProps} informationCardsProps={informationCardsProps} miniCards={miniCardsProps} />
 
       {/* Modal de WhatsApp */}
-
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-8 w-80 md:w-96 flex flex-col items-center">
             <h2 className="text-xl font-bold mb-4">Pide Información</h2>
             <p className="mb-4 text-center">
-              Completa tus datos y el plan que te interesa. Te responderemos por
-              WhatsApp.
+              Completa tus datos y el plan que te interesa. Te responderemos por WhatsApp.
             </p>
 
             {/* Formulario */}
-            <input
-              type="text"
-              placeholder="Tu nombre"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="mb-3 w-full px-3 py-2 border rounded"
-            />
+        {/* Formulario */}
+              <input
+                type="text"
+                placeholder="Tu nombre"
+                value={name}
+                onChange={(e) => {
+                  // Solo permitir letras y espacios
+                  const valorFiltrado = e.target.value.replace(/[^A-Za-z\s]/g, "");
+                  setName(valorFiltrado);
+                }}
+                className="mb-3 w-full px-3 py-2 border rounded"
+              />
+
             <input
               type="email"
               placeholder="Tu correo"
@@ -196,27 +200,62 @@ export default function Homepage() {
               <option value="Corporativo">$80/mes - Corporativo</option>
             </select>
 
-           {/* Botón WhatsApp con mensaje prellenado */}
-{/* Botón WhatsApp con mensaje prellenado */}
-<a
-  href={`https://wa.me/50689098222?text=${encodeURIComponent(
-    `Hola, me interesa el plan: ${plan}. Mi nombre es ${name} y mi correo es ${email}.`
-  )}`}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="bg-verde-claro hover:bg-verde-oscuro  text-white font-bold py-3 px-6 rounded mb-4 w-full flex items-center justify-center gap-2"
->
-  <FaWhatsapp className="text-white w-5 h-5" />
-  Contactar por WhatsApp
-</a>
+            {/* Botón WhatsApp con validaciones */}
+            <a
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
 
+                // Validar nombre: solo letras y espacios, máximo 50 caracteres
+                if (!name || !/^[A-Za-z\s]+$/.test(name) || name.length > 50) {
+                  mostrarAlerta("Nombre inválido: solo letras y máximo 50 caracteres", "error");
+                  return;
+                }
 
+                // Validar correo: debe tener @ y terminar en .com
+                if (!email || !/^[^\s@]+@[^\s@]+\.com$/.test(email)) {
+                  mostrarAlerta("Correo inválido: debe tener formato ejemplo@dominio.com", "error");
+                  return;
+                }
+
+                // Validar plan seleccionado
+                if (!plan) {
+                  mostrarAlerta("Selecciona un plan", "error");
+                  return;
+                }
+
+                // Abrir WhatsApp si todo es válido
+                const url = `https://wa.me/50689098222?text=${encodeURIComponent(
+                  `Hola, me interesa el plan: ${plan}. Mi nombre es ${name} y mi correo es ${email}.`
+                )}`;
+                window.open(url, "_blank");
+              }}
+              className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-3 px-6 rounded mb-4 w-full flex items-center justify-center gap-2"
+            >
+              <FaWhatsapp className="text-white w-5 h-5" />
+              Contactar por WhatsApp
+            </a>
+
+            {/* Botón cerrar */}
             <button
               onClick={handleCloseModal}
-              className="bg-gris-claro hover:bg-gris-ultra-oscuro  text-white font-bold py-3 px-6 rounded mb-4 w-full flex items-center justify-center gap-2 cursor-pointer"
+              className="bg-gris-claro hover:bg-gris-ultra-oscuro text-white font-bold py-3 px-6 rounded mb-4 w-full flex items-center justify-center gap-2 cursor-pointer"
             >
               Cerrar
             </button>
+
+            {/* Alertas */}
+            {alerta && (
+              <div
+                className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md z-50 ${
+                  alerta.tipo === "error"
+                    ? "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+                    : "bg-azul-ultra-claro text-azul-oscuro border-azul-claro border"
+                }`}
+              >
+                {alerta.mensaje}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -149,15 +149,15 @@ export default function SideBar({ role }: SideBarProps) {
       Gestión: [btnBodegas],
       Finanzas: [],
       "Administración de Usuarios": [],
-        Reportes: [btnSaleReports], // ← nueva sección añadida
+      
     };
   } else if (role === "vendedor") {
     sections = {
-      "Administración de Productos": [btnInventario, btnSalesPages],
+      "Administración de Productos": [btnInventario],
       Gestión: [],
-      Finanzas: [btnCashRegisterPage],
+      Finanzas: [btnCashRegisterPage, btnSalesPages],
       "Administración de Usuarios": [btnClientes],
-        Reportes: [btnSaleReports], // ← nueva sección añadida
+     
     };
   } else {
     sections = {

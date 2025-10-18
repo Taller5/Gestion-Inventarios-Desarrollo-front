@@ -181,6 +181,17 @@ export default function SalesPage() {
 
     fetchSucursales();
   }, [API_URL]);
+  // Si el usuario cambia de sucursal, limpiar caja seleccionada
+useEffect(() => {
+  if (cajaSeleccionada && sucursalSeleccionada) {
+    // Aquí validas que la caja pertenezca a la sucursal actual
+    if (cajaSeleccionada.sucursal_id !== sucursalSeleccionada.sucursal_id) {
+      setCajaSeleccionada(null);
+      mostrarAlerta("error", "La caja seleccionada no pertenece a esta sucursal. Debe elegir una nueva caja.");
+    }
+  }
+}, [sucursalSeleccionada]);
+
 
   // Fetch inicial
   useEffect(() => {

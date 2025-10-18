@@ -63,7 +63,7 @@ export default function ProductSelector({
   const [alerta, setAlerta] = useState<{ mensaje: string; tipo: "error" | "info" } | null>(null);
   const mostrarAlerta = (mensaje: string, tipo: "error" | "info" = "info") => {
     setAlerta({ mensaje, tipo });
-    setTimeout(() => setAlerta(null), 2000);
+ 
   };
 
  // Verificar si hay caja abierta
@@ -97,6 +97,14 @@ export default function ProductSelector({
       mostrarAlerta("Debe seleccionar y abrir una caja antes de vender", "error");
     }
   }, [verificandoCaja, cajaAbierta, cajaSeleccionada]);
+
+useEffect(() => {
+  if (cajaSeleccionada) {
+    setAlerta(null);
+  } else if (!verificandoCaja) {
+    mostrarAlerta("Debe seleccionar y abrir una caja antes de vender", "error");
+  }
+}, [cajaSeleccionada, verificandoCaja]);
 
 
 
