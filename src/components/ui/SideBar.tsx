@@ -1,8 +1,8 @@
 import React, { useState, useEffect, type JSX } from "react";
 import Button from "./Button";
+import { TbReportSearch, TbReportMoney } from "react-icons/tb";
 import {
   MdInventory,
-  MdSwapHoriz,
   MdPeople,
   MdPerson,
   MdBusiness,
@@ -17,6 +17,9 @@ import {
   MdCategory,
   MdOutlineApartment,
   MdSavings,
+  
+  
+  
 } from "react-icons/md";
 import { FaUsersGear } from "react-icons/fa6";
 interface SideBarProps {
@@ -34,6 +37,7 @@ export default function SideBar({ role }: SideBarProps) {
     Gestión: false,
     Finanzas: false,
     "Administración de Usuarios": false,
+    "Reportes": false,
   };
 
   // --- Map de rutas a secciones ---
@@ -48,6 +52,7 @@ export default function SideBar({ role }: SideBarProps) {
     "/cashregisterpage": "Finanzas",
     "/customer": "Administración de Usuarios",
     "/employees": "Administración de Usuarios",
+    "/saleReports": "Reportes de Ventas",
   };
 
   const currentSection = Object.keys(sectionMap).find((path) =>
@@ -76,12 +81,9 @@ export default function SideBar({ role }: SideBarProps) {
       <MdInventory size={20} color="white" /> Inventario
     </Button>
   );
-  const btnRegistroIngresos = (
-    <Button style={btnStyle} to="/finance">
-  <MdSwapHoriz size={28} color="white" />  Ingresos y egresos
-</Button>
 
-  );
+
+
   const btnClientes = (
     <Button style={btnStyle} to="/customer">
       <MdPeople size={20} color="white" /> Clientes y Fidelización
@@ -123,13 +125,19 @@ export default function SideBar({ role }: SideBarProps) {
       <MdPayments size={20} color="white" /> Cajas
     </Button>
   );
-
+  const btnSaleReports = (
+    <Button style={btnStyle} to="/saleReports">
+      <TbReportMoney size={20} color="white" /> Reportes de Ventas
+    </Button>
+  );
   // --- Iconos distintos para cada sección ---
   const sectionIcons: { [key: string]: JSX.Element } = {
     "Administración de Productos": <MdCategory size={20} color="white" />,
     Gestión: <MdOutlineApartment size={20} color="white" />,
     Finanzas: <MdSavings size={20} color="white" />,
+    Reportes: <TbReportSearch size={20} color="white" />,
     "Administración de Usuarios": <FaUsersGear size={20} color="white" />, // icono nuevo
+
   };
 
   // --- Configuración de secciones según rol ---
@@ -141,6 +149,7 @@ export default function SideBar({ role }: SideBarProps) {
       Gestión: [btnBodegas],
       Finanzas: [],
       "Administración de Usuarios": [],
+        Reportes: [btnSaleReports], // ← nueva sección añadida
     };
   } else if (role === "vendedor") {
     sections = {
@@ -148,18 +157,23 @@ export default function SideBar({ role }: SideBarProps) {
       Gestión: [],
       Finanzas: [btnCashRegisterPage],
       "Administración de Usuarios": [btnClientes],
+        Reportes: [btnSaleReports], // ← nueva sección añadida
     };
   } else {
     sections = {
       "Administración de Productos": [
         btnInventario,
         btnProvider,
-        btnRegistroIngresos,
+      
       ],
+
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
-      Finanzas: [ btnSalesPages, btnCashRegisterPage],
+      Finanzas: [ btnCashRegisterPage, btnSalesPages,],
+      
       "Administración de Usuarios": [btnClientes, btnPersonal],
+        Reportes: [btnSaleReports], // ← nueva sección añadida
     };
+    
   }
 
   // --- Renderizado de botones ---

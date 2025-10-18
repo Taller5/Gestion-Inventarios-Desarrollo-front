@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WarehousesRouteImport } from './routes/warehouses'
 import { Route as SalesPageRouteImport } from './routes/salesPage'
+import { Route as SaleReportsRouteImport } from './routes/saleReports'
 import { Route as RecoverPasswordRouteImport } from './routes/recoverPassword'
 import { Route as ProviderRouteImport } from './routes/provider'
 import { Route as ProfileRouteImport } from './routes/profile'
@@ -34,6 +35,11 @@ const WarehousesRoute = WarehousesRouteImport.update({
 const SalesPageRoute = SalesPageRouteImport.update({
   id: '/salesPage',
   path: '/salesPage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SaleReportsRoute = SaleReportsRouteImport.update({
+  id: '/saleReports',
+  path: '/saleReports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/saleReports': typeof SaleReportsRoute
   '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
 }
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/saleReports': typeof SaleReportsRoute
   '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
 }
@@ -159,6 +167,7 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
+  '/saleReports': typeof SaleReportsRoute
   '/salesPage': typeof SalesPageRoute
   '/warehouses': typeof WarehousesRoute
 }
@@ -179,6 +188,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/provider'
     | '/recoverPassword'
+    | '/saleReports'
     | '/salesPage'
     | '/warehouses'
   fileRoutesByTo: FileRoutesByTo
@@ -197,6 +207,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/provider'
     | '/recoverPassword'
+    | '/saleReports'
     | '/salesPage'
     | '/warehouses'
   id:
@@ -215,6 +226,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/provider'
     | '/recoverPassword'
+    | '/saleReports'
     | '/salesPage'
     | '/warehouses'
   fileRoutesById: FileRoutesById
@@ -234,6 +246,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   ProviderRoute: typeof ProviderRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
+  SaleReportsRoute: typeof SaleReportsRoute
   SalesPageRoute: typeof SalesPageRoute
   WarehousesRoute: typeof WarehousesRoute
 }
@@ -252,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/salesPage'
       fullPath: '/salesPage'
       preLoaderRoute: typeof SalesPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/saleReports': {
+      id: '/saleReports'
+      path: '/saleReports'
+      fullPath: '/saleReports'
+      preLoaderRoute: typeof SaleReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/recoverPassword': {
@@ -370,6 +390,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   ProviderRoute: ProviderRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
+  SaleReportsRoute: SaleReportsRoute,
   SalesPageRoute: SalesPageRoute,
   WarehousesRoute: WarehousesRoute,
 }

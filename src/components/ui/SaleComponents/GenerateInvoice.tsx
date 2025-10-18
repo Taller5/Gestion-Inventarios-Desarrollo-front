@@ -40,7 +40,7 @@ const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>((pr
   const formatNumber = (value: number) =>
     value.toLocaleString("es-CR", { maximumFractionDigits: 0 });
 
-  const generarFactura = () => {
+  const generarFactura = async () => {
     setError(null);
     setSuccessMessage(null);
     setLoading(true);
@@ -54,17 +54,80 @@ const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>((pr
       const padding = 10;
       let y = padding;
 
-      const numeroFactura = facturaCreada?.id || "N/D";
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.text(`Factura #${numeroFactura}`, 105, y, { align: "center" });
-      y += 10;
-      
-      const sistemaFactura = " de Facturación: Gestior";
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.text(`Sistema ${sistemaFactura}`, 105, y, { align: "center" });
-      y += 10;
+const numeroFactura = facturaCreada?.id || "N/D";
+doc.setFont("helvetica", "bold");
+doc.setFontSize(18);
+doc.text(`Factura #${numeroFactura}`, 105, y, { align: "center" });
+y += 10;
+
+// --- Texto del sistema ---
+const sistemaFactura = "de Facturación: Gestior";
+doc.setFont("helvetica", "bold");
+doc.setFontSize(10);
+doc.text(`Sistema ${sistemaFactura}`, 105, y, { align: "center" });
+y += 10;
+
+// --- Logo del negocio ---
+try {
+  const logoUrl = sucursalSeleccionada?.business?.logo;
+
+  if (logoUrl) {
+    const response = await fetch(logoUrl);
+    if (!response.ok) throw new Error("Error al descargar el logo");
+
+    const blob = await response.blob();
+
+    // Convertir a base64 (necesario para jsPDF)
+    const reader = new FileReader();
+    const imgBase64: string = await new Promise((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    // Crear imagen para obtener proporciones reales
+    const img = new Image();
+    img.src = imgBase64;
+
+    await new Promise<void>((resolve) => {
+      img.onload = () => {
+        const maxSize = 40; // tamaño máximo
+        let width = img.width;
+        let height = img.height;
+
+        // Mantener proporción
+        if (width > height) {
+          height = (height / width) * maxSize;
+          width = maxSize;
+        } else {
+          width = (width / height) * maxSize;
+          height = maxSize;
+        }
+
+        const imgX = (210 - width) / 2; // centrado horizontal
+        const imgY = y; // debajo del texto del sistema
+
+        doc.addImage(imgBase64, "JPEG", imgX, imgY, width, height);
+        y += height + 10;
+        resolve();
+      };
+    });
+  } else {
+    // No hay logo
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("LOGO", 105, y + 15, { align: "center" });
+    y += 40;
+  }
+} catch (error) {
+  console.error("Error cargando logo:", error);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("LOGO", 105, y + 15, { align: "center" });
+  y += 40;
+}
+
+
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
