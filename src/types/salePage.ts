@@ -37,6 +37,7 @@ export interface Business {
   email: string;
   tipo_identificacion: string;
   numero_identificacion: string;
+ logo?: string;
 }
 export type BusinessExtended = {
   negocio_id: number;
@@ -47,6 +48,7 @@ export type BusinessExtended = {
   telefono?: string;
   email?: string;
   margen_ganancia: string; // ⚠ obligatorio
+  logo?: string;
 };
 
 
@@ -81,3 +83,14 @@ export type FullBusiness = {
   numero_identificacion: string;
 };
 
+// types/salePage.ts
+export interface Caja {
+  id: number;
+  sucursal_id: number;
+  user_id: number;
+  opening_amount: number;
+  available_amount: number;
+  closing_amount: number | null;
+  opened_at: string;
+  closed_at: string | null;
+}

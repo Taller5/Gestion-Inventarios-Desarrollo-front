@@ -23,6 +23,7 @@ type CashRegister = {
   closed_at?: string | null;
   branch: Branch;
   user: { id: number; name: string };
+  available_amount: number;
 };
 
 const headers = [
@@ -31,6 +32,7 @@ const headers = [
   "Usuario",
   "Monto apertura",
   "Monto cierre",
+  "Disponible",
   "Abierta",
   "Cerrada",
   "Acciones",
@@ -65,14 +67,18 @@ const formatDateSafe = (input?: string | number | null) => {
   let isoCandidate = s;
 
   // Formato ISO completo
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:\d{2})?$/.test(s)) {
-  if (!(/([Zz]|[+\-]\d{2}:\d{2})$/.test(s))) isoCandidate += "Z";
-}
+  if (
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+\-]\d{2}:\d{2})?$/.test(
+      s
+    )
+  ) {
+    if (!/([Zz]|[+\-]\d{2}:\d{2})$/.test(s)) isoCandidate += "Z";
+  }
 
   // Formato "YYYY-MM-DD HH:MM(:SS)"
   else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?::\d{2})?$/.test(s)) {
     isoCandidate = s.replace(" ", "T") + "Z";
-  } 
+  }
   // Otros formatos que Date pueda interpretar
   else {
     const tryD = new Date(s);
@@ -104,28 +110,36 @@ const formatDateSafe = (input?: string | number | null) => {
       });
 };
 
-
 export default function CashRegisterPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
   const userId = user.id;
 
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [businesses, setBusinesses] = useState<{ negocio_id: number; nombre_comercial: string }[]>([]);
+  const [businesses, setBusinesses] = useState<
+    { negocio_id: number; nombre_comercial: string }[]
+  >([]);
   const [selectedBusiness, setSelectedBusiness] = useState<number | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
   const [openingAmount, setOpeningAmount] = useState<number | "">("");
-  const [alert, setAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [alert, setAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [cashRegisters, setCashRegisters] = useState<CashRegister[]>([]);
 
   const [closeModalOpen, setCloseModalOpen] = useState(false);
-  const [cashRegisterToClose, setCashRegisterToClose] = useState<CashRegister | null>(null);
-  const [closingAmount, setClosingAmount] = useState<number | "">("");
-  const [closingError, setClosingError] = useState<string | null>(null);
+  const [cashRegisterToClose, setCashRegisterToClose] =
+    useState<CashRegister | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  // Declaración en tu componente
+  const mostrarAlerta = (type: "success" | "error", message: string) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert(null), 2000);
+  };
 
   const MAX_AMOUNT = 99999999.99;
 
@@ -136,7 +150,10 @@ export default function CashRegisterPage() {
       setBranches(data);
 
       // Extraer negocios únicos
-      const map = new Map<number, { negocio_id: number; nombre_comercial: string }>();
+      const map = new Map<
+        number,
+        { negocio_id: number; nombre_comercial: string }
+      >();
       data.forEach((b: Branch) => {
         const bus = b.business;
         if (bus && !map.has(bus.negocio_id)) map.set(bus.negocio_id, bus);
@@ -164,7 +181,10 @@ export default function CashRegisterPage() {
 
   const handleOpenCashRegister = async () => {
     if (!selectedBranch || openingAmount === "" || openingAmount <= 0) {
-      setAlert({ type: "error", message: "Selecciona una sucursal y un monto válido." });
+      setAlert({
+        type: "error",
+        message: "Selecciona una sucursal y un monto válido.",
+      });
       return;
     }
     setLoading(true);
@@ -173,7 +193,11 @@ export default function CashRegisterPage() {
       const res = await fetch(`${API_URL}/api/v1/cash-registers/open`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sucursal_id: selectedBranch, user_id: userId, opening_amount: openingAmount }),
+        body: JSON.stringify({
+          sucursal_id: selectedBranch,
+          user_id: userId,
+          opening_amount: openingAmount,
+        }),
       });
       const data = await res.json();
       if (res.ok) {
@@ -181,35 +205,11 @@ export default function CashRegisterPage() {
         setModalOpen(false);
         setSelectedBranch(null);
         setOpeningAmount("");
-      } else setAlert({ type: "error", message: data.message || "Error al abrir la caja" });
-    } catch (err: any) {
-      setAlert({ type: "error", message: `Error de conexión: ${err.message}` });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCloseCashRegister = async () => {
-    if (!cashRegisterToClose || closingAmount === "" || closingAmount < 0) return;
-    if (Number(closingAmount) < Number(cashRegisterToClose.opening_amount)) {
-      setAlert({ type: "error", message: "El monto de cierre no puede ser menor al de apertura" });
-      return;
-    }
-    setLoading(true);
-    setAlert(null);
-    try {
-      const res = await fetch(`${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ closing_amount: closingAmount }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setCashRegisters((prev) => prev.map((c) => (c.id === cashRegisterToClose.id ? data.data : c)));
-        setCloseModalOpen(false);
-        setCashRegisterToClose(null);
-        setClosingAmount("");
-      } else setAlert({ type: "error", message: data.message || "Error al cerrar la caja" });
+      } else
+        setAlert({
+          type: "error",
+          message: data.message || "Error al abrir la caja",
+        });
     } catch (err: any) {
       setAlert({ type: "error", message: `Error de conexión: ${err.message}` });
     } finally {
@@ -225,47 +225,58 @@ export default function CashRegisterPage() {
     const dateB = b.opened_at ? new Date(b.opened_at).getTime() : 0;
     return dateB - dateA;
   });
-/// Filtro por negocio (a través de la sucursal) y rango de fecha
-const filteredCashRegisters = sortedCashRegisters.filter((c) => {
-  let matchBusiness = true;
-  let matchDate = true;
+  /// Filtro por negocio (a través de la sucursal) y rango de fecha
+  const filteredCashRegisters = sortedCashRegisters.filter((c) => {
+    let matchBusiness = true;
+    let matchDate = true;
 
-  if (selectedBusiness) {
-    const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
-    const negocioId = branch?.business?.negocio_id;
-    matchBusiness = negocioId === selectedBusiness;
-  }
+    if (selectedBusiness) {
+      const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
+      const negocioId = branch?.business?.negocio_id;
+      matchBusiness = negocioId === selectedBusiness;
+    }
 
-  if (startDate) {
-    matchDate = matchDate && new Date(c.opened_at || 0).getTime() >= new Date(startDate).getTime();
-  }
-  if (endDate) {
-    matchDate = matchDate && new Date(c.opened_at || 0).getTime() <= new Date(endDate).getTime();
-  }
+    if (startDate) {
+      matchDate =
+        matchDate &&
+        new Date(c.opened_at || 0).getTime() >= new Date(startDate).getTime();
+    }
+    if (endDate) {
+      matchDate =
+        matchDate &&
+        new Date(c.opened_at || 0).getTime() <= new Date(endDate).getTime();
+    }
 
-  return matchBusiness && matchDate;
-});
+    return matchBusiness && matchDate;
+  });
 
-// Mostrar alerta si no hay cajas
-useEffect(() => {
-  if (selectedBusiness && filteredCashRegisters.length === 0) {
-    setAlert({
-      type: "error",
-      message: "No hay cajas registradas para el negocio seleccionado.",
-    });
-  } else {
-    setAlert(null);
-  }
-}, [selectedBusiness, filteredCashRegisters]);
+  // Mostrar alerta si no hay cajas
+  useEffect(() => {
+    if (selectedBusiness && filteredCashRegisters.length === 0) {
+      setAlert({
+        type: "error",
+        message: "No hay cajas registradas para el negocio seleccionado.",
+      });
+    } else {
+      setAlert(null);
+    }
+  }, [selectedBusiness, filteredCashRegisters]);
 
+ const tableContent = filteredCashRegisters.map((c) => {
+  const availableAmount = c.available_amount ?? c.opening_amount ?? 0;
 
-
-  const tableContent = filteredCashRegisters.map((c) => ({
+  return {
     ID: c.id,
     Sucursal: c.branch?.nombre,
     Usuario: c.user?.name,
     "Monto apertura": c.opening_amount,
     "Monto cierre": c.closing_amount ?? "-",
+    ...( !c.closed_at && { //  Solo agregar "Disponible" si la caja está abierta
+      Disponible: availableAmount.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    }),
     Abierta: formatDateSafe(c.opened_at),
     Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
     Acciones: !c.closed_at ? (
@@ -280,7 +291,9 @@ useEffect(() => {
         Cerrar
       </Button>
     ) : null,
-  }));
+  };
+});
+
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
@@ -289,7 +302,9 @@ useEffect(() => {
           <div className="flex">
             <SideBar role={userRole} />
             <div className="w-full pl-10 pt-10">
-              <h1 className="text-2xl font-bold mb-6 text-left">Gestionar Cajas</h1>
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Gestionar Cajas
+              </h1>
 
               {/* Filtros */}
               <div className="flex flex-wrap gap-4 mb-6 items-end">
@@ -297,7 +312,9 @@ useEffect(() => {
                   <label className="block font-semibold mb-1">Negocio</label>
                   <select
                     value={selectedBusiness ?? ""}
-                    onChange={(e) => setSelectedBusiness(Number(e.target.value) || null)}
+                    onChange={(e) =>
+                      setSelectedBusiness(Number(e.target.value) || null)
+                    }
                     className="border rounded-lg px-3 py-2 cursor-pointer"
                   >
                     <option value="">Todos los negocios</option>
@@ -357,7 +374,9 @@ useEffect(() => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
                   <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-                    <h2 className="text-xl font-bold mb-4 text-center">Abrir Caja</h2>
+                    <h2 className="text-xl font-bold mb-4 text-center">
+                      Abrir Caja
+                    </h2>
 
                     {alert && (
                       <div
@@ -373,10 +392,14 @@ useEffect(() => {
 
                     <div className="flex flex-col gap-4 mb-4">
                       <div>
-                        <label className="block font-semibold mb-1">Sucursal</label>
+                        <label className="block font-semibold mb-1">
+                          Sucursal
+                        </label>
                         <select
                           value={selectedBranch ?? ""}
-                          onChange={(e) => setSelectedBranch(Number(e.target.value))}
+                          onChange={(e) =>
+                            setSelectedBranch(Number(e.target.value))
+                          }
                           className="w-full border rounded-lg px-3 py-2"
                         >
                           <option value="">Selecciona una sucursal</option>
@@ -388,7 +411,9 @@ useEffect(() => {
                         </select>
                       </div>
                       <div>
-                        <label className="block font-semibold mb-1">Monto de apertura</label>
+                        <label className="block font-semibold mb-1">
+                          Monto de apertura
+                        </label>
                         <input
                           type="number"
                           value={openingAmount}
@@ -402,7 +427,10 @@ useEffect(() => {
                             }
                             const value = Number(raw);
                             if (value > MAX_AMOUNT) {
-                              setAlert({ type: "error", message: `El monto no puede poseer más de 8 dígitos` });
+                              setAlert({
+                                type: "error",
+                                message: `El monto no puede poseer más de 8 dígitos`,
+                              });
                               return;
                             }
                             setAlert(null);
@@ -435,18 +463,17 @@ useEffect(() => {
                 </div>
               )}
               {/* Alerta general */}
-{alert && (
-  <div
-    className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
-      alert.type === "success"
-        ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
-        : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-oscuro"
-    }`}
-  >
-    {alert.message}
-  </div>
-)}
-
+              {alert && (
+                <div
+                  className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                    alert.type === "success"
+                      ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                      : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-oscuro"
+                  }`}
+                >
+                  {alert.message}
+                </div>
+              )}
               {/* Modal Cerrar Caja */}
               <SimpleModal
                 open={closeModalOpen}
@@ -454,43 +481,69 @@ useEffect(() => {
                 title={`Cerrar Caja #${cashRegisterToClose?.id}`}
               >
                 <div className="flex flex-col gap-4">
-                  <label className="font-semibold">Monto de cierre:</label>
-                  <div className="w-full">
-                    <input
-                      type="text"
-                      value={closingAmount}
-                      onChange={(e) => {
-                        const raw = e.target.value;
-                        const validPattern = /^\d{0,8}(\.\d{0,2})?$/;
-                        if (!validPattern.test(raw)) return;
-                        if (raw === "") {
-                          setClosingAmount("");
-                          setClosingError(null);
-                          return;
-                        }
-                        const value = Number(raw);
-                        if (value > MAX_AMOUNT) setClosingError(`El monto no puede poseer más de 8 dígitos`);
-                        else if (cashRegisterToClose && value < Number(cashRegisterToClose.opening_amount))
-                          setClosingError(
-                            `El monto de cierre no puede ser menor al de apertura ₡${Number(
-                              cashRegisterToClose.opening_amount
-                            ).toLocaleString("es-CR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                          );
-                        else setClosingError(null);
-                        setClosingAmount(Number(raw));
-                      }}
-                      placeholder="0.00"
-                      className={`w-full border rounded-lg px-3 py-2 [appearance:textfield] ${
-                        closingError ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {closingError && <p className="text-red-500 text-sm mt-1 font-medium">{closingError}</p>}
-                  </div>
+                  <label className="font-semibold">
+                    Monto disponible al cerrar:
+                  </label>
+                  <input
+                    type="text"
+                    value={
+                      cashRegisterToClose?.available_amount
+                        ? Number(
+                            cashRegisterToClose.available_amount
+                          ).toLocaleString("es-CR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
+                        : "-"
+                    }
+                    readOnly
+                    className="w-full border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
+                  />
 
                   <div className="flex gap-4 justify-end mt-4">
                     <Button
                       style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                      onClick={handleCloseCashRegister}
+                      onClick={async () => {
+                        if (!cashRegisterToClose) return;
+
+                        try {
+                          setLoading(true);
+                          const res = await fetch(
+                            `${API_URL}/api/v1/cash-register/close/${cashRegisterToClose.id}`,
+                            {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                            }
+                          );
+
+                          if (!res.ok)
+                            throw new Error("Error cerrando la caja");
+
+                          const data = await res.json();
+
+                          mostrarAlerta(
+                            "success",
+                            `Caja #${data.data.id} cerrada correctamente`
+                          );
+
+                          // Actualizar lista local
+                          setCashRegisters((prev) =>
+                            prev.map((c) =>
+                              c.id === data.data.id ? data.data : c
+                            )
+                          );
+
+                          setCloseModalOpen(false);
+                        } catch (err) {
+                          console.error(err);
+                          mostrarAlerta(
+                            "error",
+                            "No se pudo cerrar la caja. Intente nuevamente."
+                          );
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
                       disabled={loading}
                     >
                       {loading ? "Cerrando..." : "Cerrar Caja"}

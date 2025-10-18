@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getBusinesses, deleteBusiness, createBusiness, updateBusiness } from "./BusinessService";
+import { getBusinesses, deleteBusiness, createBusiness, updateBusiness, updateBusinessLogo } from "./BusinessService";
 
 type Business = {
   margen_ganancia: number;
@@ -12,9 +12,12 @@ type Business = {
   descripcion?: string | null;
   telefono: string;
   email: string;
+  logo?: string | null;
 };
 
 export const UseBusiness = () => {
+  const [savingLogo, setSavingLogo] = useState(false);
+
   const [fetchBusinesses, setFetchBusinesses] = useState<Business[]>([]);
   const [fetchAlert, setFetchAlert] = useState<{
     type: "success" | "error";
@@ -69,6 +72,22 @@ export const UseBusiness = () => {
     }
   };
 
+ const handleUpdateLogo = async (businessId: number, logoUrl: string) => {
+    try {
+      setSavingLogo(true);
+      const updated = await updateBusinessLogo(businessId, logoUrl);
 
-  return { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert };
+      // Actualiza localmente la lista de negocios
+      setFetchBusinesses(prev =>
+        prev.map(b => (b.negocio_id === businessId ? { ...b, logo: updated.logo } : b))
+      );
+
+      setFetchAlert({ type: "success", message: "Logo actualizado correctamente" });
+    } catch (error: any) {
+      setFetchAlert({ type: "error", message: error.message || "Error al actualizar el logo" });
+    } finally {
+      setSavingLogo(false);
+    }
+  };
+  return { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert, handleUpdateLogo, savingLogo };
 };
