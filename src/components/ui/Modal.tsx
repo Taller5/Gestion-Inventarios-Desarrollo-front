@@ -36,7 +36,19 @@ export default function Modal({
     message: string;
   } | null>(null);
 
-  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
+  // Mover las validaciones y la función antes de su uso
+  const passwordValidations = [
+    { test: (pw: string) => pw.length >= 6, message: "Al menos 6 caracteres" },
+    { test: (pw: string) => /[A-Z]/.test(pw), message: "Al menos una letra mayúscula" },
+    { test: (pw: string) => /[a-z]/.test(pw), message: "Al menos una letra minúscula" },
+    { test: (pw: string) => /\d/.test(pw), message: "Al menos un número" },
+    { test: (pw: string) => /[^A-Za-z0-9]/.test(pw), message: "Al menos un carácter especial" },
+  ];
+  const getPasswordErrors = (pw: string) =>
+    passwordValidations.filter((v) => !v.test(pw)).map((v) => v.message);
+
+  // Mostrar siempre una sola línea de error dinámico según lo digitado
+  const firstPasswordError = getPasswordErrors(form.password)[0] || null;
   const [showPassword, setShowPassword] = useState(false);
 
   // Inicializa el formulario con los datos del usuario a editar
@@ -260,16 +272,6 @@ export default function Modal({
     }
   };
 
-  const passwordValidations = [
-    { test: (pw: string) => pw.length >= 6, message: "Al menos 6 caracteres" },
-    { test: (pw: string) => /[A-Z]/.test(pw), message: "Al menos una letra mayúscula" },
-    { test: (pw: string) => /[a-z]/.test(pw), message: "Al menos una letra minúscula" },
-    { test: (pw: string) => /\d/.test(pw), message: "Al menos un número" },
-    { test: (pw: string) => /[^A-Za-z0-9]/.test(pw), message: "Al menos un carácter especial" },
-  ];
-  const getPasswordErrors = (pw: string) =>
-    passwordValidations.filter((v) => !v.test(pw)).map((v) => v.message);
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-transparent backdrop-blur-sm"></div>
@@ -347,8 +349,6 @@ export default function Modal({
               placeholder="Contraseña"
               required={!isEditMode}
               minLength={isEditMode ? undefined : 6}
-              onFocus={() => setNewPasswordFocused(true)}
-              onBlur={() => setNewPasswordFocused(false)}
             />
             <div
               className="absolute right-11 translate-y-10 text-gray-600 cursor-pointer"
@@ -361,14 +361,10 @@ export default function Modal({
                 <IoEyeOffOutline className="w-6 h-6" />
               )}
             </div>
-            {newPasswordFocused && (
-              <ul className="text-sm text-red-700 list-disc pl-5 mt-2">
-                {getPasswordErrors(form.password)
-                  .slice(0, 1)
-                  .map((error, index) => (
-                    <li key={index}>{error}</li>
-                  ))}
-              </ul>
+            {form.password.length > 0 && firstPasswordError && (
+              <div className="text-sm text-red-700 mt-2">
+                {firstPasswordError}
+              </div>
             )}
           </div>
         </div>

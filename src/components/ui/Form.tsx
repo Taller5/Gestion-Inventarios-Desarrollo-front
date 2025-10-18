@@ -35,7 +35,7 @@ export default function Form(props: FormProps) {
       </h2>
 
       {props.error && (
-        <div className="p-3 mb-4 bg-rojo-ultra-claro text-white rounded-lg text-center">
+        <div className="p-3 mb-4 bg-rojo-ultra-claro border-rojo-claro text-rojo-oscuro border rounded-lg text-center">
           {props.error}
         </div>
       )}

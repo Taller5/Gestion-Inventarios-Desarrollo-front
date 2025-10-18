@@ -38,8 +38,6 @@ export default function Profile(props: ProfileProps) {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changing, setChanging] = useState(false);
-  const [newPasswordFocused, setNewPasswordFocused] = useState(false);
-
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -357,8 +355,6 @@ export default function Profile(props: ProfileProps) {
                             required
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
-                            onFocus={() => setNewPasswordFocused(true)}
-                            onBlur={() => setNewPasswordFocused(false)}
                           />
                           <div
                             className="absolute right-3 bottom-1 text-gray-600 cursor-pointer"
@@ -372,7 +368,11 @@ export default function Profile(props: ProfileProps) {
                             )}
                           </div>
                         </label>
-                        {newPasswordFocused && (
+
+                        {/* Mostrar validaciones siempre (independiente del focus),
+                            pero sólo cuando el usuario ha empezado a escribir en alguno de los inputs.
+                            Las validaciones se actualizan dinámicamente según newPassword / confirmPassword */}
+                        {(newPassword.length > 0 || confirmPassword.length > 0) && (
                           <ul className="text-sm text-rojo-oscuro list-disc pl-5 mt-2">
                             {getPasswordErrors(newPassword)
                               .slice(0, 1)
@@ -384,12 +384,11 @@ export default function Profile(props: ProfileProps) {
                                   {error}
                                 </li>
                               ))}
-                            {confirmPassword &&
-                              confirmPassword !== newPassword && (
-                                <li className="transition-opacity duration-500 opacity-100">
-                                  Las contraseñas no coinciden
-                                </li>
-                              )}
+                            {confirmPassword && confirmPassword !== newPassword && (
+                              <li className="transition-opacity duration-500 opacity-100">
+                                Las contraseñas no coinciden
+                              </li>
+                            )}
                           </ul>
                         )}
                       </div>
@@ -402,8 +401,6 @@ export default function Profile(props: ProfileProps) {
                             required
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
-                            onFocus={() => setNewPasswordFocused(true)}
-                            onBlur={() => setNewPasswordFocused(false)}
                           />
                           <div
                             className="absolute right-3 bottom-1 text-gray-600 cursor-pointer"
