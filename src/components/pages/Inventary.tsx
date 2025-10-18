@@ -1592,7 +1592,7 @@ export default function Inventary() {
                             {formProducto.precio_compra > 0 && (
                               <button
                                 type="button"
-                                className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg text-sm mt-2 shadow-md transition w-full"
+                                className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg text-sm mt-2 shadow-md transition w-full cursor-pointer"
                                 onClick={() => {
                                   setFormProducto((f) => ({
                                     ...f,
