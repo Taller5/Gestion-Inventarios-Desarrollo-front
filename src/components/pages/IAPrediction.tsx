@@ -156,7 +156,7 @@ showDropdown; // <-- Esto evita el error de variable no usada
   };
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor", "cajero", "bodeguero"]}>
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor", "bodeguero"]}>
       <Container
         page={
           <div className="p-6 bg-white shadow-xl rounded-xl max-w-4xl mx-auto my-10">

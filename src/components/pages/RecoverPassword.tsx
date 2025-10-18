@@ -32,13 +32,14 @@ export default function RecoverPassword() {
 
       if (!res.ok) {
         const errData = await res.json();
+        // Si el correo no existe, Laravel debería retornar un mensaje apropiado
         throw new Error(
-          errData.message || "No se pudo generar la clave temporal"
+          errData.message || "El correo electrónico no está registrado"
         );
       }
 
       const data = await res.json();
-      console.log("Respuesta backend:", data);
+      
       router.navigate({ to: "/login" });
 
       const tempPassword = data.temporaryPassword;
@@ -54,10 +55,10 @@ export default function RecoverPassword() {
       };
 
       await emailjs.send(
-        "service_vl273ce", // service ID
-        "template_x678a3b", // template ID
+        "service_vl273ce",
+        "template_x678a3b",
         templateParams,
-        "1rHCHqTG4NTv_3j6C" // public key
+        "1rHCHqTG4NTv_3j6C"
       );
 
       setSuccess(true);
@@ -73,7 +74,10 @@ export default function RecoverPassword() {
   const formProps = {
     email,
     password: "",
-    onEmailChange: (v: string) => setEmail(v),
+    onEmailChange: (v: string) => {
+      setEmail(v);
+      if (error) setError(undefined); // Limpiar error al cambiar input
+    },
     onPasswordChange: () => {},
     onSubmit: handleRecover,
     loading,
