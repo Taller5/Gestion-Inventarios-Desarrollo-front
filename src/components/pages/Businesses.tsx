@@ -9,6 +9,7 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
+import Cloudinary from "../services/Cloudinary";
 
 type Business = {
   margen_ganancia: number;
@@ -21,6 +22,7 @@ type Business = {
   descripcion?: string | null;
   telefono: string;
   email: string;
+  logo?: string | null;
 };
 
 const headers = [
@@ -39,8 +41,12 @@ export default function Businesses() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const userRole = user.role || "";
 
-  const { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert } = UseBusiness();
-
+  const {
+    fetchBusinesses,
+    handleDeleteBusiness,
+    handleSubmitBusiness,
+    fetchAlert,
+  } = UseBusiness();
 
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [businessesFiltered, setBusinessesFiltered] = useState<Business[]>([]);
@@ -48,15 +54,17 @@ export default function Businesses() {
   const [modalOpen, setModalOpen] = useState(false);
   const [businessToEdit, setBusinessToEdit] = useState<Business | null>(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [businessToDelete, setBusinessToDelete] = useState<Business | null>( null);
+  const [businessToDelete, setBusinessToDelete] = useState<Business | null>(
+    null
+  );
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null); //muy posible eliminación
 
   useEffect(() => {
-  setAlert(fetchAlert);
-}, [fetchAlert]);
+    setAlert(fetchAlert);
+  }, [fetchAlert]);
 
   const [loadingForm, setLoadingForm] = useState(false);
 
@@ -70,6 +78,7 @@ export default function Businesses() {
     descripcion: "",
     telefono: "",
     email: "",
+    logo: "",
   });
 
   useEffect(() => setBusinessesFiltered(businesses), [businesses]);
@@ -105,6 +114,7 @@ export default function Businesses() {
           descripcion: businessToEdit.descripcion ?? "",
           telefono: businessToEdit.telefono,
           email: businessToEdit.email,
+          logo: businessToEdit.logo ?? "",
         });
       } else {
         setForm({
@@ -117,6 +127,7 @@ export default function Businesses() {
           descripcion: "",
           telefono: "",
           email: "",
+          logo: "",
         });
       }
       setAlert(null);
@@ -147,7 +158,8 @@ export default function Businesses() {
         (!businessToEdit || b.negocio_id !== businessToEdit.negocio_id)
     );
     if (duplicado) return "Esta identificación ya está registrada";
-    if (!/^\d{6}$/.test(form.codigo_actividad_emisor)) return "Código actividad emisor debe tener exactamente 6 dígitos";
+    if (!/^\d{6}$/.test(form.codigo_actividad_emisor))
+      return "Código actividad emisor debe tener exactamente 6 dígitos";
     if (
       !form.margen_ganancia ||
       Number(form.margen_ganancia) < 0 ||
@@ -181,23 +193,20 @@ export default function Businesses() {
       const formToSend = {
         ...form,
         margen_ganancia: Number(form.margen_ganancia) / 100,
+        logo: form.logo || (businessToEdit ? businessToEdit.logo : ""), // <-- aquí se mantiene el logo existente si hay edición
       };
 
       let response: Business = {} as Business;
 
-      if(businessToEdit){
-        response = await handleSubmitBusiness(formToSend, businessToEdit);
-      }else{
-        response = await handleSubmitBusiness(formToSend);
-      }
-
       if (businessToEdit) {
+        response = await handleSubmitBusiness(formToSend, businessToEdit);
         setBusinesses(
           businesses.map((b) =>
             b.negocio_id === businessToEdit.negocio_id ? response : b
           )
         );
       } else {
+        response = await handleSubmitBusiness(formToSend);
         setBusinesses([...businesses, response]);
       }
 
@@ -275,6 +284,7 @@ export default function Businesses() {
       </div>
     ),
   }));
+  // Cambiar logo de negocio
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
@@ -288,34 +298,36 @@ export default function Businesses() {
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-                    <SearchBar<Business>
-                      data={businesses}
-                      displayField="negocio_id"  // ⚠️ se deja cualquier campo para tipado, no afecta el formatter
-                      searchFields={["negocio_id", "nombre_legal"]}
-                      placeholder="Buscar por ID o nombre legal..."
-                      onResultsChange={(results) => {
-                        setBusinessesFiltered(results);
-                        if (results.length > 0) setAlert(null);
-                      }}
-                      onSelect={(item) => setBusinessesFiltered([item])}
-                      onNotFound={(q) => {
-                        if (!q || q.trim() === "") {
-                          setAlert({
-                            type: "error",
-                            message: "Por favor digite un ID o nombre legal para buscar.",
-                          });
-                        } else {
-                          setBusinessesFiltered([]);
-                          setAlert({
-                            type: "error",
-                            message: `No existe ningún negocio con el ID o nombre legal "${q}".`,
-                          });
-                        }
-                      }}
-                      onClearAlert={() => setAlert(null)}
-                      resultFormatter={(item) => `${item.negocio_id} - ${item.nombre_legal}`} // ✅ muestra ID + nombre
-                    />
-
+                  <SearchBar<Business>
+                    data={businesses}
+                    displayField="negocio_id" // ⚠️ se deja cualquier campo para tipado, no afecta el formatter
+                    searchFields={["negocio_id", "nombre_legal"]}
+                    placeholder="Buscar por ID o nombre legal..."
+                    onResultsChange={(results) => {
+                      setBusinessesFiltered(results);
+                      if (results.length > 0) setAlert(null);
+                    }}
+                    onSelect={(item) => setBusinessesFiltered([item])}
+                    onNotFound={(q) => {
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID o nombre legal para buscar.",
+                        });
+                      } else {
+                        setBusinessesFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ningún negocio con el ID o nombre legal "${q}".`,
+                        });
+                      }
+                    }}
+                    onClearAlert={() => setAlert(null)}
+                    resultFormatter={(item) =>
+                      `${item.negocio_id} - ${item.nombre_legal}`
+                    } // ✅ muestra ID + nombre
+                  />
 
                   {/* Mostrar solo un alert de búsqueda */}
                   {alert && (
@@ -363,6 +375,37 @@ export default function Businesses() {
                       <h2 className="text-xl font-bold mb-6">
                         {businessToEdit ? "Editar Negocio" : "Nuevo Negocio"}
                       </h2>
+                      {/* Logo */}
+                      <div className="mb-4 flex flex-col items-center gap-3">
+                        <label className="block text-sm font-medium text-gray-700 ">
+                          Logo del negocio
+                        </label>
+
+                        {/* Mostrar logo actual si existe */}
+                        {form.logo ? (
+                          <img
+                            src={form.logo}
+                            alt="Logo del negocio"
+                            className="w-24 h-24 object-cover border rounded"
+                          />
+                        ) : (
+                          <div className="w-24 h-24 border border-gray-300 rounded flex items-center justify-center text-gray-400">
+                            Sin logo
+                          </div>
+                        )}
+
+                        {/* Botón para subir nuevo logo */}
+                        <Cloudinary
+                          onUpload={(url) => {
+                            setForm((prev) => ({ ...prev, logo: url }));
+                            setAlert({
+                              type: "success",
+                              message: "Logo cargado correctamente",
+                            });
+                            setTimeout(() => setAlert(null), 2500);
+                          }}
+                        />
+                      </div>
 
                       {alert && (
                         <div
@@ -603,7 +646,9 @@ export default function Businesses() {
                             onChange={(e) =>
                               setForm({
                                 ...form,
-                                codigo_actividad_emisor: e.target.value.replace(/\D/g, "").slice(0,6),
+                                codigo_actividad_emisor: e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 6),
                               })
                             }
                             required

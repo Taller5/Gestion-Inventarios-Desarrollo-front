@@ -36,10 +36,11 @@ type Customer = {
   phone?: string;
   email?: string;
 };
-import type { Warehouse } from "../../types/salePage";
+import type { Caja, Warehouse } from "../../types/salePage";
 import AddProductModal from "../ui/SaleComponents/AddProductModal";
 import SucursalModal from "../ui/SaleComponents/SucursalModal";
 import FacturaModal from "../ui/SaleComponents/FacturaModal";
+import CashRegisterModal from "../ui/SaleComponents/CashRegisterModal";
 
 export default function SalesPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -68,7 +69,8 @@ export default function SalesPage() {
     setAlert({ type, message });
     setTimeout(() => setAlert(null), 2000); // Ocultar la alerta despues de 2 segundos
   };
-
+  const [modalCaja, setModalCaja] = useState(false);
+  const [cajaSeleccionada, setCajaSeleccionada] = useState<Caja | null>(null);
   // Estados búsqueda y edición
   const [queryCliente, setQueryCliente] = useState("");
   const [queryProducto, setQueryProducto] = useState("");
@@ -95,6 +97,7 @@ export default function SalesPage() {
     email: string;
     tipo_identificacion: string;
     numero_identificacion: string;
+    logo?: string; // ← agregado
   }
 
   interface Sucursal {
@@ -144,6 +147,7 @@ export default function SalesPage() {
             email: s.business.email || "-",
             tipo_identificacion: s.business.tipo_identificacion || "-",
             numero_identificacion: s.business.numero_identificacion || "-",
+            logo: s.business.logo || "", // <--- agregar aquí
           },
         }));
 
@@ -229,8 +233,6 @@ export default function SalesPage() {
           c.identity_number.toLowerCase().includes(queryCliente.toLowerCase())
       )
     : []; // <-- antes estaba ": clientes"
-
-
 
   // --- AGREGAR AL CARRITO ---
 
@@ -333,177 +335,222 @@ export default function SalesPage() {
     ((metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
       (!comprobante || comprobante.trim() === ""));
 
-
-// --- AGREGAR AL CARRITO CON CANTIDAD SELECCIONADA ---
-const agregarAlCarritoConCantidad = (producto: Producto, cantidad: number) => {
-  for (let i = 0; i < cantidad; i++) {
-    agregarAlCarrito(producto); // reutiliza tu función existente
-  }
-};
- // Al nivel del componente (fuera de finalizarVenta)
-const invoiceRef = useRef<GenerateInvoiceRef>(null);
-const [loadingFactura, setLoadingFactura] = useState(false);
-
-const finalizarVenta = async (e?: React.FormEvent) => {
-  e?.preventDefault?.();
-
-  if (!clienteSeleccionado || !sucursalSeleccionada || carrito.length === 0) {
-    mostrarAlerta(
-      "error",
-      "Seleccione cliente, sucursal y agregue productos al carrito."
-    );
-    return;
-  }
-
-  try {
-    // Validaciones de pago
-    if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
-      mostrarAlerta("error", "Ingrese el monto entregado");
-      return;
+  // --- AGREGAR AL CARRITO CON CANTIDAD SELECCIONADA ---
+  const agregarAlCarritoConCantidad = (
+    producto: Producto,
+    cantidad: number
+  ) => {
+    for (let i = 0; i < cantidad; i++) {
+      agregarAlCarrito(producto); // reutiliza tu función existente
     }
-    if (
-      (metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
-      !comprobante.trim()
-    ) {
+  };
+  // Al nivel del componente (fuera de finalizarVenta)
+  const invoiceRef = useRef<GenerateInvoiceRef>(null);
+  const [loadingFactura, setLoadingFactura] = useState(false);
+
+  const finalizarVenta = async (e?: React.FormEvent) => {
+    e?.preventDefault?.();
+
+    if (!clienteSeleccionado || !sucursalSeleccionada || carrito.length === 0) {
       mostrarAlerta(
         "error",
-        "Debe ingresar el comprobante para el método de pago seleccionado."
+        "Seleccione cliente, sucursal y agregue productos al carrito."
       );
       return;
     }
 
-    // Mapear método de pago al backend
-    const metodoPagoBackend =
-      metodoPago === "Efectivo"
-        ? "Cash"
-        : metodoPago === "Tarjeta"
-          ? "Card"
-          : metodoPago === "SINPE"
-            ? "SINPE"
-            : metodoPago;
+    try {
+      // Validaciones de pago
+      if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
+        mostrarAlerta("error", "Ingrese el monto entregado");
+        return;
+      }
+      if (
+        (metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
+        !comprobante.trim()
+      ) {
+        mostrarAlerta(
+          "error",
+          "Debe ingresar el comprobante para el método de pago seleccionado."
+        );
+        return;
+      }
 
-    // Validar monto suficiente si es pago en efectivo
-    if (metodoPago === "Efectivo" && (montoEntregado || 0) < totalAPagar) {
-      setFacturaModal(false);
+      // Mapear método de pago al backend
+      const metodoPagoBackend =
+        metodoPago === "Efectivo"
+          ? "Cash"
+          : metodoPago === "Tarjeta"
+            ? "Card"
+            : metodoPago === "SINPE"
+              ? "SINPE"
+              : metodoPago;
+
+      // Validar monto suficiente si es pago en efectivo
+      if (metodoPago === "Efectivo" && (montoEntregado || 0) < totalAPagar) {
+        setFacturaModal(false);
+        mostrarAlerta(
+          "error",
+          `El monto entregado es menor al total a pagar. Faltan ₡${
+            totalAPagar - (montoEntregado || 0)
+          }`
+        );
+        return;
+      }
+
+      // Preparar productos para la factura
+      const productosFactura = carrito.map((item) => ({
+        code: item.producto.codigo_producto,
+        name: item.producto.nombre_producto,
+        quantity: item.cantidad,
+        discount: item.descuento || 0,
+        price: item.producto.precio_venta,
+      }));
+
+      // Preparar datos de la factura
+      const facturaData = {
+        customer_name: clienteSeleccionado.name,
+        customer_identity_number: clienteSeleccionado.identity_number,
+        branch_name: sucursalSeleccionada.nombre,
+        business_name: sucursalSeleccionada.business.nombre_comercial,
+        business_legal_name: sucursalSeleccionada.business.nombre_legal,
+        business_phone: sucursalSeleccionada.business.telefono || "-",
+        business_email: sucursalSeleccionada.business.email || "-",
+        business_logo: sucursalSeleccionada.business.logo || "", // <--- aquí
+        province: sucursalSeleccionada.provincia || "-",
+        canton: sucursalSeleccionada.canton || "-",
+        branches_phone: sucursalSeleccionada.telefono || "-",
+        business_id_type:
+          sucursalSeleccionada.business.tipo_identificacion || "N/A",
+        business_id_number:
+          sucursalSeleccionada.business.numero_identificacion || "N/A",
+        cashier_name: user?.name || "N/A",
+        date: new Date(),
+        products: productosFactura,
+        subtotal,
+        total_discount: totalDescuento,
+        taxes: impuestos,
+        total: totalAPagar,
+        amount_paid:
+          metodoPagoBackend === "Cash" ? montoEntregado : totalAPagar,
+        change: vuelto,
+        payment_method: metodoPagoBackend,
+        receipt: metodoPagoBackend === "Cash" ? "N/A" : comprobante || "",
+      };
+
+      // Enviar factura al backend
+      const response = await fetch(`${API_URL}/api/v1/invoices`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(facturaData),
+      });
+
+      const responseData = await response.json();
+
+      // Guardar la factura creada para usar en PDF
+      setFacturaCreada(responseData);
+      setLoadingFactura(true); //  dispara useEffect para generar PDF solo cuando tengamos ID
+
+      if (metodoPagoBackend === "Cash") {
+        if (!cajaSeleccionada?.id) {
+          mostrarAlerta(
+            "error",
+            "No se pudo identificar la caja para actualizar el monto"
+          );
+        } else {
+          try {
+            const cajaResponse = await fetch(
+              `${API_URL}/api/v1/cash-register/addCashSale`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify({
+                  id: cajaSeleccionada.id, // ID de la caja seleccionada
+                  amount_received: Number(montoEntregado),
+                  change_given: Number(vuelto),
+                }),
+              }
+            );
+
+            const cajaData = await cajaResponse.json();
+
+            if (!cajaResponse.ok) {
+              mostrarAlerta(
+                "error",
+                cajaData.message || "Error al actualizar la caja"
+              );
+            } else {
+              console.log("Caja actualizada:", cajaData.data);
+              mostrarAlerta("success", "Caja actualizada correctamente");
+            }
+          } catch (error: any) {
+            console.error("Error al actualizar caja:", error);
+            mostrarAlerta("error", "No se pudo actualizar la caja");
+          }
+        }
+      }
+
+      // Restar stock de productos
+      await Promise.all(
+        carrito.map(async (item) => {
+          const productoRes = await fetch(
+            `${API_URL}/api/v1/products/${item.producto.id}`
+          );
+          const productoData = await productoRes.json();
+          const nuevoStock = productoData.stock - item.cantidad;
+
+          await fetch(`${API_URL}/api/v1/products/${item.producto.id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ stock: nuevoStock }),
+          });
+        })
+      );
+
+      // Mensaje de éxito
       mostrarAlerta(
-        "error",
-        `El monto entregado es menor al total a pagar. Faltan ₡${
-          totalAPagar - (montoEntregado || 0)
+        "success",
+        `Factura #${responseData?.id} creada exitosamente. ${
+          vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ""
         }`
       );
-      return;
+
+      // Cerrar modal
+      setFacturaModal(false);
+
+      // Limpiar estados del carrito
+      setCarrito([]);
+      setClienteSeleccionado(null);
+      setMontoEntregado(0);
+      setComprobante("");
+      localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+      // Actualizar lista de productos
+      const updatedProducts = await fetch(`${API_URL}/api/v1/products`).then(
+        (res) => res.json()
+      );
+      setProductos(updatedProducts);
+    } catch (error: any) {
+      console.error("Error en finalizarVenta:", error);
+      mostrarAlerta(
+        "error",
+        "Ocurrió un error al procesar la venta. Por favor intente nuevamente."
+      );
     }
-
-    // Preparar productos para la factura
-    const productosFactura = carrito.map((item) => ({
-      code: item.producto.codigo_producto,
-      name: item.producto.nombre_producto,
-      quantity: item.cantidad,
-      discount: item.descuento || 0,
-      price: item.producto.precio_venta,
-    }));
-
-    // Preparar datos de la factura
-    const facturaData = {
-      customer_name: clienteSeleccionado.name,
-      customer_identity_number: clienteSeleccionado.identity_number,
-      branch_name: sucursalSeleccionada.nombre,
-      business_name: sucursalSeleccionada.business.nombre_comercial,
-      business_legal_name: sucursalSeleccionada.business.nombre_legal,
-      business_phone: sucursalSeleccionada.business.telefono || "-",
-      business_email: sucursalSeleccionada.business.email || "-",
-      province: sucursalSeleccionada.provincia || "-",
-      canton: sucursalSeleccionada.canton || "-",
-      branches_phone: sucursalSeleccionada.telefono || "-",
-      business_id_type:
-        sucursalSeleccionada.business.tipo_identificacion || "N/A",
-      business_id_number:
-        sucursalSeleccionada.business.numero_identificacion || "N/A",
-      cashier_name: user?.name || "N/A",
-      date: new Date(),
-      products: productosFactura,
-      subtotal,
-      total_discount: totalDescuento,
-      taxes: impuestos,
-      total: totalAPagar,
-      amount_paid:
-        metodoPagoBackend === "Cash" ? montoEntregado : totalAPagar,
-      change: vuelto,
-      payment_method: metodoPagoBackend,
-      receipt: metodoPagoBackend === "Cash" ? "N/A" : comprobante || "",
-    };
-
-    // Enviar factura al backend
-    const response = await fetch(`${API_URL}/api/v1/invoices`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(facturaData),
-    });
-
-    const responseData = await response.json();
-
-    // Guardar la factura creada para usar en PDF
-    setFacturaCreada(responseData);
-    setLoadingFactura(true); // ⚡ dispara useEffect para generar PDF solo cuando tengamos ID
-
-    // Restar stock de productos
-    await Promise.all(
-      carrito.map(async (item) => {
-        const productoRes = await fetch(
-          `${API_URL}/api/v1/products/${item.producto.id}`
-        );
-        const productoData = await productoRes.json();
-        const nuevoStock = productoData.stock - item.cantidad;
-
-        await fetch(`${API_URL}/api/v1/products/${item.producto.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ stock: nuevoStock }),
-        });
-      })
-    );
-
-    // Mensaje de éxito
-    mostrarAlerta(
-      "success",
-      `Factura #${responseData?.id} creada exitosamente. ${
-        vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ""
-      }`
-    );
-
-    // Cerrar modal
-    setFacturaModal(false);
-
-    // Limpiar estados del carrito
-    setCarrito([]);
-    setClienteSeleccionado(null);
-    setMontoEntregado(0);
-    setComprobante("");
-    localStorage.removeItem(LOCAL_STORAGE_KEY);
-
-    // Actualizar lista de productos
-    const updatedProducts = await fetch(`${API_URL}/api/v1/products`).then(
-      (res) => res.json()
-    );
-    setProductos(updatedProducts);
-  } catch (error: any) {
-    console.error("Error en finalizarVenta:", error);
-    mostrarAlerta(
-      "error",
-      "Ocurrió un error al procesar la venta. Por favor intente nuevamente."
-    );
-  }
-};
-// useEffect para generar PDF cuando ya exista la factura y su ID
-useEffect(() => {
-  if (loadingFactura && facturaCreada?.id) {
-    invoiceRef.current?.generarFactura();
-    setLoadingFactura(false);
-  }
-}, [facturaCreada, loadingFactura]);
+  };
+  // useEffect para generar PDF cuando ya exista la factura y su ID
+  useEffect(() => {
+    if (loadingFactura && facturaCreada?.id) {
+      invoiceRef.current?.generarFactura();
+      setLoadingFactura(false);
+    }
+  }, [facturaCreada, loadingFactura]);
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
       <Container
@@ -513,55 +560,61 @@ useEffect(() => {
             <div className="w-full pl-10 pt-10 flex gap-6">
               <div className="w-3/2 flex flex-col pl-10">
                 <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
-            
-              {/* Selector de clientes */}
-              <CustomerSelector
-              queryCliente={queryCliente}
-              setQueryCliente={setQueryCliente}
-              clientesFiltrados={clientesFiltrados}
-              clienteSeleccionado={clienteSeleccionado}
-              setClienteSeleccionado={setClienteSeleccionado}
-              sucursalSeleccionada={sucursalSeleccionada}
-              modalSucursal={modalSucursal}
-              setModalSucursal={setModalSucursal}
-            />
 
-            
+                {/* Selector de clientes */}
+                <CustomerSelector
+                  queryCliente={queryCliente}
+                  setQueryCliente={setQueryCliente}
+                  clientesFiltrados={clientesFiltrados}
+                  clienteSeleccionado={clienteSeleccionado}
+                  setClienteSeleccionado={setClienteSeleccionado}
+                  sucursalSeleccionada={sucursalSeleccionada}
+                  modalSucursal={modalSucursal}
+                  setModalSucursal={setModalSucursal}
+                />
+                <div>
+                  <button
+                    className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 m-2 py-2 rounded-lg shadow-md transition-transform duration-150 
+                transform flex items-center justify-center cursor-pointer "
+                    onClick={() => setModalCaja(true)}
+                  >
+                    Seleccionar caja
+                  </button>
+                </div>
 
-        {/* Selector de productos con filtrado por sucursal */}
-          <ProductSelector
-            productos={productos}
-            carrito={carrito}
-            queryProducto={queryProducto}
-            setQueryProducto={setQueryProducto}
-            productoSeleccionado={productoSeleccionado}
-            setProductoSeleccionado={setProductoSeleccionado}
-            setModalOpen={setModalOpen}
-            sucursalSeleccionada={sucursalSeleccionada}
-            bodegas={bodegas}
-          />
+                {/* Selector de productos con filtrado por sucursal */}
+                <ProductSelector
+                  productos={productos}
+                  carrito={carrito}
+                  queryProducto={queryProducto}
+                  setQueryProducto={setQueryProducto}
+                  productoSeleccionado={productoSeleccionado}
+                  setProductoSeleccionado={setProductoSeleccionado}
+                  setModalOpen={setModalOpen}
+                  sucursalSeleccionada={sucursalSeleccionada}
+                  bodegas={bodegas}
+                  cajaSeleccionada={cajaSeleccionada}
+                />
 
-
-      {/* Tabla de carrito */}
-              <CartTable
-              carrito={carrito}
-              editIdx={editIdx}
-              editCantidad={editCantidad}
-              setEditCantidad={setEditCantidad}
-              editDescuento={editDescuento}
-              setEditDescuento={setEditDescuento}
-              iniciarEdicion={iniciarEdicion}
-              guardarEdicion={guardarEdicion}
-              eliminarDelCarrito={eliminarDelCarrito}
-              setCarrito={setCarrito}
-              clienteSeleccionado={clienteSeleccionado}
-              setFacturaModal={setFacturaModal}
-            />
-
+                {/* Tabla de carrito */}
+                <CartTable
+                  carrito={carrito}
+                  editIdx={editIdx}
+                  editCantidad={editCantidad}
+                  setEditCantidad={setEditCantidad}
+                  editDescuento={editDescuento}
+                  setEditDescuento={setEditDescuento}
+                  iniciarEdicion={iniciarEdicion}
+                  guardarEdicion={guardarEdicion}
+                  eliminarDelCarrito={eliminarDelCarrito}
+                  setCarrito={setCarrito}
+                  clienteSeleccionado={clienteSeleccionado}
+                  setFacturaModal={setFacturaModal}
+                />
               </div>
 
               <div className="w-1/3"></div>
-               {/* Modal de agregar producto */}
+              {/* Modal de agregar producto */}
               {modalOpen && productoSeleccionado && (
                 <AddProductModal
                   productoSeleccionado={productoSeleccionado}
@@ -569,17 +622,25 @@ useEffect(() => {
                   setCantidadSeleccionada={setCantidadSeleccionada}
                   getAvailableStock={getAvailableStock}
                   setModalOpen={setModalOpen}
-                  agregarAlCarrito={agregarAlCarritoConCantidad} 
+                  agregarAlCarrito={agregarAlCarritoConCantidad}
                 />
               )}
-            {/* Modal de sucursal */}
-                <SucursalModal
-                  sucursales={sucursales}
-                  modalSucursal={modalSucursal}
-                  setModalSucursal={setModalSucursal}
-                  setSucursalSeleccionada={setSucursalSeleccionada}
-                />
-
+              {/* Modal de sucursal */}
+              <SucursalModal
+                sucursales={sucursales}
+                modalSucursal={modalSucursal}
+                setModalSucursal={setModalSucursal}
+                setSucursalSeleccionada={setSucursalSeleccionada}
+                API_URL={API_URL}
+              />
+              <CashRegisterModal
+                modalCaja={modalCaja}
+                setModalCaja={setModalCaja}
+                sucursalSeleccionada={sucursalSeleccionada}
+                setCajaSeleccionada={setCajaSeleccionada}
+                API_URL={API_URL}
+                mostrarAlerta={mostrarAlerta}
+              />
 
               <FacturaModal
                 facturaModal={facturaModal}

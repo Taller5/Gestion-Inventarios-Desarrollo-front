@@ -28,15 +28,7 @@ type ProviderForm = Omit<Provider, "products"> & {
 // Para el backend, products es number[]
 type ProviderPayload = Omit<Provider, "products"> & { products: number[] };
 
-const headers = [
-  "id",
-  "name",
-  "contact",
-  "email",
-  "phone",
-  "state",
-  "actions",
-];
+const headers = ["id", "name", "contact", "email", "phone", "state", "actions"];
 
 // Productos reales del inventario
 type Product = {
@@ -108,101 +100,108 @@ export default function Providers() {
     setSelectedProviderId(null);
   };
 
-// Crear proveedor
-const createProvider = async (providerData: ProviderPayload) => {
-  const duplicateField = providers.find((p) =>
-    p.name.toLowerCase() === providerData.name.toLowerCase() ||
-    p.email.toLowerCase() === providerData.email.toLowerCase() ||
-    p.phone === providerData.phone
-  );
-
-  if (duplicateField) {
-    let field = "";
-    if (duplicateField.name.toLowerCase() === providerData.name.toLowerCase()) {
-      field = "nombre de empresa";
-    } else if (duplicateField.email.toLowerCase() === providerData.email.toLowerCase()) {
-      field = "email";
-    } else if (duplicateField.phone === providerData.phone) {
-      field = "teléfono";
-    }
-
-    setAlert({
-      type: "error",
-      message: `Ya existe un proveedor con el mismo ${field}`,
-    });
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/api/v1/providers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(providerData),
-    });
-
-    if (res.ok) {
-      fetchProviders();
-      setAlert({
-        type: "success",
-        message: "Proveedor creado correctamente",
-      });
-    } else {
-      setAlert({ type: "error", message: "Error al crear proveedor" });
-    }
-  } catch {
-    setAlert({ type: "error", message: "Error al crear proveedor" });
-  }
-};
-
-// Actualizar proveedor
-const updateProvider = async (id: number, providerData: ProviderPayload) => {
-  const duplicateField = providers.find(
-    (p) =>
-      p.id !== id && (
+  // Crear proveedor
+  const createProvider = async (providerData: ProviderPayload) => {
+    const duplicateField = providers.find(
+      (p) =>
         p.name.toLowerCase() === providerData.name.toLowerCase() ||
         p.email.toLowerCase() === providerData.email.toLowerCase() ||
         p.phone === providerData.phone
-      )
-  );
+    );
 
-  if (duplicateField) {
-    let field = "";
-    if (duplicateField.name.toLowerCase() === providerData.name.toLowerCase()) {
-      field = "nombre de empresa";
-    } else if (duplicateField.email.toLowerCase() === providerData.email.toLowerCase()) {
-      field = "email";
-    } else if (duplicateField.phone === providerData.phone) {
-      field = "teléfono";
+    if (duplicateField) {
+      let field = "";
+      if (
+        duplicateField.name.toLowerCase() === providerData.name.toLowerCase()
+      ) {
+        field = "nombre de empresa";
+      } else if (
+        duplicateField.email.toLowerCase() === providerData.email.toLowerCase()
+      ) {
+        field = "email";
+      } else if (duplicateField.phone === providerData.phone) {
+        field = "teléfono";
+      }
+
+      setAlert({
+        type: "error",
+        message: `Ya existe un proveedor con el mismo ${field}`,
+      });
+      return;
     }
 
-    setAlert({
-      type: "error",
-      message: `Ya existe un proveedor con el mismo ${field}`,
-    });
-    return;
-  }
-
-  try {
-    const res = await fetch(`${API_URL}/api/v1/providers/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(providerData),
-    });
-
-    if (res.ok) {
-      fetchProviders();
-      setAlert({
-        type: "success",
-        message: "Proveedor actualizado correctamente",
+    try {
+      const res = await fetch(`${API_URL}/api/v1/providers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(providerData),
       });
-    } else {
+
+      if (res.ok) {
+        fetchProviders();
+        setAlert({
+          type: "success",
+          message: "Proveedor creado correctamente",
+        });
+      } else {
+        setAlert({ type: "error", message: "Error al crear proveedor" });
+      }
+    } catch {
+      setAlert({ type: "error", message: "Error al crear proveedor" });
+    }
+  };
+
+  // Actualizar proveedor
+  const updateProvider = async (id: number, providerData: ProviderPayload) => {
+    const duplicateField = providers.find(
+      (p) =>
+        p.id !== id &&
+        (p.name.toLowerCase() === providerData.name.toLowerCase() ||
+          p.email.toLowerCase() === providerData.email.toLowerCase() ||
+          p.phone === providerData.phone)
+    );
+
+    if (duplicateField) {
+      let field = "";
+      if (
+        duplicateField.name.toLowerCase() === providerData.name.toLowerCase()
+      ) {
+        field = "nombre de empresa";
+      } else if (
+        duplicateField.email.toLowerCase() === providerData.email.toLowerCase()
+      ) {
+        field = "email";
+      } else if (duplicateField.phone === providerData.phone) {
+        field = "teléfono";
+      }
+
+      setAlert({
+        type: "error",
+        message: `Ya existe un proveedor con el mismo ${field}`,
+      });
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/api/v1/providers/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(providerData),
+      });
+
+      if (res.ok) {
+        fetchProviders();
+        setAlert({
+          type: "success",
+          message: "Proveedor actualizado correctamente",
+        });
+      } else {
+        setAlert({ type: "error", message: "Error al actualizar proveedor" });
+      }
+    } catch {
       setAlert({ type: "error", message: "Error al actualizar proveedor" });
     }
-  } catch {
-    setAlert({ type: "error", message: "Error al actualizar proveedor" });
-  }
-};
-
+  };
 
   // Eliminar proveedor (API)
   const deleteProvider = async (id: number) => {
@@ -448,32 +447,36 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
             </select>
 
             <div>
-              <label className="font-semibold mb-2 block">Productos que distribuye:</label>
+              <label className="font-semibold mb-2 block">
+                Productos que distribuye:
+              </label>
 
               {/* Mostrar badges y botón para abrir modal */}
               <div className="flex flex-wrap gap-2 mb-2">
                 {formData.products.length === 0 && (
-                  <span className="text-sm text-gray-500">Ninguno seleccionado</span>
-                )  }
+                  <span className="text-sm text-gray-500">
+                    Ninguno seleccionado
+                  </span>
+                )}
 
                 {formData.products.slice(0, 4).map((name) => (
-                <span
-                  key={name}
-                  className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm flex items-center gap-2"
-                >
-                  {name}
-                </span>
-              ))}
+                  <span
+                    key={name}
+                    className="bg-gray-100 text-gray-800 px-2 py-1 rounded-full text-sm flex items-center gap-2"
+                  >
+                    {name}
+                  </span>
+                ))}
 
-            {formData.products.length > 4 && (
-              <button 
-              type="button"
-              onClick={() => setProductSelectorOpen(true)}
-              className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-sm cursor-pointer"
-              >...
-              </button>
-            )}
-
+                {formData.products.length > 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setProductSelectorOpen(true)}
+                    className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-sm cursor-pointer"
+                  >
+                    ...
+                  </button>
+                )}
               </div>
 
               <div className="flex gap-2">
@@ -538,35 +541,34 @@ const updateProvider = async (id: number, providerData: ProviderPayload) => {
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">
-        <SearchBar<Provider>
-  data={providers}
-  displayField="name"   // lo que aparece en el input mientras escribes
-  searchFields={["id", "name", "contact"]} // campos que se buscan
-  placeholder="Buscar por ID, nombre o contacto..."
-  resultFormatter={(item) => `${item.id} - ${item.name}`} // ✅ muestra ID y nombre
-  onResultsChange={(results) => {
-    setProvidersFiltered(results);
-    if (results.length > 0) setAlert(null);
-  }}
-  onSelect={(item) => setProvidersFiltered([item])}
-  onNotFound={(q) => {
-    if (!q || q.trim() === "") {
-      setAlert({
-        type: "error",
-        message: "Por favor digite un ID, nombre o contacto para buscar.",
-      });
-    } else {
-      setProvidersFiltered([]);
-      setAlert({
-        type: "error",
-        message: `No existe ningún proveedor con el criterio "${q}".`,
-      });
-    }
-  }}
-  onClearAlert={() => setAlert(null)}
-/>
-
-
+                  <SearchBar<Provider>
+                    data={providers}
+                    displayField="name" // lo que aparece en el input mientras escribes
+                    searchFields={["id", "name", "contact"]} // campos que se buscan
+                    placeholder="Buscar por ID, nombre o contacto..."
+                    resultFormatter={(item) => `${item.id} - ${item.name}`} //  muestra ID y nombre
+                    onResultsChange={(results) => {
+                      setProvidersFiltered(results);
+                      if (results.length > 0) setAlert(null);
+                    }}
+                    onSelect={(item) => setProvidersFiltered([item])}
+                    onNotFound={(q) => {
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID, nombre o contacto para buscar.",
+                        });
+                      } else {
+                        setProvidersFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ningún proveedor con el criterio "${q}".`,
+                        });
+                      }
+                    }}
+                    onClearAlert={() => setAlert(null)}
+                  />
 
                   {alert && (
                     <div

@@ -11,6 +11,7 @@ type Business = {
   descripcion?: string | null;
   telefono: string;
   email: string;
+  logo?: string | null;
 };
 
 const token = localStorage.getItem("token");
@@ -78,3 +79,16 @@ export const createBusinessApi = async (formToSend: Business, businessToEdit: Bu
       throw new Error(err as string);
     }
   };
+  export const updateBusinessLogoApi = async (businessId: number, logoUrl: string) => {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_URL}/api/v1/businesses/${businessId}/logo`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ logo: logoUrl }),
+  });
+  const data = await res.json();
+  return data;
+};
