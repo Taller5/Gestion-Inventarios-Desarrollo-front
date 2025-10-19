@@ -62,7 +62,7 @@ export default function FacturaModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
       <form
         onSubmit={finalizarVenta}
         className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl p-8 overflow-y-auto max-h-[90vh]"

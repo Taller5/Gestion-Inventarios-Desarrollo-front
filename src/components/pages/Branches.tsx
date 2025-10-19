@@ -566,7 +566,7 @@ export default function Branches() {
               {/* Delete Confirmation Modal */}
               {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <div
                     className="relative bg-white p-6 rounded-lg shadow-lg pointer-events-auto
                 animate-modalShow transition-all duration-300"
@@ -604,7 +604,7 @@ export default function Branches() {
               {/* Add/Edit Branch Modal */}
               {showEditModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <div
                     className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto
                 animate-modalShow transition-all duration-300"

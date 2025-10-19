@@ -49,6 +49,11 @@ export default function ProductFilters({
   const baseProducts = useMemo(() => {
     let filtered = [...products];
 
+    // Si intenta filtrar por categoría sin negocio seleccionado, no mostrar nada
+    if (categorySearchMain && !selectedBusiness) {
+      return [];
+    }
+
     if (selectedBusiness) {
       filtered = filtered.filter((p) => {
         const warehouse = warehouses.find(
@@ -143,6 +148,12 @@ return (
           }
           onChange={(option: any) => {
             setCategorySearchMain(option?.value || "");
+
+            if (!selectedBusiness && option?.value) {
+              setProductsFiltered([]);
+              return;
+            }
+
             const filtered = products.filter((p) => {
               const warehouse = warehouses.find(
                 (w) => String(w.bodega_id) === String(p.bodega_id)
@@ -158,6 +169,7 @@ return (
           }}
           options={[...new Set(products.map((p) => p.categoria))].filter(Boolean).map((c) => ({ value: c!, label: c! }))}
           isClearable
+          isDisabled={!selectedBusiness}
           isLoading={products.length === 0}
           styles={{
             control: (base) => ({

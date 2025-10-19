@@ -371,8 +371,8 @@ export default function CashRegisterPage() {
 
               {/* Modal Abrir Caja */}
               {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
                     <h2 className="text-xl font-bold mb-4 text-center">
                       Abrir Caja

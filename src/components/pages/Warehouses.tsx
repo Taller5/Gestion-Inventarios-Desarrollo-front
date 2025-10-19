@@ -291,7 +291,7 @@ export default function Warehouses() {
               {/* Delete Confirmation Modal */}
               {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <div
                     className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto"
                     style={{
@@ -331,7 +331,7 @@ export default function Warehouses() {
               {/* Add/Edit Warehouse Modal */}
               {showEditModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <div
                     className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto"
                     style={{
