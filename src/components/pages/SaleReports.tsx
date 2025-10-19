@@ -114,15 +114,15 @@ export default function SaleReports() {
                   <div className="flex flex-col">
                     <label className="block mb-1 font-semibold">Negocio:</label>
                     <select
-                      className="border px-3 py-2 rounded min-w-[180px]"
+                      className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
                       value={selectedBusiness || ""}
                       onChange={(e) =>
                         setSelectedBusiness(e.target.value || null)
                       }
                     >
-                      <option value="">-- Seleccione --</option>
+                      <option value="" className="cursor-pointer">-- Seleccione --</option>
                       {businessList.map((b) => (
-                        <option key={b} value={b}>
+                        <option key={b} value={b} className="cursor-pointer">
                           {b}
                         </option>
                       ))}
@@ -136,7 +136,7 @@ export default function SaleReports() {
                     </label>
                     <input
                       type="date"
-                      className="border px-3 py-2 rounded"
+                      className="border px-3 py-2 rounded cursor-pointer"
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                     />
@@ -149,7 +149,7 @@ export default function SaleReports() {
                     </label>
                     <input
                       type="date"
-                      className="border px-3 py-2 rounded"
+                      className="border px-3 py-2 rounded cursor-pointer"
                       value={endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                     />
@@ -158,7 +158,7 @@ export default function SaleReports() {
                   {/* Botón limpiar */}
                   <div className="flex flex-col">
                     <button
-                      className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-4 md:mt-0"
+                      className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-4 md:mt-0 cursor-pointer"
                       onClick={clearFilters}
                     >
                       Limpiar filtros

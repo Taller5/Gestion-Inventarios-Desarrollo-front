@@ -12,6 +12,10 @@ const headerMap: Record<string, string> = {
   state: "Estado",
   phone: "Teléfono",
   actions: "Acciones",
+  branch_name: "Sucursal",
+  date: "Fecha de la factura",
+  customer_name: "Cliente",
+  payment_method: "Método de pago",
 };
 
 export default function TableInformation(props: TableInformationProps) {

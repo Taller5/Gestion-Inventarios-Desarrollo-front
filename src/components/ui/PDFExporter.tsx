@@ -42,7 +42,7 @@ const PDFExporter: FC<PDFExporterProps> = ({
 
   return (
     <button
-      className="bg-azul-claro hover:bg-azul-oscuro text-white font-semibold py-2 px-4 rounded"
+      className="bg-azul-medio hover:bg-azul-hover text-white font-semibold py-2 px-4 rounded cursor-pointer"
       onClick={exportToPDF}
     >
       Exportar PDF
