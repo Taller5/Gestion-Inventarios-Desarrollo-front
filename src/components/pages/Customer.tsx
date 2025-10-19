@@ -402,7 +402,7 @@ if (errorEmail) {
               {/* Modal */}
               {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <form
                     onSubmit={handleSubmit}
                     className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto"

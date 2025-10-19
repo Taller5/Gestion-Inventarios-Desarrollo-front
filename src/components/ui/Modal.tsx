@@ -274,7 +274,7 @@ export default function Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-transparent backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
       <form
         className="relative bg-white p-8 rounded shadow-lg pointer-events-auto animate-modalShow transition-all duration-300 flex flex-col items-center"
         style={{

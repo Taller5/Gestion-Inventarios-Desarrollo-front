@@ -368,7 +368,7 @@ export default function Providers() {
 
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+        <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
         <div className="relative bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
           <h2 className="text-xl font-bold mb-4">
             {providerToEdit ? "Editar Proveedor" : "Añadir Proveedor"}
@@ -599,7 +599,7 @@ export default function Providers() {
 
               {showModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-transparent backdrop-blur-xs"></div>
+                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <div
                     className="relative bg-white p-6 rounded shadow-lg pointer-events-auto animate-modalShow transition-all duration-300"
                     style={{ boxShadow: "0 8px 32px rgba(0,0,0,0.15)" }}

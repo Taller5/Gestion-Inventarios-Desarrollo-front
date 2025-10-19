@@ -59,7 +59,7 @@ export default function CashRegisterModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
 
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         <h2 className="text-2xl font-extrabold mb-6 text-center text-gray-800">

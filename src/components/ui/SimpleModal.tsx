@@ -34,7 +34,7 @@ export default function SimpleModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Fondo translúcido */}
       <div 
-        className="absolute inset-0 bg-transparent backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 backdrop-blur-xs"
         onClick={onClose}
       />
       <div className={`relative bg-white rounded-lg shadow-xl ${modalWidth} ${className}`}>

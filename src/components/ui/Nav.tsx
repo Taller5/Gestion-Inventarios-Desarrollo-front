@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { FaUser, FaSignOutAlt } from "react-icons/fa";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -55,10 +56,9 @@ export default function Nav({ logo }: NavProps) {
         {user ? (
           <>
             {/* Perfil clickeable */}
-            <div
-              role="presentation" 
+            <Link
+              to="/profile"
               className="flex items-center gap-2 cursor-pointer"
-              onClick={() => (window.location.href = "/profile")}
             >
               {user.profile_photo && (
                 <img
@@ -72,7 +72,7 @@ export default function Nav({ logo }: NavProps) {
                 />
               )}
               {user.name && <span className="font-medium">{user.name}</span>}
-            </div>
+            </Link>
 
             <button
               onClick={handleLogout}
