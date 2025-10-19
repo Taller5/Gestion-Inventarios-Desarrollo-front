@@ -436,7 +436,7 @@ export default function Providers() {
             )}
 
             <select
-              className="border p-2 rounded"
+              className="border p-2 rounded cursor-pointer"
               value={formData.state}
               onChange={(e) =>
                 setFormData({ ...formData, state: e.target.value })

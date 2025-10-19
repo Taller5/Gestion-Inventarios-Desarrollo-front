@@ -51,7 +51,7 @@ const ExcelExporter: FC<ExcelExporterProps> = ({
 
   return (
     <button
-      className="bg-verde-claro hover:bg-verde-oscuro text-white font-semibold py-2 px-4 rounded"
+      className="bg-verde-claro hover:bg-verde-oscuro text-white font-semibold py-2 px-4 rounded cursor-pointer"
       onClick={exportToExcel}
     >
       Exportar Excel
