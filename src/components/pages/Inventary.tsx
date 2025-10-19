@@ -542,6 +542,12 @@ export default function Inventary() {
   useEffect(() => {
     let productosAgrupados = [...productos];
 
+    // Si no hay negocio ni categoría seleccionados, base vacía
+    if (!selectedBusiness && !categorySearchMain) {
+      setBaseProducts([]);
+      return;
+    }
+
     if (selectedBusiness) {
       productosAgrupados = productosAgrupados.filter((p) => {
         const warehouse = warehouses.find(
