@@ -49,8 +49,8 @@ export default function ProductFilters({
   const baseProducts = useMemo(() => {
     let filtered = [...products];
 
-    // Si intenta filtrar por categoría sin negocio seleccionado, no mostrar nada
-    if (categorySearchMain && !selectedBusiness) {
+    // Si no hay negocio seleccionado, no mostrar productos
+    if (!selectedBusiness) {
       return [];
     }
 
