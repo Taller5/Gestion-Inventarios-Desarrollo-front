@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { Sucursal } from "../../../types/salePage";
 
 interface SucursalModalProps {
@@ -20,33 +20,65 @@ export default function SucursalModal({
   const [verificandoCaja, setVerificandoCaja] = useState(false);
   const [cajaAbierta, setCajaAbierta] = useState<boolean | null>(null);
   const [sucursalSeleccionada, setSucursalInterna] = useState<Sucursal | null>(null);
+  const [cargando, setCargando] = useState(true); // Unifica carga de sucursales y caja
 
   const mostrarAlerta = (mensaje: string, tipo: "error" | "info" = "error") => {
     setAlerta({ mensaje, tipo });
-    setTimeout(() => setAlerta(null), 4000); // dura un poco más
+    setTimeout(() => setAlerta(null), 4000);
   };
+
+  // Simular carga inicial de sucursales
+  useEffect(() => {
+    if (!modalSucursal) return;
+
+    const cargarInicial = async () => {
+      setCargando(true);
+      try {
+        // Aquí podrías hacer fetch real si quisieras recargar desde API
+        await new Promise((res) => setTimeout(res, 200)); // simulación mínima
+      } catch (err) {
+        console.error(err);
+        mostrarAlerta("Error al cargar sucursales", "error");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarInicial();
+  }, [modalSucursal]);
+
   // Verificar caja cuando se selecciona la sucursal
   useEffect(() => {
     const verificarCaja = async () => {
       if (!sucursalSeleccionada) return;
 
+      setCargando(true);
       setVerificandoCaja(true);
+
       try {
+        const user = JSON.parse(localStorage.getItem("user") || "{}");
+        const userId = user.id;
         const token = localStorage.getItem("token");
+
         const res = await fetch(
-          `${API_URL}/api/v1/cashbox/active/${sucursalSeleccionada.sucursal_id}`,
+          `${API_URL}/api/v1/cash-registers/active-user/${sucursalSeleccionada.sucursal_id}/${userId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        if (!res.ok) throw new Error("Error al verificar caja");
+
         const data = await res.json();
-        setCajaAbierta(data.abierta);
+
+        if (!res.ok) throw new Error(data.message || "Error al verificar caja");
+
+        setCajaAbierta(Boolean(data.caja));
       } catch (error) {
         console.error("Error al verificar caja:", error);
         setCajaAbierta(false);
       } finally {
         setVerificandoCaja(false);
+        setCargando(false);
       }
     };
+
     verificarCaja();
   }, [sucursalSeleccionada, API_URL]);
 
@@ -77,35 +109,41 @@ export default function SucursalModal({
           Seleccione la sucursal en la cual está trabajando
         </h2>
 
-        <div className="flex flex-col gap-3">
-          {sucursales.map((sucursal) => (
-            <button
-              key={sucursal.sucursal_id}
-              className="w-full px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white rounded font-bold cursor-pointer flex justify-between items-center"
-              onClick={() => handleSeleccion(sucursal)}
-            >
-              <span>
-                {sucursal.nombre} - {sucursal.business.nombre_comercial}
-              </span>
-              {sucursalSeleccionada?.sucursal_id === sucursal.sucursal_id && verificandoCaja && (
-                <span className="animate-spin ml-2">⏳</span>
-              )}
-            </button>
-          ))}
-        </div>
+        {cargando ? (
+          <p className="text-center text-gray-500 animate-pulse flex justify-center items-center">
+            ⏳ Buscando sucursales y caja...
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {sucursales.map((sucursal) => (
+              <button
+                key={sucursal.sucursal_id}
+                className="w-full px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white rounded font-bold cursor-pointer flex justify-between items-center"
+                onClick={() => handleSeleccion(sucursal)}
+              >
+                <span>
+                  {sucursal.nombre} - {sucursal.business.nombre_comercial}
+                </span>
+                {sucursalSeleccionada?.sucursal_id === sucursal.sucursal_id && verificandoCaja && (
+                  <span className="animate-spin ml-2">⏳</span>
+                )}
+              </button>
+            ))}
 
-        {sucursales.length === 0 && (
-          <p className="text-red-500 mt-4 text-center">No hay sucursales disponibles</p>
+            {sucursales.length === 0 && (
+              <p className="text-red-500 mt-4 text-center">No hay sucursales disponibles</p>
+            )}
+          </div>
         )}
-        {/* ALERTA CENTRAL MEGA */}
-{alerta && alerta.tipo === "error" && (
-  <div className="fixed inset-0 flex items-center justify-center z-50">
-    <div className="bg-rojo-ultra-claro text-rojo-oscuro border-4 border-rojo-claro rounded-3xl px-16 py-12 text-center text-4xl md:text-5xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.7)] animate-pulse">
-      {alerta.mensaje}
-    </div>
-  </div>
-)}
 
+        {/* ALERTA CENTRAL MEGA */}
+        {alerta && alerta.tipo === "error" && (
+          <div className="fixed inset-0 flex items-center justify-center z-50">
+            <div className="bg-rojo-ultra-claro text-rojo-oscuro border-4 border-rojo-claro rounded-3xl px-16 py-12 text-center text-4xl md:text-5xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.7)] animate-pulse">
+              {alerta.mensaje}
+            </div>
+          </div>
+        )}
 
         <div className="flex justify-between mt-6">
           <button
@@ -121,8 +159,6 @@ export default function SucursalModal({
             Por favor, agrega una sucursal.
           </button>
         </div>
-
-    
       </div>
     </div>
   );

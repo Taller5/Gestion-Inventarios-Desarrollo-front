@@ -1772,16 +1772,7 @@ export default function Inventary() {
                             </div>
                           </label>
 
-                          <label className="font-semibold w-full">
-                            Stock
-                            <input
-                              name="stock"
-                              value={formProducto.stock}
-                              disabled
-                              readOnly
-                              className="w-full border rounded-lg px-4 py-2 bg-gray-300"
-                            />
-                          </label>
+                       
                         </div>
                       </div>
                       <div className="flex gap-50 justify-center mt-8">

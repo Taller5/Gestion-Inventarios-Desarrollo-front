@@ -94,7 +94,7 @@ export default function ProductSelector({
   // Mostrar alerta si no hay caja después de verificar
   useEffect(() => {
     if (!verificandoCaja && (!cajaSeleccionada || cajaAbierta === false)) {
-      mostrarAlerta("Debe seleccionar y abrir una caja antes de vender", "error");
+      mostrarAlerta("Debe activar o abrir una caja antes de vender", "error");
     }
   }, [verificandoCaja, cajaAbierta, cajaSeleccionada]);
 
@@ -102,7 +102,7 @@ useEffect(() => {
   if (cajaSeleccionada) {
     setAlerta(null);
   } else if (!verificandoCaja) {
-    mostrarAlerta("Debe seleccionar y abrir una caja antes de vender", "error");
+    mostrarAlerta("Debe activar o abrir una caja antes de vender", "error");
   }
 }, [cajaSeleccionada, verificandoCaja]);
 
@@ -164,21 +164,19 @@ useEffect(() => {
   producto={producto}
   stockDisponible={stockDisponible}
   seleccionado={productoSeleccionado?.codigo_producto === producto.codigo_producto}
-  onSelect={() => {
-    setProductoSeleccionado(producto);
-    setQueryProducto("");
-  }}
   onAdd={() => {
-    // Alertas según estado de la caja
+    // Validaciones de la caja antes de añadir
     if (!cajaSeleccionada || cajaAbierta === false) {
-      mostrarAlerta("Debe seleccionar y abrir una caja antes de vender", "error");
+      mostrarAlerta("Debe activar o abrir una caja antes de vender", "error");
       return;
     }
     if (cajaAbierta === null) {
       mostrarAlerta("Verificando caja, espere...", "info");
       return;
     }
-    setModalOpen(true);
+    setProductoSeleccionado(producto); // Selecciona el producto
+    setQueryProducto(""); // Limpia búsqueda
+    setModalOpen(true); // Abre modal de cantidad o configuración
   }}
   cajaAbierta={cajaAbierta}
   cajaSeleccionada={cajaSeleccionada}
@@ -211,7 +209,6 @@ const ProductItem = ({
   producto,
   stockDisponible,
   seleccionado,
-  onSelect,
   onAdd,
   cajaAbierta,
   cajaSeleccionada,
@@ -220,50 +217,57 @@ const ProductItem = ({
   producto: Producto;
   stockDisponible: number;
   seleccionado: boolean;
-  onSelect: () => void;
   onAdd: () => void;
   cajaAbierta: boolean | null;
   cajaSeleccionada: Caja | null;
   verificandoCaja: boolean;
-}) => (
-  <div
-    className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-ultra-claro ${
-      seleccionado ? "bg-white font-bold" : ""
-    }`}
-    onClick={onSelect}
-  >
-    <div className="flex-1">
-      <span>{producto.nombre_producto}</span>{" "}
-      <span className="text-gray-500">({producto.codigo_producto})</span>
-    </div>
+}) => {
+  const handleClickFila = () => {
+    if (
+      stockDisponible > 0 &&
+      !verificandoCaja &&
+      cajaSeleccionada &&
+      cajaAbierta !== false
+    ) {
+      onAdd();
+    }
+  };
 
+  return (
     <div
-      className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
-        stockDisponible > 0
-          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+      className={`px-4 py-2 flex justify-between items-center cursor-pointer hover:bg-gris-ultra-claro ${
+        seleccionado ? "bg-white font-bold" : ""
       }`}
+      onClick={handleClickFila}
     >
-      Stock: {stockDisponible}
-    </div>
+      <div className="flex-1">
+        <span>{producto.nombre_producto}</span>{" "}
+        <span className="text-gray-500">({producto.codigo_producto})</span>
+      </div>
 
-    <Button
-      style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center cursor-pointer"
-      onClick={onAdd}
-      disabled={
-        stockDisponible <= 0 ||
-        verificandoCaja ||
-        !cajaSeleccionada ||
-        cajaAbierta === false
-      }
-    >
-      {verificandoCaja ? (
-        <span className="animate-spin mr-1">⏳</span>
-      ) : (
-        <IoAddCircle className="mr-1" />
-      )}
-      Añadir
-    </Button>
-  </div>
-);
+      <div
+        className={`ml-4 px-2 py-1 rounded text-sm font-medium ${
+          stockDisponible > 0
+            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+            : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+        }`}
+      >
+        Stock: {stockDisponible}
+      </div>
+
+      <Button
+        style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-3 py-1 rounded ml-4 flex items-center cursor-pointer"
+        disabled={
+          stockDisponible <= 0 ||
+          verificandoCaja ||
+          !cajaSeleccionada ||
+          cajaAbierta === false
+        }
+      >
+        {verificandoCaja ? <span className="animate-spin mr-1">⏳</span> : <IoAddCircle className="mr-1" />}
+        Añadir
+      </Button>
+    </div>
+  );
+};
 

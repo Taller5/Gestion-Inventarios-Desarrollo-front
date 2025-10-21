@@ -1,124 +1,113 @@
 import { useEffect, useState } from "react";
+import { IoClose } from "react-icons/io5"; // Importar ícono de cerrar
 import type { Caja } from "../../../types/salePage";
 
 interface CashRegisterModalProps {
   modalCaja: boolean;
   setModalCaja: (open: boolean) => void;
   sucursalSeleccionada: { sucursal_id: number; nombre: string } | null;
-  setCajaSeleccionada: (caja: Caja | null) => void;
   API_URL: string;
   mostrarAlerta: (tipo: "success" | "error", mensaje: string) => void;
+  onCerrarCaja: (caja: Caja) => void; // asigna la caja activa automáticamente
+  obtenerCajaUsuario: () => Promise<Caja | null>; // función externa que devuelve la caja
 }
 
 export default function CashRegisterModal({
   modalCaja,
   setModalCaja,
   sucursalSeleccionada,
-  setCajaSeleccionada,
-  API_URL,
   mostrarAlerta,
+  onCerrarCaja,
+  obtenerCajaUsuario,
 }: CashRegisterModalProps) {
   const [cargando, setCargando] = useState(false);
-  const [cajas, setCajas] = useState<Caja[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [cajaUsuario, setCajaUsuario] = useState<Caja | null>(null);
 
   useEffect(() => {
     if (!modalCaja || !sucursalSeleccionada) return;
 
-    const fetchCajas = async () => {
+    const cargarCaja = async () => {
       setCargando(true);
-      setError(null);
-
       try {
-        const token = localStorage.getItem("token");
-         const res = await fetch(
-        `${API_URL}/api/v1/cashbox/active/${sucursalSeleccionada.sucursal_id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+        const caja = await obtenerCajaUsuario();
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.message || "Error al cargar cajas");
-
-        if (!data.cajas?.length) {
-          setError("No hay cajas abiertas en esta sucursal");
-          setCajas([]);
+        if (caja && caja.sucursal_id === sucursalSeleccionada.sucursal_id) {
+          setCajaUsuario(caja);
+          onCerrarCaja(caja);
         } else {
-          setCajas(data.cajas);
+          setCajaUsuario(null);
+          mostrarAlerta("error", "No tiene una caja activa en esta sucursal");
         }
       } catch (err: any) {
-        setError(err.message);
+        mostrarAlerta("error", err.message || "Error al buscar caja");
+        setCajaUsuario(null);
       } finally {
         setCargando(false);
       }
     };
 
-    fetchCajas();
+    cargarCaja();
   }, [modalCaja, sucursalSeleccionada]);
 
   if (!modalCaja) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+      <div
+        className="absolute inset-0 bg-black/40 backdrop-blur-xs"
+        onClick={() => setModalCaja(false)}
+      ></div>
 
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        {/* Botón cerrar con ícono */}
+        <button
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition text-2xl"
+          onClick={() => setModalCaja(false)}
+          aria-label="Cerrar modal"
+        >
+          <IoClose />
+        </button>
+
         <h2 className="text-2xl font-extrabold mb-6 text-center text-gray-800">
-          Seleccione la caja activa
+          Caja del usuario
         </h2>
 
-        {/* Cargando */}
         {cargando && (
-          <p className="text-center text-gray-500 animate-pulse">Cargando cajas...</p>
+          <p className="text-center text-gray-500 animate-pulse flex justify-center items-center">
+            ⏳ Buscando caja...
+          </p>
         )}
 
-        {/* Error */}
-        {error && !cargando && (
-          <p className="text-center text-red-600 font-bold text-lg">{error}</p>
-        )}
-
-        {/* Lista de cajas */}
-        {!cargando && !error && (
-          <div className="flex flex-col gap-3 max-h-64 overflow-y-auto">
-            {cajas.map((caja) => (
-              <button
-                key={caja.id}
-                className="w-full px-4 py-3 bg-azul-medio hover:bg-azul-hover text-white rounded-lg font-bold cursor-pointer transition-all"
-                onClick={() => {
-                  const user = JSON.parse(localStorage.getItem("user") || "{}");
-                  const userId = user.id;
-
-                  sessionStorage.setItem(
-                    `caja_activa_${userId}`,
-                    JSON.stringify(caja)
-                  );
-                  setCajaSeleccionada(caja);
-                  setModalCaja(false);
-                  mostrarAlerta("success", "Caja seleccionada correctamente");
-                }}
-              >
-                Caja #{caja.id} — Apertura: ₡
-                {Number(caja.opening_amount).toLocaleString()} — Disponible: ₡
-                {Number(caja.available_amount).toLocaleString()}
-              </button>
-            ))}
+        {!cargando && cajaUsuario && (
+          <div className="text-center">
+            <p className="mb-4 font-bold">
+              Caja activa: #{cajaUsuario.id} — Disponible: ₡
+              {Number(cajaUsuario.available_amount).toLocaleString()}
+            </p>
+            <button
+              className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+              onClick={() => setModalCaja(false)}
+            >
+              Cerrar caja
+            </button>
           </div>
         )}
 
-        <div className="flex justify-between mt-6">
-          <button
-            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-            onClick={() => setModalCaja(false)}
-          >
-            Cancelar
-          </button>
-          <button
-            className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-4 py-2 rounded-lg shadow-md transition cursor-pointer"
-            onClick={() => (window.location.href = "/cashRegisterPage")}
-          >
-            Abrir nueva caja
-          </button>
-        </div>
+        {!cargando && !cajaUsuario && (
+          <div className="text-center">
+            <p className="mb-4 font-bold text-red-600">
+              No tiene una caja activa en esta sucursal
+            </p>
+            <button
+              className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+              onClick={() => (window.location.href = "/cashRegisterPage")}
+            >
+              Abrir una caja
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 }
+

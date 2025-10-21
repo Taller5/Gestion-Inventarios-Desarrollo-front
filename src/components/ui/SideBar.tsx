@@ -153,7 +153,7 @@ export default function SideBar({ role }: SideBarProps) {
     };
   } else if (role === "vendedor") {
     sections = {
-      "Administración de Productos": [btnInventario],
+    
       Gestión: [],
       Finanzas: [btnCashRegisterPage, btnSalesPages],
       "Administración de Usuarios": [btnClientes],

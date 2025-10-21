@@ -355,6 +355,32 @@ useEffect(() => {
       agregarAlCarrito(producto); // reutiliza tu función existente
     }
   };
+
+
+  const obtenerCajaUsuario = async () => {
+  if (!sucursalSeleccionada) return null;
+
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = user.id;
+    const token = localStorage.getItem("token");
+
+    const res = await fetch(
+      `${API_URL}/api/v1/cash-registers/active-user/${sucursalSeleccionada.sucursal_id}/${userId}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.message || "Error al obtener la caja");
+
+    return data.caja || null; // null si el usuario no tiene caja abierta
+  } catch (err: any) {
+    mostrarAlerta("error", err.message);
+    return null;
+  }
+};
+
   // Al nivel del componente (fuera de finalizarVenta)
   const invoiceRef = useRef<GenerateInvoiceRef>(null);
   const [loadingFactura, setLoadingFactura] = useState(false);
@@ -371,22 +397,32 @@ useEffect(() => {
     }
 
     try {
-      // Validaciones de pago
-      if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
-        mostrarAlerta("error", "Ingrese el monto entregado");
-        return;
-      }
-      if (
-        (metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
-        !comprobante.trim()
-      ) {
-        mostrarAlerta(
-          "error",
-          "Debe ingresar el comprobante para el método de pago seleccionado."
-        );
-        return;
-      }
+    // Validaciones de pago
+    if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
+      mostrarAlerta("error", "Ingrese el monto entregado");
+      return;
+    }
+    if (
+      (metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
+      !comprobante.trim()
+    ) {
+      mostrarAlerta(
+        "error",
+        "Debe ingresar el comprobante para el método de pago seleccionado."
+      );
+      return;
+    }
 
+    // Obtener caja del usuario logeado en la sucursal actual
+    const cajaUsuario = await obtenerCajaUsuario();
+
+    if (!cajaUsuario && metodoPago === "Efectivo") {
+      mostrarAlerta(
+        "error",
+        "No tiene una caja abierta en esta sucursal. Por favor abra una para registrar ventas en efectivo."
+      );
+      return;
+    }
       // Mapear método de pago al backend
       const metodoPagoBackend =
         metodoPago === "Efectivo"
@@ -583,15 +619,16 @@ useEffect(() => {
                   modalSucursal={modalSucursal}
                   setModalSucursal={setModalSucursal}
                 />
-                <div>
-                  <button
-                    className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 m-2 py-2 rounded-lg shadow-md transition-transform duration-150 
-                transform flex items-center justify-center cursor-pointer "
-                    onClick={() => setModalCaja(true)}
-                  >
-                    Seleccionar caja
-                  </button>
-                </div>
+            <div>
+                        <button
+                          className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 m-2 py-2 rounded-lg shadow-md transition-transform duration-150 
+                                      transform flex items-center justify-center cursor-pointer"
+                          onClick={() => setModalCaja(true)}
+                        >
+                        Activar caja
+                        </button>
+                      </div>
+
 
                 {/* Selector de productos con filtrado por sucursal */}
                 <ProductSelector
@@ -648,10 +685,13 @@ useEffect(() => {
                 modalCaja={modalCaja}
                 setModalCaja={setModalCaja}
                 sucursalSeleccionada={sucursalSeleccionada}
-                setCajaSeleccionada={setCajaSeleccionada}
                 API_URL={API_URL}
                 mostrarAlerta={mostrarAlerta}
+                onCerrarCaja={(caja) => setCajaSeleccionada(caja)} // asigna automáticamente la caja activa al cargar
+                obtenerCajaUsuario={obtenerCajaUsuario} // pasa la función que obtiene la caja del usuario
               />
+
+
 
               <FacturaModal
                 facturaModal={facturaModal}
