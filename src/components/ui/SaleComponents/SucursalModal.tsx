@@ -82,6 +82,31 @@ export default function SucursalModal({
     verificarCaja();
   }, [sucursalSeleccionada, API_URL]);
 
+  //use effect para reiniciar los estados
+useEffect(() => {
+  if (modalSucursal) {
+    // cada vez que se abre el modal, reiniciamos los estados
+    setCargando(true);
+    setSucursalInterna(null);
+    setCajaAbierta(null);
+
+    const cargarInicial = async () => {
+      try {
+        // simulación de fetch, reemplazar por API real si quieres
+        await new Promise((res) => setTimeout(res, 500));
+      } catch (err) {
+        console.error(err);
+        mostrarAlerta("Error al cargar sucursales", "error");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarInicial();
+  }
+}, [modalSucursal]);
+
+
   // Mostrar alerta si no hay caja después de verificar
   useEffect(() => {
     if (!verificandoCaja && cajaAbierta === false && sucursalSeleccionada) {
@@ -109,32 +134,33 @@ export default function SucursalModal({
           Seleccione la sucursal en la cual está trabajando
         </h2>
 
-        {cargando ? (
-          <p className="text-center text-gray-500 animate-pulse flex justify-center items-center">
-            ⏳ Buscando sucursales y caja...
-          </p>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {sucursales.map((sucursal) => (
-              <button
-                key={sucursal.sucursal_id}
-                className="w-full px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white rounded font-bold cursor-pointer flex justify-between items-center"
-                onClick={() => handleSeleccion(sucursal)}
-              >
-                <span>
-                  {sucursal.nombre} - {sucursal.business.nombre_comercial}
-                </span>
-                {sucursalSeleccionada?.sucursal_id === sucursal.sucursal_id && verificandoCaja && (
-                  <span className="animate-spin ml-2">⏳</span>
-                )}
-              </button>
-            ))}
-
-            {sucursales.length === 0 && (
-              <p className="text-red-500 mt-4 text-center">No hay sucursales disponibles</p>
-            )}
-          </div>
+{cargando ? (
+  <div className="flex flex-col items-center justify-center py-16 space-y-4 animate-fade-in">
+    <div className="w-14 h-14 border-4 border-t-azul-medio border-gray-200 rounded-full animate-spin"></div>
+    <p className="text-gray-500 font-medium text-center">Cargando sucursales y caja...</p>
+  </div>
+) : sucursales.length === 0 ? (
+  <p className="text-red-500 mt-4 text-center">No hay sucursales disponibles</p>
+) : (
+  <div className="flex flex-col gap-3">
+    {sucursales.map((sucursal) => (
+      <button
+        key={sucursal.sucursal_id}
+        className="w-full px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white rounded font-bold cursor-pointer flex justify-between items-center transition-transform hover:scale-105"
+        onClick={() => handleSeleccion(sucursal)}
+      >
+        <span>
+          {sucursal.nombre} - {sucursal.business.nombre_comercial}
+        </span>
+        {sucursalSeleccionada?.sucursal_id === sucursal.sucursal_id && verificandoCaja && (
+          <span className="animate-spin ml-2">⏳</span>
         )}
+      </button>
+    ))}
+  </div>
+)}
+
+
 
         {/* ALERTA CENTRAL MEGA */}
         {alerta && alerta.tipo === "error" && (

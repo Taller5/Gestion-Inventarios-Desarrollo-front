@@ -5,7 +5,6 @@ import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
 import SimpleModal from "../ui/SimpleModal";
-import { IoAddCircle } from "react-icons/io5";
 
 type Branch = {
   sucursal_id: number;
@@ -136,14 +135,16 @@ export default function CashRegisterPage() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   // Declaración en tu componente
- 
-const mostrarAlerta = (type: "success" | "error", message: string) => {
-  setAlert({ type, message });
-};
-const [closeModalAlert, setCloseModalAlert] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
+  const mostrarAlerta = (type: "success" | "error", message: string) => {
+    setAlert({ type, message });
+  };
+  const [closeModalAlert, setCloseModalAlert] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
 
-const [reopenModalOpen, setReopenModalOpen] = useState(false);
+  const [reopenModalOpen, setReopenModalOpen] = useState(false);
 
   const MAX_AMOUNT = 99999999.99;
 
@@ -229,36 +230,39 @@ const [reopenModalOpen, setReopenModalOpen] = useState(false);
     const dateB = b.opened_at ? new Date(b.opened_at).getTime() : 0;
     return dateB - dateA;
   });
-  /// Filtro por negocio (a través de la sucursal) y rango de fecha
-  const filteredCashRegisters = sortedCashRegisters.filter((c) => {
-    let matchBusiness = true;
-    let matchDate = true;
+/// Filtro por negocio (a través de la sucursal) y rango de fecha
+const filteredCashRegisters = sortedCashRegisters.filter((c) => {
+  // 🔹 Si no hay negocio seleccionado, tabla vacía
+  if (!selectedBusiness) return false;
 
-    if (selectedBusiness) {
-      const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
-      const negocioId = branch?.business?.negocio_id;
-      matchBusiness = negocioId === selectedBusiness;
-    }
+  let matchBusiness = true;
+  let matchDate = true;
 
-    if (startDate) {
-      matchDate =
-        matchDate &&
-        new Date(c.opened_at || 0).getTime() >= new Date(startDate).getTime();
-    }
-    if (endDate) {
-      matchDate =
-        matchDate &&
-        new Date(c.opened_at || 0).getTime() <= new Date(endDate).getTime();
-    }
+  if (selectedBusiness) {
+    const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
+    const negocioId = branch?.business?.negocio_id;
+    matchBusiness = negocioId === selectedBusiness;
+  }
 
-    return matchBusiness && matchDate;
-  });
+  if (startDate) {
+    matchDate =
+      matchDate &&
+      new Date(c.opened_at || 0).getTime() >= new Date(startDate).getTime();
+  }
+  if (endDate) {
+    matchDate =
+      matchDate &&
+      new Date(c.opened_at || 0).getTime() <= new Date(endDate).getTime();
+  }
+
+  return matchBusiness && matchDate;
+});
 
 useEffect(() => {
   if (!selectedBusiness) return; // nada que hacer si no hay negocio seleccionado
 
-  const hasCashRegisters = cashRegisters.some(c => {
-    const branch = branches.find(b => b.sucursal_id === c.sucursal_id);
+  const hasCashRegisters = cashRegisters.some((c) => {
+    const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
     return branch?.business?.negocio_id === selectedBusiness;
   });
 
@@ -273,50 +277,136 @@ useEffect(() => {
 }, [selectedBusiness, cashRegisters, branches]);
 
 
- const tableContent = filteredCashRegisters.map((c) => {
-  const availableAmount = c.available_amount ?? c.opening_amount ?? 0;
- return {
-    ID: c.id,
-    Sucursal: c.branch?.nombre,
-    Usuario: c.user?.name,
-    "Monto apertura": c.opening_amount,
-    "Monto cierre": c.closing_amount ?? "-",
-    ...( !c.closed_at && { // Solo mostrar disponible si está abierta
-      Disponible: availableAmount.toLocaleString(undefined, {
+  // dentro de tu componente CashRegisterPage
+  const [emptyModalOpen, setEmptyModalOpen] = useState(false);
+  const [selectedBranchEmpty, setSelectedBranchEmpty] = useState<number | null>(
+    null
+  );
+
+  const handleCreateEmptyCashRegister = async () => {
+    if (!selectedBranchEmpty) {
+      setAlert({ type: "error", message: "Selecciona una sucursal." });
+      return;
+    }
+
+    setLoading(true);
+    setAlert(null);
+
+    try {
+      const res = await fetch(`${API_URL}/api/v1/cash-registers/create-empty`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sucursal_id: selectedBranchEmpty,
+          user_id: userId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || "Error al crear caja vacía");
+
+      setCashRegisters((prev) => [...prev, data.data]);
+      setEmptyModalOpen(false);
+      setSelectedBranchEmpty(null);
+
+      mostrarAlerta("success", "Caja vacía creada correctamente");
+    } catch (err: any) {
+      mostrarAlerta("error", err.message || "Error al crear caja vacía");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const tableContent = filteredCashRegisters.map((c) => {
+    // Normalizar montos: si es null, undefined o 0 string, lo convertimos a 0 numérico
+    const opening = Number(c.opening_amount) || 0;
+    const available = Number(c.available_amount) || 0;
+    const closing = Number(c.closing_amount) || 0;
+
+    // Detecta caja vacía solo por montos
+    const isEmpty =
+      opening === 0 && available === 0 && closing === 0 && !c.closed_at;
+
+    return {
+      ID: c.id,
+      Sucursal: c.branch?.nombre ?? "-",
+      Usuario: c.user?.name ?? "-",
+      "Monto apertura": opening.toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       }),
-    }),
-    Abierta: formatDateSafe(c.opened_at),
-    Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
-    Acciones: !c.closed_at ? (
-      //  Botón cerrar caja (ya existente)
-      <Button
-        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
-        onClick={() => {
-          setCashRegisterToClose(c);
-          setCloseModalOpen(true);
-        }}
-        disabled={loading}
-      >
-        Cerrar
-      </Button>
-    ) : (
-      // Nuevo botón reabrir caja
-      <Button
-        style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
-        onClick={() => {
-          setCashRegisterToClose(c);
-          setReopenModalOpen(true);
-        }}
-        disabled={loading}
-      >
-        Reabrir
-      </Button>
-    ),
-  };
-});
+      "Monto cierre": c.closed_at
+        ? closing.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })
+        : "-",
+      ...(!c.closed_at && {
+        Disponible: available.toLocaleString(undefined, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }),
+      }),
+      Abierta: formatDateSafe(c.opened_at),
+      Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
+      Acciones: (
+        <div className="flex gap-2">
+          {isEmpty && (
+            <Button
+              style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
+              onClick={() => {
+                setSelectedBranch(c.sucursal_id);
+                setModalOpen(true);
+              }}
+              disabled={loading}
+            >
+              Abrir Caja
+            </Button>
+          )}
+          {!c.closed_at && !isEmpty && (
+            <Button
+              style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
+              onClick={() => {
+                setCashRegisterToClose(c);
+                setCloseModalOpen(true);
+              }}
+              disabled={loading}
+            >
+              Cerrar
+            </Button>
+          )}
+          {c.closed_at && (
+            <Button
+              style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
+              onClick={() => {
+                setCashRegisterToClose(c);
+                setReopenModalOpen(true);
+              }}
+              disabled={loading}
+            >
+              Reabrir
+            </Button>
+          )}
+        </div>
+      ),
+    };
+  });
 
+  // Auto-cerrar alertas después de 5 segundos
+useEffect(() => {
+  if (!alert) return;
+
+  const timer = setTimeout(() => setAlert(null), 5000); // 5000 ms = 5 segundos
+  return () => clearTimeout(timer); // limpiar si cambia alert antes de tiempo
+}, [alert]);
+
+useEffect(() => {
+  if (!closeModalAlert) return;
+
+  const timer = setTimeout(() => setCloseModalAlert(null), 5000);
+  return () => clearTimeout(timer);
+}, [closeModalAlert]);
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
@@ -340,7 +430,7 @@ useEffect(() => {
                     }
                     className="border rounded-lg px-3 py-2 cursor-pointer"
                   >
-                    <option value="">Todos los negocios</option>
+                    <option value="">Selecciona un negocio</option>
                     {businesses.map((b) => (
                       <option key={b.negocio_id} value={b.negocio_id}>
                         {b.nombre_comercial}
@@ -380,16 +470,12 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Botón abrir nueva caja */}
-              <div className="flex items-center gap-4 mb-6">
-                <Button
-                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-4 rounded flex items-center gap-2 cursor-pointer"
-                  onClick={() => setModalOpen(true)}
-                >
-                  <IoAddCircle /> Abrir nueva caja
-                </Button>
-                
-              </div>
+              <Button
+                style="bg-azul-claro hover:bg-azul-oscuro text-white font-bold py-2 px-4 rounded cursor-pointer"
+                onClick={() => setEmptyModalOpen(true)}
+              >
+                Crear nueva caja
+              </Button>
 
               <TableInformation headers={headers} tableContent={tableContent} />
 
@@ -486,222 +572,315 @@ useEffect(() => {
                   </div>
                 </div>
               )}
-{/* Modal Reabrir Caja */}
-<SimpleModal
-  open={reopenModalOpen}
-  onClose={() => setReopenModalOpen(false)}
-  title={`Reabrir Caja #${cashRegisterToClose?.id}`}
->
-  <div className="flex flex-col gap-4">
-    <p className="text-gray-700 text-sm">
-      ¿Deseas reabrir la caja <b>#{cashRegisterToClose?.id}</b>?  
-      Se mantendrán los montos actuales y el usuario será actualizado al actual (<b>{user.name}</b>).
-    </p>
 
-    <div className="flex gap-4 justify-end mt-4">
-      <Button
-        style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-        onClick={async () => {
-          if (!cashRegisterToClose) return;
+              {/* Modal Crear Caja Vacía */}
+              <SimpleModal
+                open={emptyModalOpen}
+                onClose={() => setEmptyModalOpen(false)}
+                title="Crear caja nueva"
+              >
+                <div className="flex flex-col gap-4">
+                  {alert && (
+                    <div
+                      className={`px-4 py-2 rounded-lg text-center font-semibold ${
+                        alert.type === "success"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-oscuro"
+                      }`}
+                    >
+                      {alert.message}
+                    </div>
+                  )}
 
-          try {
-            setLoading(true);
-            const res = await fetch(
-              `${API_URL}/api/v1/cash-registers/reopen/${cashRegisterToClose.id}`,
-              {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: userId }),
-              }
-            );
+                  <div>
+                    <label className="block font-semibold mb-1">Sucursal</label>
+                    <select
+                      value={selectedBranchEmpty ?? ""}
+                      onChange={(e) =>
+                        setSelectedBranchEmpty(Number(e.target.value))
+                      }
+                      className="w-full border rounded-lg px-3 py-2"
+                    >
+                      <option value="">Selecciona una sucursal</option>
+                      {branches.map((b) => (
+                        <option key={b.sucursal_id} value={b.sucursal_id}>
+                          {b.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-            const data = await res.json();
+                  <div>
+                    <label className="block font-semibold mb-1">
+                      Usuario creador
+                    </label>
+                    <input
+                      type="text"
+                      value={user.name}
+                      readOnly
+                      className="w-full border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
 
-            if (!res.ok) {
-              // Si el backend devuelve error (como "usuario ya tiene caja activa")
-              throw new Error(data.message || "Error al reabrir la caja");
-            }
+                  <div className="flex flex-col gap-2">
+                    <label className="font-semibold">Montos</label>
+                    <input
+                      type="text"
+                      value="0.00"
+                      readOnly
+                      className="w-full border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
+                    />
+                  </div>
 
-            // Mostrar alerta de éxito
-            mostrarAlerta("success", `Caja #${data.data.id} reabierta correctamente`);
+                  <div className="flex justify-end gap-4 mt-4">
+                    <Button
+                      style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                      onClick={handleCreateEmptyCashRegister}
+                      disabled={loading}
+                    >
+                      {loading ? "Creando..." : "Crear caja Nueva"}
+                    </Button>
 
-            // Actualizar lista local
-            setCashRegisters((prev) =>
-              prev.map((c) => (c.id === data.data.id ? data.data : c))
-            );
+                    <Button
+                      style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                      onClick={() => setEmptyModalOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </SimpleModal>
 
-            // Cerrar modal después de mostrar éxito
-            setTimeout(() => setReopenModalOpen(false), 1000);
-          } catch (err: any) {
-            console.error(err);
-            // Mostrar el mensaje de error que venga del backend
-            mostrarAlerta("error", err.message || "No se pudo reabrir la caja. Intenta nuevamente.");
-          } finally {
-            setLoading(false);
-          }
-        }}
-        disabled={loading}
-      >
-        {loading ? "Reabriendo..." : "Reabrir Caja"}
-      </Button>
+              {/* Modal Reabrir Caja */}
+              <SimpleModal
+                open={reopenModalOpen}
+                onClose={() => setReopenModalOpen(false)}
+                title={`Reabrir Caja #${cashRegisterToClose?.id}`}
+              >
+                <div className="flex flex-col gap-4">
+                  <p className="text-gray-700 text-sm">
+                    ¿Deseas reabrir la caja <b>#{cashRegisterToClose?.id}</b>?
+                    Se mantendrán los montos actuales y el usuario será
+                    actualizado al actual (<b>{user.name}</b>).
+                  </p>
 
-      <Button
-        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-        onClick={() => setReopenModalOpen(false)}
-      >
-        Cancelar
-      </Button>
-    </div>
-  </div>
-</SimpleModal>
+                  <div className="flex gap-4 justify-end mt-4">
+                    <Button
+                      style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                      onClick={async () => {
+                        if (!cashRegisterToClose) return;
 
+                        try {
+                          setLoading(true);
+                          const res = await fetch(
+                            `${API_URL}/api/v1/cash-registers/reopen/${cashRegisterToClose.id}`,
+                            {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ user_id: userId }),
+                            }
+                          );
 
-{/* Modal Cerrar Caja */}
-{alert && (
-  <div
-    onClick={() => setAlert(null)} // click en cualquier lugar cierra
-    className="fixed inset-0 z-50 flex items-start justify-center p-4"
-  >
-    <div
-      className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
-        alert.type === "success"
-          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
-          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-oscuro"
-      }`}
-      onClick={(e) => e.stopPropagation()} // click dentro NO cierra
-    >
-      {alert.message}
-      <button
-        className="ml-2 font-bold"
-        onClick={() => setAlert(null)}
-      >
-        X
-      </button>
-    </div>
-  </div>
-)}
+                          const data = await res.json();
 
+                          if (!res.ok) {
+                            // Si el backend devuelve error (como "usuario ya tiene caja activa")
+                            throw new Error(
+                              data.message || "Error al reabrir la caja"
+                            );
+                          }
 
+                          // Mostrar alerta de éxito
+                          mostrarAlerta(
+                            "success",
+                            `Caja #${data.data.id} reabierta correctamente`
+                          );
 
-<SimpleModal
-  open={closeModalOpen}
-  onClose={() => {
-    setCloseModalOpen(false);
-    setCloseModalAlert(null); // limpiar alerta al cerrar modal
-  }}
-  title={`Cerrar Caja #${cashRegisterToClose?.id}`}
->
-  <div className="flex flex-col gap-4">
-    {/* ⚠️ Alerta local del modal */}
-    {closeModalAlert && (
-      <div
-        className={`px-4 py-2 rounded-lg text-center font-semibold ${
-          closeModalAlert.type === "success"
-            ? "bg-verde-ultra-claro text-verde-oscuro border border-verde-claro"
-            : "bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-oscuro"
-        } flex justify-between items-center`}
-      >
-        {closeModalAlert.message}
-        <button
-          className="ml-2 font-bold text-lg"
-          onClick={() => setCloseModalAlert(null)}
-        >
-          ×
-        </button>
-      </div>
-    )}
+                          // Actualizar lista local
+                          setCashRegisters((prev) =>
+                            prev.map((c) =>
+                              c.id === data.data.id ? data.data : c
+                            )
+                          );
 
-    <label className="font-semibold">Monto disponible al cerrar:</label>
-    <input
-      type="text"
-      value={
-        cashRegisterToClose?.available_amount
-          ? Number(cashRegisterToClose.available_amount).toLocaleString("es-CR", {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
-          : "-"
-      }
-      readOnly
-      className="w-full border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
-    />
+                          // Cerrar modal después de mostrar éxito
+                          setTimeout(() => setReopenModalOpen(false), 1000);
+                        } catch (err: any) {
+                          console.error(err);
+                          // Mostrar el mensaje de error que venga del backend
+                          mostrarAlerta(
+                            "error",
+                            err.message ||
+                              "No se pudo reabrir la caja. Intenta nuevamente."
+                          );
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? "Reabriendo..." : "Reabrir Caja"}
+                    </Button>
 
-    <div className="flex justify-end gap-4 mt-4">
-      <Button
-        style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-        onClick={async () => {
-          if (!cashRegisterToClose) return;
+                    <Button
+                      style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                      onClick={() => setReopenModalOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </SimpleModal>
 
-          // Validación: solo el usuario que abrió la caja puede cerrarla
-          if (cashRegisterToClose.user?.id !== userId) {
-            setCloseModalAlert({
-              type: "error",
-              message: "No puedes cerrar esta caja. Solo el usuario que la abrió puede hacerlo.",
-            });
-            return;
-          }
+              {/* Modal Cerrar Caja */}
+              {alert && (
+                <div
+                  onClick={() => setAlert(null)} // click en cualquier lugar cierra
+                  className="fixed inset-0 z-50 flex items-start justify-center p-4"
+                >
+                  <div
+                    className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
+                      alert.type === "success"
+                        ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
+                        : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-oscuro"
+                    }`}
+                    onClick={(e) => e.stopPropagation()} // click dentro NO cierra
+                  >
+                    {alert.message}
+                    <button
+                      className="ml-2 font-bold"
+                      onClick={() => setAlert(null)}
+                    >
+                      X
+                    </button>
+                  </div>
+                </div>
+              )}
 
-          try {
-            setLoading(true);
+              <SimpleModal
+                open={closeModalOpen}
+                onClose={() => {
+                  setCloseModalOpen(false);
+                  setCloseModalAlert(null); // limpiar alerta al cerrar modal
+                }}
+                title={`Cerrar Caja #${cashRegisterToClose?.id}`}
+              >
+                <div className="flex flex-col gap-4">
+                  {/* ⚠️ Alerta local del modal */}
+                  {closeModalAlert && (
+                    <div
+                      className={`px-4 py-2 rounded-lg text-center font-semibold ${
+                        closeModalAlert.type === "success"
+                          ? "bg-verde-ultra-claro text-verde-oscuro border border-verde-claro"
+                          : "bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-oscuro"
+                      } flex justify-between items-center`}
+                    >
+                      {closeModalAlert.message}
+                      <button
+                        className="ml-2 font-bold text-lg"
+                        onClick={() => setCloseModalAlert(null)}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
 
-            const res = await fetch(
-              `${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`,
-              {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ user_id: userId }),
-              }
-            );
+                  <label className="font-semibold">
+                    Monto disponible al cerrar:
+                  </label>
+                  <input
+                    type="text"
+                    value={
+                      cashRegisterToClose?.available_amount
+                        ? Number(
+                            cashRegisterToClose.available_amount
+                          ).toLocaleString("es-CR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
+                        : "-"
+                    }
+                    readOnly
+                    className="w-full border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
+                  />
 
-            const data = await res.json();
+                  <div className="flex justify-end gap-4 mt-4">
+                    <Button
+                      style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                      onClick={async () => {
+                        if (!cashRegisterToClose) return;
 
-            if (!res.ok) {
-              setCloseModalAlert({
-                type: "error",
-                message: data.message || "Error al cerrar la caja.",
-              });
-              return;
-            }
+                        // Validación: solo el usuario que abrió la caja puede cerrarla
+                        if (cashRegisterToClose.user?.id !== userId) {
+                          setCloseModalAlert({
+                            type: "error",
+                            message:
+                              "No puedes cerrar esta caja. Solo el usuario que la abrió puede hacerlo.",
+                          });
+                          return;
+                        }
 
-            setCloseModalAlert({
-              type: "success",
-              message: `Caja #${data.data.id} cerrada correctamente.`,
-            });
+                        try {
+                          setLoading(true);
 
-            // Actualizar estado local
-            setCashRegisters((prev) =>
-              prev.map((c) => (c.id === data.data.id ? data.data : c))
-            );
-          } catch (error) {
-            console.error(error);
-            setCloseModalAlert({
-              type: "error",
-              message: "Ocurrió un error al cerrar la caja.",
-            });
-          } finally {
-            setLoading(false);
-          }
-        }}
-        disabled={loading}
-      >
-        {loading ? "Cerrando..." : "Cerrar Caja"}
-      </Button>
+                          const res = await fetch(
+                            `${API_URL}/api/v1/cash-registers/close/${cashRegisterToClose.id}`,
+                            {
+                              method: "PUT",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ user_id: userId }),
+                            }
+                          );
 
-      <Button
-        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-        onClick={() => {
-          setCloseModalOpen(false);
-          setCloseModalAlert(null); // limpiar alerta al cancelar
-        }}
-      >
-        Cancelar
-      </Button>
-    </div>
-  </div>
-</SimpleModal>
+                          const data = await res.json();
 
+                          if (!res.ok) {
+                            setCloseModalAlert({
+                              type: "error",
+                              message:
+                                data.message || "Error al cerrar la caja.",
+                            });
+                            return;
+                          }
 
+                          setCloseModalAlert({
+                            type: "success",
+                            message: `Caja #${data.data.id} cerrada correctamente.`,
+                          });
 
+                          // Actualizar estado local
+                          setCashRegisters((prev) =>
+                            prev.map((c) =>
+                              c.id === data.data.id ? data.data : c
+                            )
+                          );
+                        } catch (error) {
+                          console.error(error);
+                          setCloseModalAlert({
+                            type: "error",
+                            message: "Ocurrió un error al cerrar la caja.",
+                          });
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? "Cerrando..." : "Cerrar Caja"}
+                    </Button>
+
+                    <Button
+                      style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                      onClick={() => {
+                        setCloseModalOpen(false);
+                        setCloseModalAlert(null); // limpiar alerta al cancelar
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              </SimpleModal>
             </div>
           </div>
         }

@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import Button from "../Button";
 import GenerateInvoice, { type GenerateInvoiceRef } from "./GenerateInvoice";
 import type { Producto, Customer, Sucursal } from "../../../types/salePage";
@@ -46,6 +46,19 @@ export default function FacturaModal({
 }: FacturaModalProps) {
   if (!facturaModal) return null;
 
+  const [processing, setProcessing] = useState(false); // ⚡ Estado para bloquear doble click
+
+  const handleFinalizar = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (processing) return; // ⚡ Evita doble clic
+    setProcessing(true);
+    try {
+      await finalizarVenta(e);
+    } finally {
+      setProcessing(false); // ⚡ Libera el botón al finalizar
+    }
+  };
+
   const subtotal = carrito.reduce(
     (acc, item) => acc + item.producto.precio_venta * item.cantidad,
     0
@@ -64,7 +77,7 @@ export default function FacturaModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
       <form
-        onSubmit={finalizarVenta}
+        onSubmit={handleFinalizar} // ⚡ usamos la función con bloqueo
         className="relative bg-white rounded-2xl shadow-2xl w-full max-w-xl p-8 overflow-y-auto max-h-[90vh]"
       >
         <h2 className="text-2xl font-bold mb-6 text-center">Proceso de facturación</h2>
@@ -200,9 +213,9 @@ export default function FacturaModal({
           </div>
 
           <Button
-            text="Finalizar"
-            disabled={botonDisabled}
-            onClick={() => {}}
+            text={processing ? "Procesando..." : "Finalizar"} // ⚡ texto mientras procesa
+            disabled={botonDisabled || processing} // ⚡ bloquea mientras procesa
+            onClick={handleFinalizar}
             style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-8 py-3 rounded text-lg w-36 cursor-pointer"
           />
           <Button
