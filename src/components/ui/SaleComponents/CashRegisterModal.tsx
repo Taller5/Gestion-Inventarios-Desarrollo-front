@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { IoClose } from "react-icons/io5"; // Importar ícono de cerrar
+import { IoClose } from "react-icons/io5"; // Ícono de cerrar
 import type { Caja } from "../../../types/salePage";
 
 interface CashRegisterModalProps {
@@ -22,32 +22,41 @@ export default function CashRegisterModal({
 }: CashRegisterModalProps) {
   const [cargando, setCargando] = useState(false);
   const [cajaUsuario, setCajaUsuario] = useState<Caja | null>(null);
+  const [sucursalCaja, setSucursalCaja] = useState<number | null>(null); // sucursal asociada a la caja cargada
 
-  useEffect(() => {
-    if (!modalCaja || !sucursalSeleccionada) return;
+useEffect(() => {
+  if (!modalCaja || !sucursalSeleccionada) return;
 
-    const cargarCaja = async () => {
-      setCargando(true);
-      try {
-        const caja = await obtenerCajaUsuario();
+  // Si ya tenemos caja y la sucursal coincide, no recargamos
+  if (cajaUsuario && sucursalCaja === sucursalSeleccionada.sucursal_id) return;
 
-        if (caja && caja.sucursal_id === sucursalSeleccionada.sucursal_id) {
-          setCajaUsuario(caja);
-          onCerrarCaja(caja);
-        } else {
-          setCajaUsuario(null);
-          mostrarAlerta("error", "No tiene una caja activa en esta sucursal");
-        }
-      } catch (err: any) {
-        mostrarAlerta("error", err.message || "Error al buscar caja");
+  const cargarCaja = async () => {
+    setCargando(true);
+    try {
+      const caja = await obtenerCajaUsuario();
+
+      if (caja && caja.sucursal_id === sucursalSeleccionada.sucursal_id) {
+        setCajaUsuario(caja);
+        setSucursalCaja(sucursalSeleccionada.sucursal_id);
+        onCerrarCaja(caja);
+      } else {
+        // No reseteamos mientras esté cargando la sucursal
         setCajaUsuario(null);
-      } finally {
-        setCargando(false);
+        setSucursalCaja(sucursalSeleccionada.sucursal_id); // marcamos sucursal revisada
+        mostrarAlerta("error", "No tiene una caja activa en esta sucursal");
       }
-    };
+    } catch (err: any) {
+      setCajaUsuario(null);
+      setSucursalCaja(sucursalSeleccionada.sucursal_id);
+      mostrarAlerta("error", err.message || "Error al buscar caja");
+    } finally {
+      setCargando(false);
+    }
+  };
 
-    cargarCaja();
-  }, [modalCaja, sucursalSeleccionada]);
+  cargarCaja();
+}, [modalCaja, sucursalSeleccionada]);
+
 
   if (!modalCaja) return null;
 
@@ -73,23 +82,25 @@ export default function CashRegisterModal({
         </h2>
 
         {cargando && (
-          <p className="text-center text-gray-500 animate-pulse flex justify-center items-center">
-            ⏳ Buscando caja...
-          </p>
+          <div className="flex flex-col items-center justify-center gap-2 text-gray-500 animate-pulse">
+            <div className="w-12 h-12 border-4 border-t-verde-claro border-gray-200 rounded-full animate-spin"></div>
+            <p className="text-lg font-medium">Buscando caja...</p>
+          </div>
         )}
 
         {!cargando && cajaUsuario && (
           <div className="text-center">
-            <p className="mb-4 font-bold">
+            <p className="mb-4 font-bold text-gray-700">
               Caja activa: #{cajaUsuario.id} — Disponible: ₡
               {Number(cajaUsuario.available_amount).toLocaleString()}
             </p>
-            <button
-              className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition"
+            <a
+              href="/cashRegisterPage"
+              className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition inline-block text-center"
               onClick={() => setModalCaja(false)}
             >
-              Cerrar caja
-            </button>
+              Manejar caja
+            </a>
           </div>
         )}
 
@@ -110,4 +121,3 @@ export default function CashRegisterModal({
     </div>
   );
 }
-
