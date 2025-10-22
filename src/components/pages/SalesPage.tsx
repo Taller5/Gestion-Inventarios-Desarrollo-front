@@ -182,6 +182,7 @@ export default function SalesPage() {
     fetchSucursales();
   }, [API_URL]);
   // Recuperar caja guardada al iniciar la página o cambiar de sucursal
+// Recuperar caja guardada al iniciar la página o cambiar de sucursal
 useEffect(() => {
   if (!sucursalSeleccionada) return;
 
@@ -210,6 +211,7 @@ useEffect(() => {
     JSON.stringify(cajaSeleccionada)
   );
 }, [cajaSeleccionada, sucursalSeleccionada]);
+
 
 // Mantener tu validación actual por seguridad
 useEffect(() => {
@@ -656,7 +658,7 @@ useEffect(() => {
                                       transform flex items-center justify-center cursor-pointer"
                     onClick={() => setModalCaja(true)}
                   >
-                    Activar caja
+                   Información de caja
                   </button>
                 </div>
 

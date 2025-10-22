@@ -230,52 +230,51 @@ export default function CashRegisterPage() {
     const dateB = b.opened_at ? new Date(b.opened_at).getTime() : 0;
     return dateB - dateA;
   });
-/// Filtro por negocio (a través de la sucursal) y rango de fecha
-const filteredCashRegisters = sortedCashRegisters.filter((c) => {
-  // 🔹 Si no hay negocio seleccionado, tabla vacía
-  if (!selectedBusiness) return false;
+  /// Filtro por negocio (a través de la sucursal) y rango de fecha
+  const filteredCashRegisters = sortedCashRegisters.filter((c) => {
+    // 🔹 Si no hay negocio seleccionado, tabla vacía
+    if (!selectedBusiness) return false;
 
-  let matchBusiness = true;
-  let matchDate = true;
+    let matchBusiness = true;
+    let matchDate = true;
 
-  if (selectedBusiness) {
-    const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
-    const negocioId = branch?.business?.negocio_id;
-    matchBusiness = negocioId === selectedBusiness;
-  }
+    if (selectedBusiness) {
+      const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
+      const negocioId = branch?.business?.negocio_id;
+      matchBusiness = negocioId === selectedBusiness;
+    }
 
-  if (startDate) {
-    matchDate =
-      matchDate &&
-      new Date(c.opened_at || 0).getTime() >= new Date(startDate).getTime();
-  }
-  if (endDate) {
-    matchDate =
-      matchDate &&
-      new Date(c.opened_at || 0).getTime() <= new Date(endDate).getTime();
-  }
+    if (startDate) {
+      matchDate =
+        matchDate &&
+        new Date(c.opened_at || 0).getTime() >= new Date(startDate).getTime();
+    }
+    if (endDate) {
+      matchDate =
+        matchDate &&
+        new Date(c.opened_at || 0).getTime() <= new Date(endDate).getTime();
+    }
 
-  return matchBusiness && matchDate;
-});
-
-useEffect(() => {
-  if (!selectedBusiness) return; // nada que hacer si no hay negocio seleccionado
-
-  const hasCashRegisters = cashRegisters.some((c) => {
-    const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
-    return branch?.business?.negocio_id === selectedBusiness;
+    return matchBusiness && matchDate;
   });
 
-  if (!hasCashRegisters) {
-    setAlert({
-      type: "error",
-      message: "No hay cajas registradas para el negocio seleccionado.",
-    });
-  } else {
-    setAlert(null);
-  }
-}, [selectedBusiness, cashRegisters, branches]);
+  useEffect(() => {
+    if (!selectedBusiness) return; // nada que hacer si no hay negocio seleccionado
 
+    const hasCashRegisters = cashRegisters.some((c) => {
+      const branch = branches.find((b) => b.sucursal_id === c.sucursal_id);
+      return branch?.business?.negocio_id === selectedBusiness;
+    });
+
+    if (!hasCashRegisters) {
+      setAlert({
+        type: "error",
+        message: "No hay cajas registradas para el negocio seleccionado.",
+      });
+    } else {
+      setAlert(null);
+    }
+  }, [selectedBusiness, cashRegisters, branches]);
 
   // dentro de tu componente CashRegisterPage
   const [emptyModalOpen, setEmptyModalOpen] = useState(false);
@@ -394,19 +393,19 @@ useEffect(() => {
   });
 
   // Auto-cerrar alertas después de 5 segundos
-useEffect(() => {
-  if (!alert) return;
+  useEffect(() => {
+    if (!alert) return;
 
-  const timer = setTimeout(() => setAlert(null), 5000); // 5000 ms = 5 segundos
-  return () => clearTimeout(timer); // limpiar si cambia alert antes de tiempo
-}, [alert]);
+    const timer = setTimeout(() => setAlert(null), 5000); // 5000 ms = 5 segundos
+    return () => clearTimeout(timer); // limpiar si cambia alert antes de tiempo
+  }, [alert]);
 
-useEffect(() => {
-  if (!closeModalAlert) return;
+  useEffect(() => {
+    if (!closeModalAlert) return;
 
-  const timer = setTimeout(() => setCloseModalAlert(null), 5000);
-  return () => clearTimeout(timer);
-}, [closeModalAlert]);
+    const timer = setTimeout(() => setCloseModalAlert(null), 5000);
+    return () => clearTimeout(timer);
+  }, [closeModalAlert]);
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
@@ -505,21 +504,13 @@ useEffect(() => {
                         <label className="block font-semibold mb-1">
                           Sucursal
                         </label>
-                        <select
-                          value={selectedBranch ?? ""}
-                          onChange={(e) =>
-                            setSelectedBranch(Number(e.target.value))
-                          }
-                          className="w-full border rounded-lg px-3 py-2"
-                        >
-                          <option value="">Selecciona una sucursal</option>
-                          {branches.map((b) => (
-                            <option key={b.sucursal_id} value={b.sucursal_id}>
-                              {b.nombre}
-                            </option>
-                          ))}
-                        </select>
+                        <p className="w-full border rounded-lg px-3 py-2 bg-gray-50">
+                          {branches.find(
+                            (b) => b.sucursal_id === selectedBranch
+                          )?.nombre || "Sin sucursal seleccionada"}
+                        </p>
                       </div>
+
                       <div>
                         <label className="block font-semibold mb-1">
                           Monto de apertura
@@ -810,13 +801,19 @@ useEffect(() => {
                       onClick={async () => {
                         if (!cashRegisterToClose) return;
 
-                        // Validación: solo el usuario que abrió la caja puede cerrarla
+                        // ⚠️ Validación: solo el usuario que abrió la caja puede cerrarla
                         if (cashRegisterToClose.user?.id !== userId) {
                           setCloseModalAlert({
                             type: "error",
                             message:
                               "No puedes cerrar esta caja. Solo el usuario que la abrió puede hacerlo.",
                           });
+
+                          //  Cerrar modal automáticamente después de 2 segundos
+                          setTimeout(() => {
+                            setCloseModalOpen(false);
+                            setCloseModalAlert(null);
+                          }, 2000);
                           return;
                         }
 
@@ -843,17 +840,24 @@ useEffect(() => {
                             return;
                           }
 
+                          //  Éxito
                           setCloseModalAlert({
                             type: "success",
                             message: `Caja #${data.data.id} cerrada correctamente.`,
                           });
 
-                          // Actualizar estado local
+                          //  Actualizar lista local
                           setCashRegisters((prev) =>
                             prev.map((c) =>
                               c.id === data.data.id ? data.data : c
                             )
                           );
+
+                          //  Esperar un poco y cerrar modal
+                          setTimeout(() => {
+                            setCloseModalOpen(false);
+                            setCloseModalAlert(null);
+                          }, 1000);
                         } catch (error) {
                           console.error(error);
                           setCloseModalAlert({
