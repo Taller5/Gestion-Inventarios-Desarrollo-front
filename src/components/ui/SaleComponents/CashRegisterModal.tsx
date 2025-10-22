@@ -70,7 +70,7 @@ useEffect(() => {
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
         {/* Botón cerrar con ícono */}
         <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition text-2xl"
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition text-2xl cursor-pointer"
           onClick={() => setModalCaja(false)}
           aria-label="Cerrar modal"
         >
