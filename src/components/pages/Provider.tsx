@@ -374,6 +374,8 @@ export default function Providers() {
             {providerToEdit ? "Editar Proveedor" : "Añadir Proveedor"}
           </h2>
 
+          <hr className="text-gray-600 pt-2 pb-2"/>
+
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <input
               className="border p-2 rounded"

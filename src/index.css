@@ -23,27 +23,21 @@
   --color-gris-oscuro: #8A8D91;
   --color-gris-ultra-oscuro: #8F9296;
 } 
-@layer utilities{  /* esta clase está hecha para añadir clases personalizadas de css, yo imagino que se puede usar para neumorphismo
-  o para otras herramientas que no usen directamente tailwind, ejemplo: */
+@layer utilities{  
 
   .perfil-nav {
   z-index: 1000;
 }
-  .clase-ejemplo{
-    background-color: red;
-  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+  outline: 2px solid #369FF5;
+  border: none;
 }
 
-
-/*
-
-verde:
-#4EB353 claro
-#2D6630 oscuro
-
-rojo:
-#B33D33 claro
-#8F3128 oscuro
-
-
-*/
+  button:hover,
+  select:hover{
+    cursor: pointer;
+  }
+}

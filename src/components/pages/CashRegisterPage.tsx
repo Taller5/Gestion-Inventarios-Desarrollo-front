@@ -470,7 +470,7 @@ export default function CashRegisterPage() {
               </div>
 
               <Button
-                style="bg-azul-claro hover:bg-azul-oscuro text-white font-bold py-2 px-4 rounded cursor-pointer"
+                style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-4 rounded cursor-pointer"
                 onClick={() => setEmptyModalOpen(true)}
               >
                 Crear nueva caja

@@ -282,7 +282,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({ formData, handleChange,
           value={formData.fecha_prediccion}
           onChange={handleChange}
           min={new Date().toISOString().split("T")[0]}
-          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-azul-medio focus:border-azul-medio focus:border-2 text-sm"
+          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
           required
         />
       </div>
@@ -294,7 +294,7 @@ const PredictionForm: React.FC<PredictionFormProps> = ({ formData, handleChange,
           name="precio_de_venta_esperado"
           value={formData.precio_de_venta_esperado}
           onChange={handleChange}
-          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-azul-medio focus:border-azul-medio focus:border-2 text-sm"
+          className="outline-none w-full border border-gray-300 rounded-lg px-3 py-2 text-sm"
           step="0.01"
           min="0"
           required

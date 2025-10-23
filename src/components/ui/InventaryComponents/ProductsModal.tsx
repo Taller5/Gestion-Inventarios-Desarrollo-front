@@ -169,7 +169,7 @@ export default function ProductsModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl max-w-2xl z-10 p-8 overflow-y-auto text-sm">
+      <div className="relative bg-white rounded-2xl max-w-2xl z-10 p-8 overflow-y-auto text-sm ">
         <h2 className="text-2xl font-bold text-center mb-6">
           {editProductMode ? "Editar Producto" : "Agregar Producto"}
         </h2>
