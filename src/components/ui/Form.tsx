@@ -53,7 +53,7 @@ export default function Form(props: FormProps) {
           value={props.email}
           onChange={(e) => props.onEmailChange(e.target.value)}
           required
-          className="w-full p-5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-oscuro"
+          className="w-full p-5 py-2 border border-gray-300 rounded-xl"
         />
       </div>
 
@@ -68,7 +68,7 @@ export default function Form(props: FormProps) {
             value={props.password}
             onChange={(e) => props.onPasswordChange(e.target.value)}
             required
-            className="w-full p-5 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-verde-oscuro"
+            className="w-full p-5 py-2 border border-gray-300 rounded-xl"
           />
           <div className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 cursor-pointer" onMouseDown={() => setShowPassword(true)} onMouseUp={() => setShowPassword(false)}>{showPassword ? <IoEyeOutline className="w-6 h-6" /> :  <IoEyeOffOutline className="w-6 h-6"/> }</div>
           </div>

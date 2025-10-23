@@ -643,7 +643,7 @@ export default function Branches() {
                             name="negocio_id"
                             value={form.negocio_id}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm cursor-pointer"
                             required
                             disabled={!!branchToEdit}
                           >
@@ -668,7 +668,7 @@ export default function Branches() {
                             name="nombre"
                             value={form.nombre}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
                             required
                           />
                         </div>
@@ -683,7 +683,7 @@ export default function Branches() {
                               name="provincia"
                               value={form.provincia}
                               onChange={handleChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm cursor-pointer"
                               required
                             >
                               <option value="">Seleccione una provincia</option>
@@ -702,7 +702,7 @@ export default function Branches() {
                               name="canton"
                               value={form.canton}
                               onChange={handleChange}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm cursor-pointer"
                               required
                               disabled={!form.provincia}
                             >
@@ -730,7 +730,7 @@ export default function Branches() {
                             type="tel"
                             value={form.telefono}
                             onChange={handleChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
                             required
                           />
                         </div>
