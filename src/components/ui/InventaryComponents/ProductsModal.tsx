@@ -69,6 +69,8 @@ interface Props {
 
   // nuevo: lista de bodegas/warehouses para el dropdown
   warehouses: { bodega_id?: number | string; codigo?: string; nombre?: string; }[];
+
+  setAlert: (alert: { type: "success" | "error"; message: string } | null) => void;
 }
 
 export default function ProductsModal({
@@ -92,6 +94,7 @@ export default function ProductsModal({
   useSuggestedPrice,
   setUseSuggestedPrice,
   warehouses, // <--- nuevo prop
+  setAlert,
 }: Props) {
   if (!open) return null;
 
@@ -116,22 +119,23 @@ export default function ProductsModal({
             unit_id: formProducto.unit_id,
           }),
         });
+        
         if (res.ok) {
           const actualizado = await res.json();
-          // usar setState funcional para actualizar el array correctamente (tipado corregido)
-          setProductos((prev) =>
-            prev.map((p) =>
+          setProductos(prev =>
+            prev.map(p =>
               p.codigo_producto === formProducto.codigo_producto ? { ...p, ...actualizado } : p
             )
           );
-          // actualizar lotes nombre si existe
-          setLotes((prev) =>
-            prev.map((l) =>
-              l.codigo_producto === formProducto.codigo_producto
-                ? { ...l, nombre_producto: formProducto.nombre_producto }
-                : l
-            )
-          );
+          setAlert({
+            type: "success",
+            message: `Producto "${formProducto.nombre_producto}" actualizado correctamente`
+          });
+        } else {
+          setAlert({
+            type: "error", 
+            message: "Error al actualizar el producto"
+          });
         }
       } else {
         const res = await fetch(`${API_URL}/api/v1/products`, {
@@ -151,14 +155,27 @@ export default function ProductsModal({
             unit_id: formProducto.unit_id,
           }),
         });
+
         if (res.ok) {
           const nuevoProducto = await res.json();
-          // usar setState funcional para añadir el nuevo producto
-          setProductos((prev) => [...prev, nuevoProducto]);
+          setProductos(prev => [...prev, nuevoProducto]);
+          setAlert({
+            type: "success",
+            message: `Producto "${formProducto.nombre_producto}" agregado correctamente`
+          });
+        } else {
+          setAlert({
+            type: "error",
+            message: "Error al crear el producto"
+          });
         }
       }
     } catch (err) {
       console.error("Error guardando producto", err);
+      setAlert({
+        type: "error",
+        message: "Error al procesar la operación"
+      });
     } finally {
       setLoadingForm(false);
       setEditProductMode(false);

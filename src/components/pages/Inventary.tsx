@@ -1074,20 +1074,37 @@ export default function Inventary() {
                                           text="Eliminar"
                                           style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
                                           onClick={async () => {
-                                            const res = await fetch(
-                                              `${API_URL}/api/v1/products/${productoAEliminar.id}`,
-                                              {
-                                                method: "DELETE",
-                                              }
-                                            );
-                                            if (res.ok) {
-                                              setProductos((prev) =>
-                                                prev.filter(
-                                                  (p) =>
-                                                    p.codigo_producto !==
-                                                    productoAEliminar.codigo_producto
-                                                )
+                                            try {
+                                              const res = await fetch(
+                                                `${API_URL}/api/v1/products/${productoAEliminar.id}`,
+                                                {
+                                                  method: "DELETE",
+                                                }
                                               );
+                                              if (res.ok) {
+                                                setProductos((prev) =>
+                                                  prev.filter(
+                                                    (p) =>
+                                                      p.codigo_producto !==
+                                                      productoAEliminar.codigo_producto
+                                                  )
+                                                );
+                                                setAlert({
+                                                  type: "success",
+                                                  message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`
+                                                });
+                                              } else {
+                                                setAlert({
+                                                  type: "error",
+                                                  message: "Error al eliminar el producto"
+                                                });
+                                              }
+                                            } catch (err) {
+                                              console.error("Error eliminando producto", err);
+                                              setAlert({
+                                                type: "error",
+                                                message: "Error al eliminar el producto"
+                                              });
                                             }
                                             setProductoAEliminar(null);
                                           }}
@@ -1228,6 +1245,7 @@ export default function Inventary() {
                   useSuggestedPrice={useSuggestedPrice}
                   setUseSuggestedPrice={setUseSuggestedPrice}
                  warehouses={warehouses}
+                 setAlert={setAlert}
                 />
 
                 {/* Modal para agregar lote */}
