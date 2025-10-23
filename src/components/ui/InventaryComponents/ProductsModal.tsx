@@ -64,8 +64,8 @@ interface Props {
   onOpenCabys: () => void;
 
   suggestedPrice: number;
-  useSuggestedPrice: boolean;
-  setUseSuggestedPrice: React.Dispatch<React.SetStateAction<boolean>>;
+  // useSuggestedPrice: boolean;
+  // setUseSuggestedPrice: React.Dispatch<React.SetStateAction<boolean>>;
 
   // nuevo: lista de bodegas/warehouses para el dropdown
   warehouses: { bodega_id?: number | string; codigo?: string; nombre?: string; }[];
@@ -91,8 +91,8 @@ export default function ProductsModal({
   cabysLoading,
   onOpenCabys,
   suggestedPrice,
-  useSuggestedPrice,
-  setUseSuggestedPrice,
+  // useSuggestedPrice,
+  // setUseSuggestedPrice,
   warehouses, // <--- nuevo prop
   setAlert,
 }: Props) {
@@ -122,15 +122,26 @@ export default function ProductsModal({
         
         if (res.ok) {
           const actualizado = await res.json();
-          setProductos(prev =>
-            prev.map(p =>
+          setProductos((prev) => {
+            return prev.map((p) => 
               p.codigo_producto === formProducto.codigo_producto ? { ...p, ...actualizado } : p
-            )
-          );
-          setAlert({
-            type: "success",
-            message: `Producto "${formProducto.nombre_producto}" actualizado correctamente`
+            );
           });
+
+            // Actualizar nombre en lotes si existe
+           setLotes((prev) => {
+             return prev.map((l) => {
+               if (l.codigo_producto === formProducto.codigo_producto) {
+                 return { ...l, nombre_producto: formProducto.nombre_producto };
+               }
+               return l;
+             });
+           });
+
+            setAlert({
+              type: "success",
+              message: `Producto "${formProducto.nombre_producto}" actualizado correctamente`
+            });
         } else {
           setAlert({
             type: "error", 
@@ -324,7 +335,7 @@ export default function ProductsModal({
                 value={formProducto.precio_venta as any}
                 onChange={(e) => {
                   setFormProducto((f) => ({ ...f, precio_venta: Number(e.target.value) }));
-                  setUseSuggestedPrice(false);
+                  // setUseSuggestedPrice(false);
                 }}
                 placeholder="Ingrese el precio de venta"
                 className="w-full border rounded-lg px-4 py-2 text-gray-800 focus:outline-none focus:ring-2 focus:ring-azul-medio transition mt-1"
@@ -337,7 +348,7 @@ export default function ProductsModal({
                   className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg text-sm mt-2 shadow-md transition w-full cursor-pointer"
                   onClick={() => {
                     setFormProducto((f) => ({ ...f, precio_venta: suggestedPrice }));
-                    setUseSuggestedPrice(true);
+                    // setUseSuggestedPrice(true);
                   }}
                 >
                   Precio sugerido: <span className="font-bold">{suggestedPrice}</span>

@@ -12,7 +12,6 @@ import { FaTrash } from "react-icons/fa";
 import { IoAddCircle } from "react-icons/io5";
 import { CgDetailsMore } from "react-icons/cg";
 import { RiEdit2Fill } from "react-icons/ri";
-import Select from "react-select";
 import ProductFilters from "../ui/InventaryComponents/ProductsFillter";
 import type { Warehouse, Business } from "../../types/inventario";
 import CategoryModals from "../ui/InventaryComponents/CategoryModals";
@@ -106,36 +105,14 @@ const headers = [
 ];
 
 export default function Inventary() {
-  // Tooltip for bodega info on select hover
-  const [tooltip, setTooltip] = useState<{
-    visible: boolean;
-    content: string;
-    position: { x: number; y: number };
-  } | null>(null);
-
-  const handleSelectMouseOver = (
-    event: React.MouseEvent<HTMLSelectElement>
-  ) => {
-    const selectedId = formProducto.bodega_id;
-    const bodega = warehouses.find(
-      (w) => String(w.bodega_id) === String(selectedId)
-    );
-    if (!bodega) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    setTooltip({
-      visible: true,
-      content: `Sucursal: ${bodega.branch.nombre || "-"}\nNegocio: ${bodega.branch.business.nombre_comercial || "-"}`,
-      position: { x: rect.right + 10, y: rect.top },
-    });
-  };
-  const handleSelectMouseOut = () => setTooltip(null);
+  // Tooltip removed (no usage detected)
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
   } | null>(null);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
-  // Cargar bodegas al inicio
+  // Cargar bodegas e inicializar businesses (ver más abajo - un único efecto lo hace)
   useEffect(() => {
     fetch(`${API_URL}/api/v1/warehouses`)
       .then((res) => res.json())
@@ -206,6 +183,13 @@ export default function Inventary() {
       return stored ? JSON.parse(stored) : null;
     }
   );
+
+    useEffect(() => {
+    if (simpleModal.open && loteAEliminar) {
+      console.debug('Modal abierto para lote:', loteAEliminar, setSuggestedPrice);
+      
+    }
+  }, [simpleModal.open, loteAEliminar]);
   const [_hasSearched, _setHasSearched] = useState(false);
 
   // Lista de negocios únicos extraídos de las bodegas
@@ -612,6 +596,7 @@ export default function Inventary() {
     // Solo aplicar automáticamente si el usuario aceptó el sugerido
     if (useSuggestedPrice) {
       setFormProducto((f) => ({ ...f, precio_venta: precioRedondeado }));
+      setUseSuggestedPrice(false);
     }
   }, [formProducto.precio_compra, formProducto.bodega_id, useSuggestedPrice]);
 
@@ -759,7 +744,8 @@ export default function Inventary() {
   useEffect(() => {
     fetch(`${API_URL}/api/v1/providers`)
       .then((res) => res.json())
-      .then((data) => setProviders(data));
+      .then((data) => setProviders(data))
+      .catch(() => setProviders([]));
   }, []);
 
   // Filtrar proveedores por producto seleccionado en el lote
@@ -768,37 +754,6 @@ export default function Inventary() {
       setFilteredProviders([]);
       return;
     }
-    // Buscar el producto por código
-    const producto = productos.find(
-      (p) => p.codigo_producto === formLote.codigo_producto
-    );
-    if (!producto) {
-      setFilteredProviders([]);
-      return;
-    }
-    // Filtrar proveedores que tengan ese producto
-    const filtered = providers.filter((prov) =>
-      prov.products.some((prod) => prod.id === producto.id)
-    );
-    setFilteredProviders(filtered);
-  }, [formLote.codigo_producto, productos, providers]);
-
-  // Tipo para proveedor
-
-  // Cargar proveedores al inicio
-  useEffect(() => {
-    fetch(`${API_URL}/api/v1/providers`)
-      .then((res) => res.json())
-      .then((data) => setProviders(data));
-  }, []);
-
-  // Filtrar proveedores por producto seleccionado en el lote
-  useEffect(() => {
-    if (!formLote.codigo_producto) {
-      setFilteredProviders([]);
-      return;
-    }
-    // Buscar el producto por código
     const producto = productos.find(
       (p: Producto) => p.codigo_producto === formLote.codigo_producto
     );
@@ -806,7 +761,6 @@ export default function Inventary() {
       setFilteredProviders([]);
       return;
     }
-    // Filtrar proveedores que tengan ese producto
     const filtered = providers.filter((prov) =>
       prov.products.some((prod) => prod.id === producto.id)
     );
@@ -1242,10 +1196,8 @@ export default function Inventary() {
                   cabysLoading={cabysLoading}
                   onOpenCabys={() => setCabysModalOpen(true)}
                   suggestedPrice={suggestedPrice}
-                  useSuggestedPrice={useSuggestedPrice}
-                  setUseSuggestedPrice={setUseSuggestedPrice}
-                 warehouses={warehouses}
-                 setAlert={setAlert}
+                  warehouses={warehouses}
+                  setAlert={setAlert}
                 />
 
                 {/* Modal para agregar lote */}
