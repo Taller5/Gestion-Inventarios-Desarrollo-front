@@ -166,6 +166,31 @@ export default function ProductsModal({
     }
   };
 
+  // Validador: el formulario está completo cuando todos los campos requeridos están llenos
+  const isFormValid = (() => {
+    const codigo = String(formProducto.codigo_producto ?? "").trim();
+    const nombre = String(formProducto.nombre_producto ?? "").trim();
+    const categoria = String(formProducto.categoria ?? "").trim();
+    const cabys = String(formProducto.codigo_cabys ?? "").trim();
+    const precioCompra = formProducto.precio_compra !== undefined && formProducto.precio_compra !== null;
+    const precioVenta = formProducto.precio_venta !== undefined && formProducto.precio_venta !== null;
+    const bodega = formProducto.bodega_id !== undefined && String(formProducto.bodega_id ?? "").trim() !== "";
+    const impuestoOK = formProducto.impuesto !== undefined && formProducto.impuesto !== null;
+    const unitOK = String(formProducto.unit_id ?? "").trim() !== "";
+
+    return (
+      codigo !== "" &&
+      nombre !== "" &&
+      categoria !== "" &&
+      cabys !== "" &&
+      precioCompra &&
+      precioVenta &&
+      bodega &&
+      impuestoOK &&
+      unitOK
+    );
+  })();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={onClose} />
@@ -389,20 +414,12 @@ export default function ProductsModal({
 
         <div className="flex gap-6 justify-center mt-8">
           <button
-            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-3 rounded-lg shadow-md transition cursor-pointer"
-            onClick={handleSubmit}
-            disabled={
-              loadingForm ||
-              !formProducto.codigo_producto ||
-              !formProducto.nombre_producto ||
-              !formProducto.categoria ||
-              !formProducto.codigo_cabys ||
-              !formProducto.precio_compra &&
-              !formProducto.precio_venta ||
-              !formProducto.bodega_id ||
-              formProducto.impuesto === undefined ||
-              formProducto.unit_id === ""
-            }
+            type="submit"
+            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-3 rounded-lg shadow-md transition cursor-pointer disabled:opacity-50"
+            disabled={loadingForm || !isFormValid}
+            onClick={(e) => {
+              /* seguridad: si por alguna razón el botón se usa con onClick, delegamos al submit del form */
+            }}
           >
             {loadingForm ? "Guardando..." : editProductMode ? "Guardar cambios" : "Guardar"}
           </button>
