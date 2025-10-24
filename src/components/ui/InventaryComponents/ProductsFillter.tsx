@@ -139,54 +139,73 @@ return (
 
       <div>
         <h3 className="font-semibold text-gray-700 mb-1 text-sm">Categorías existentes</h3>
-        <Select
-          placeholder="Seleccione una categoría..."
-          value={
-            categorySearchMain
-              ? { value: categorySearchMain, label: categorySearchMain }
-              : null
-          }
-          onChange={(option: any) => {
-            setCategorySearchMain(option?.value || "");
+     <Select
+  placeholder="Seleccione una categoría..."
+  value={
+    categorySearchMain
+      ? { value: categorySearchMain, label: categorySearchMain }
+      : null
+  }
+  onChange={(option: any) => {
+    setCategorySearchMain(option?.value || "");
 
-            if (!selectedBusiness && option?.value) {
-              setProductsFiltered([]);
-              return;
-            }
+    if (!selectedBusiness && option?.value) {
+      setProductsFiltered([]);
+      return;
+    }
 
-            const filtered = products.filter((p) => {
+    const filtered = products.filter((p) => {
+      const warehouse = warehouses.find(
+        (w) => String(w.bodega_id) === String(p.bodega_id)
+      );
+      const b = warehouse?.branch.business as Business;
+      // Solo productos del negocio seleccionado
+      if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id) return false;
+      // Filtrar por categoría seleccionada
+      if (option?.value)
+        return p.categoria?.toLowerCase() === option.value.toLowerCase();
+      return true;
+    });
+    setProductsFiltered(filtered.length > 0 ? filtered : []);
+  }}
+  // Solo categorías de productos que pertenezcan al negocio seleccionado
+  options={
+    selectedBusiness
+      ? [...new Set(
+          products
+            .filter((p) => {
               const warehouse = warehouses.find(
                 (w) => String(w.bodega_id) === String(p.bodega_id)
               );
               const b = warehouse?.branch.business as Business;
-              if (selectedBusiness && b?.negocio_id !== selectedBusiness?.negocio_id)
-                return false;
-              if (option?.value)
-                return p.categoria?.toLowerCase() === option.value.toLowerCase();
-              return true;
-            });
-            setProductsFiltered(filtered.length > 0 ? filtered : []);
-          }}
-          options={[...new Set(products.map((p) => p.categoria))].filter(Boolean).map((c) => ({ value: c!, label: c! }))}
-          isClearable
-          isDisabled={!selectedBusiness}
-          isLoading={products.length === 0}
-          styles={{
-            control: (base) => ({
-              ...base,
-              cursor: "pointer",
-              minHeight: "34px",
-              fontSize: "0.85rem",
-            }),
-            option: (base, state) => ({
-              ...base,
-              cursor: "pointer",
-              backgroundColor: state.isFocused ? "#E5F1FF" : "white",
-              color: "black",
-              fontSize: "0.85rem",
-            }),
-          }}
-        />
+              return b?.negocio_id === selectedBusiness?.negocio_id;
+            })
+            .map((p) => p.categoria)
+        )]
+          .filter(Boolean)
+          .map((c) => ({ value: c!, label: c! }))
+      : []
+  }
+  isClearable
+  isDisabled={!selectedBusiness}
+  isLoading={products.length === 0}
+  styles={{
+    control: (base) => ({
+      ...base,
+      cursor: "pointer",
+      minHeight: "34px",
+      fontSize: "0.85rem",
+    }),
+    option: (base, state) => ({
+      ...base,
+      cursor: "pointer",
+      backgroundColor: state.isFocused ? "#E5F1FF" : "white",
+      color: "black",
+      fontSize: "0.85rem",
+    }),
+  }}
+/>
+
       </div>
     </div>
 

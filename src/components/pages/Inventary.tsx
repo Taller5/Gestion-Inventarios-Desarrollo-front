@@ -679,7 +679,12 @@ export default function Inventary() {
   }
 };
 
-
+//format de los numeros
+const formatMoney = (amount: number) =>
+  `₡${amount.toLocaleString("es-CR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}`;
   // 1️ Cargar bodegas y extraer negocios únicos
   useEffect(() => {
     fetch(`${API_URL}/api/v1/warehouses`)
@@ -940,7 +945,7 @@ export default function Inventary() {
                                 {producto.stock}
                               </td>
                               <td className="px-3 py-3 text-sm text-gray-600">
-                                ₡{producto.precio_venta}
+                               {formatMoney(Number(producto.precio_venta))}
                               </td>
                               <td className="px-3 py-3 text-sm text-gray-600">
                                 {producto.bodega_id?.codigo_producto ??
