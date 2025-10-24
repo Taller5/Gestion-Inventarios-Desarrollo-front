@@ -1,6 +1,6 @@
 import React from "react";
 import { FaSearch } from "react-icons/fa";
-
+import Select from "react-select"; 
 const API_URL = import.meta.env.VITE_API_URL;
 
 type Producto = {
@@ -252,22 +252,49 @@ export default function ProductsModal({
               />
             </label>
 
-            <label className="font-semibold w-full">
-              Categoría
-              <select
-                value={formProducto.categoria}
-                onChange={(e) => setFormProducto((f) => ({ ...f, categoria: e.target.value }))}
-                className="w-full border rounded-lg px-4 py-2"
-                required
-              >
-                <option value="">Seleccione una categoría</option>
-                {categories.map((c) => (
-                  <option key={c.nombre} value={c.nombre}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
-            </label>
+          <label className="font-semibold w-full">
+                            Categoría
+                            <Select
+                              name="categoria"
+                              value={
+                                categories
+                                  .map((cat) => ({
+                                    value: cat.nombre,
+                                    label: cat.nombre,
+                                  }))
+                                  .find(
+                                    (opt) =>
+                                      opt.value === formProducto.categoria
+                                  ) || null
+                              }
+                              onChange={(selected) =>
+                                setFormProducto((f) => ({
+                                  ...f,
+                                  categoria: selected?.value || "",
+                                }))
+                              }
+                              options={categories.map((cat) => ({
+                                value: cat.nombre,
+                                label: cat.nombre,
+                              }))}
+                              placeholder="Seleccione una categoría"
+                              isSearchable
+                              isClearable
+                              menuPosition="fixed"
+                              menuPortalTarget={document.body}
+                              styles={{
+                                menuPortal: (base) => ({
+                                  ...base,
+                                  zIndex: 9999,
+                                }),
+                                menuList: (base) => ({
+                                  ...base,
+                                  maxHeight: 200,
+                                  overflowY: "auto",
+                                }),
+                              }}
+                            />
+           </label>
 
              <label className="font-semibold">
               Código CABYS

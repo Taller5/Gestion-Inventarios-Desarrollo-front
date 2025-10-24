@@ -135,6 +135,8 @@ export default function CashRegisterPage() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   // Declaración en tu componente
+  const [cashRegisterToOpen, setCashRegisterToOpen] = useState<CashRegister | null>(null);
+
 
   const mostrarAlerta = (type: "success" | "error", message: string) => {
     setAlert({ type, message });
@@ -184,43 +186,53 @@ export default function CashRegisterPage() {
     fetchCashRegisters();
   }, []);
 
-  const handleOpenCashRegister = async () => {
-    if (!selectedBranch || openingAmount === "" || openingAmount <= 0) {
-      setAlert({
-        type: "error",
-        message: "Selecciona una sucursal y un monto válido.",
-      });
-      return;
-    }
-    setLoading(true);
-    setAlert(null);
-    try {
-      const res = await fetch(`${API_URL}/api/v1/cash-registers/open`, {
-        method: "POST",
+const handleOpenCashRegister = async () => {
+  if (!cashRegisterToOpen || openingAmount === "" || openingAmount <= 0) {
+    setAlert({
+      type: "error",
+      message: "Selecciona una caja y un monto válido.",
+    });
+    return;
+  }
+
+  setLoading(true);
+  setAlert(null);
+
+  try {
+    const res = await fetch(
+      `${API_URL}/api/v1/cash-registers/open/${cashRegisterToOpen.id}`,
+      {
+        method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          sucursal_id: selectedBranch,
+          id: cashRegisterToOpen.id, //  enviar id en body también
           user_id: userId,
           opening_amount: openingAmount,
         }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setCashRegisters((prev) => [...prev, data.data]);
-        setModalOpen(false);
-        setSelectedBranch(null);
-        setOpeningAmount("");
-      } else
-        setAlert({
-          type: "error",
-          message: data.message || "Error al abrir la caja",
-        });
-    } catch (err: any) {
-      setAlert({ type: "error", message: `Error de conexión: ${err.message}` });
-    } finally {
-      setLoading(false);
+      }
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Error al abrir la caja.");
     }
-  };
+
+    setCashRegisters((prev) =>
+      prev.map((c) => (c.id === data.data.id ? data.data : c))
+    );
+
+    mostrarAlerta("success", `Caja #${data.data.id} abierta correctamente`);
+    setModalOpen(false);
+    setCashRegisterToOpen(null);
+    setOpeningAmount("");
+  } catch (err: any) {
+    setAlert({ type: "error", message: err.message });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Ordena las cajas abiertas primero
   const sortedCashRegisters = cashRegisters.slice().sort((a, b) => {
@@ -332,29 +344,30 @@ export default function CashRegisterPage() {
       Sucursal: c.branch?.nombre ?? "-",
       Usuario: c.user?.name ?? "-",
       "Monto apertura": opening.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
       }),
       "Monto cierre": c.closed_at
         ? closing.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
           })
         : "-",
       ...(!c.closed_at && {
         Disponible: available.toLocaleString(undefined, {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
         }),
       }),
       Abierta: formatDateSafe(c.opened_at),
       Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
       Acciones: (
         <div className="flex gap-2">
-          {isEmpty && (
+         {isEmpty && (
             <Button
               style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
               onClick={() => {
+                setCashRegisterToOpen(c); //  guarda la caja seleccionada
                 setSelectedBranch(c.sucursal_id);
                 setModalOpen(true);
               }}
@@ -363,6 +376,7 @@ export default function CashRegisterPage() {
               Abrir Caja
             </Button>
           )}
+
           {!c.closed_at && !isEmpty && (
             <Button
               style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
