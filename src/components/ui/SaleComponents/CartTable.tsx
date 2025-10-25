@@ -1,6 +1,8 @@
 import React from "react";
 import { IoPencil } from "react-icons/io5";
+import { BsCash } from 'react-icons/bs';
 import Button from "../Button";
+import { FaTrash } from "react-icons/fa6";
 
 type Producto = {
   id?: number;
@@ -163,12 +165,12 @@ export default function CartTable({
           </div>
         </div>
 
-        <Button
-          text="Pagar"
+        <Button 
           style="bg-azul-medio hover:bg-azul-hover text-white px-8 py-3 rounded text-lg font-bold cursor-pointer"
           onClick={() => setFacturaModal(true)}
-          disabled={carrito.length === 0 || !clienteSeleccionado}
-        />
+          disabled={carrito.length === 0 || !clienteSeleccionado}>
+          <BsCash className="mr-2.5" size={20}/> Pagar
+        </Button>
       </div>
     </div>
   );
@@ -249,9 +251,11 @@ const CartItem = ({
         ) : (
           <>
             <Button text="Editar" style="bg-amarillo-claro hover:bg-amarillo-oscuro text-white px-2 py-1 rounded flex items-center gap-1 cursor-pointer" onClick={() => iniciarEdicion(idx)}>
-              <IoPencil />
+              <IoPencil className="m-1" />
             </Button>
-            <Button text="Eliminar" style="bg-rojo-claro hover:bg-rojo-oscuro text-white px-2 py-1 rounded flex items-center gap-1 cursor-pointer" onClick={() => eliminarDelCarrito(item.producto.codigo_producto)} />
+            <Button style="bg-rojo-claro hover:bg-rojo-oscuro text-white px-2 py-1 rounded flex items-center gap-1 cursor-pointer" onClick={() => eliminarDelCarrito(item.producto.codigo_producto)}>
+              <FaTrash className="m-1"/>
+            </Button>
           </>
         )}
       </td>

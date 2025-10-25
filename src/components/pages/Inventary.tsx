@@ -46,7 +46,7 @@ type Lote = {
   cantidad: number;
   proveedor: string;
   fecha_entrada: string;
-  fecha_vencimiento: string; // fecha de vencimiento
+  fecha_vencimiento?: string; // fecha de vencimiento
   fecha_salida_lote?: string; // fecha de salida del lote
   descripcion: string;
   nombre_producto: string;
@@ -1450,7 +1450,6 @@ const formatMoney = (amount: number) =>
                               }}
                               placeholder="Fecha de vencimiento"
                               className="w-full border rounded-lg px-3 py-2"
-                              required
                             />
                           </label>
                           <label className="font-semibold">
@@ -1482,8 +1481,7 @@ const formatMoney = (amount: number) =>
                             !formLote.numero_lote ||
                             !formLote.cantidad ||
                             !formLote.proveedor ||
-                            !formLote.fecha_entrada ||
-                            !formLote.fecha_vencimiento
+                            !formLote.fecha_entrada
                           }
                         />
                         <Button
@@ -1768,7 +1766,6 @@ const formatMoney = (amount: number) =>
                                 }}
                                 placeholder="Fecha de vencimiento"
                                 className="w-full border rounded-lg px-3 py-2"
-                                required
                                 readOnly={!editMode}
                                 disabled={!editMode}
                               />

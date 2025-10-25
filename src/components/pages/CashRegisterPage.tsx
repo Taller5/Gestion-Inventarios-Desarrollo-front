@@ -501,18 +501,6 @@ const handleOpenCashRegister = async () => {
                       Abrir Caja
                     </h2>
 
-                    {alert && (
-                      <div
-                        className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
-                          alert.type === "success"
-                            ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
-                            : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-oscuro"
-                        }`}
-                      >
-                        {alert.message}
-                      </div>
-                    )}
-
                     <div className="flex flex-col gap-4 mb-4">
                       <div>
                         <label className="block font-semibold mb-1">
@@ -585,17 +573,6 @@ const handleOpenCashRegister = async () => {
                 title="Crear caja nueva"
               >
                 <div className="flex flex-col gap-4">
-                  {alert && (
-                    <div
-                      className={`px-4 py-2 rounded-lg text-center font-semibold ${
-                        alert.type === "success"
-                          ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro"
-                          : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-oscuro"
-                      }`}
-                    >
-                      {alert.message}
-                    </div>
-                  )}
 
                   <div>
                     <label className="block font-semibold mb-1">Sucursal</label>

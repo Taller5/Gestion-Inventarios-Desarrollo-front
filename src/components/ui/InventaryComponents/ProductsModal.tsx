@@ -25,7 +25,7 @@ type Lote = {
   cantidad: number;
   proveedor: string;
   fecha_entrada: string;
-  fecha_vencimiento: string;
+  fecha_vencimiento?: string;
   fecha_salida_lote?: string;
   descripcion: string;
   nombre_producto: string;

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
-
 import Container from "../ui/Container";
 import type { GenerateInvoiceRef } from "../ui/SaleComponents/GenerateInvoice";
-
+import { FaCashRegister } from 'react-icons/fa';
 import { useRef } from "react";
 import CustomerSelector from "../ui/SaleComponents/CustomerSelector";
 import ProductSelector from "../ui/SaleComponents/ProductSelector";
@@ -658,7 +657,7 @@ useEffect(() => {
                                       transform flex items-center justify-center cursor-pointer"
                     onClick={() => setModalCaja(true)}
                   >
-                   Información de caja
+                   <FaCashRegister className="mr-2.5" size={20}/> Información de caja
                   </button>
                 </div>
 

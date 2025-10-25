@@ -1,7 +1,7 @@
-
 import { IoSearch, IoPersonAdd } from "react-icons/io5";
 import Button from "../Button";
-
+import { MdStore } from "react-icons/md";
+import { FaRegCircleUser } from 'react-icons/fa6';
 import type { Customer } from "../../../types/salePage";
 
 interface Props {
@@ -103,17 +103,17 @@ export default function CustomerSelector({
             })
           }
         >
-          Cliente genérico
+          <FaRegCircleUser className="mr-1" size={20} /> Cliente genérico
         </Button>
       </div>
 
       {sucursalSeleccionada && !modalSucursal && (
         <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6 mt-4">
           <button
-            className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200 cursor-pointer"
+            className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200 cursor-pointer flex flex-row"
             onClick={() => setModalSucursal(true)}
           >
-            Cambiar sucursal
+            <MdStore className="mr-2 mt-0.5" size={20}/> Cambiar sucursal
           </button>
           <span className="text-black font-semibold text-left md:text-right">
             Sucursal actual: {sucursalSeleccionada.nombre} - {sucursalSeleccionada.business.nombre_comercial}
