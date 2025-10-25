@@ -140,8 +140,6 @@ useEffect(() => {
     <p className="text-gray-500 font-medium text-center">Cargando sucursales y caja...</p>
   </div>
 ) : sucursales.length === 0 ? (
-  <p className="text-red-500 mt-4 text-center">No hay sucursales disponibles</p>
-) : (
   <div className="flex flex-col gap-3">
     {sucursales.map((sucursal) => (
       <button
@@ -158,6 +156,8 @@ useEffect(() => {
       </button>
     ))}
   </div>
+) : (
+  <p className="text-red-500 mt-4 text-center">No hay sucursales disponibles</p>
 )}
 
 
