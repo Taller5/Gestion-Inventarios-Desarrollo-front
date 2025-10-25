@@ -1429,7 +1429,7 @@ const formatMoney = (amount: number) =>
                             <input
                               name="fecha_vencimiento"
                               type="date"
-                              value={formLote.fecha_vencimiento || ''}
+                              value={formLote.fecha_vencimiento}
                               onChange={(e) => {
                                 const nueva = e.target.value;
                                 if (
@@ -1744,7 +1744,7 @@ const formatMoney = (amount: number) =>
                               <input
                                 name="fecha_vencimiento"
                                 type="date"
-                                value={formLote.fecha_vencimiento || ''}
+                                value={formLote.fecha_vencimiento}
                                 onChange={(e) => {
                                   if (!editMode) return;
                                   const nueva = e.target.value;
