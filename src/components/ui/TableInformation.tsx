@@ -18,7 +18,7 @@ const headerMap: Record<string, string> = {
   payment_method: "Método de pago",
 };
 
-const formatearTelefono = (numero) => {
+const formatearTelefono = (numero: string | number) => {
   if (!numero) return "";
   const limpio = numero.toString().replace(/\D/g, ""); // elimina todo menos dígitos
   return limpio.replace(/(\d{4})(\d{4})/, "$1 $2");
