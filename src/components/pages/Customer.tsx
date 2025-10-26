@@ -18,7 +18,7 @@ type Customer = {
   email: string;
 };
 
-const headers = ["ID", "Nombre", "Cédula", "Teléfono", "Email", "Acciones"];
+const headers = ["ID", "Nombre", "Cédula", "phone", "Email", "Acciones"];
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CustomersPage() {
@@ -292,7 +292,7 @@ if (errorEmail) {
     ID: c.customer_id,
     Nombre: c.name,
     Cédula: c.identity_number,
-    Teléfono: c.phone ?? "-",
+    phone: c.phone ?? "-",
     Email: c.email,
     Acciones: (
       <div className="flex gap-2">
