@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from "react";
+import { useNavigate } from "@tanstack/react-router";
 
 import ProtectedRoute from "../services/ProtectedRoute";
 import SideBar from "../ui/SideBar";
@@ -105,6 +106,8 @@ const headers = [
 ];
 
 export default function Inventary() {
+  const navigate = useNavigate();
+  const navigateTimeoutRef = useRef<number | null>(null);
   // Tooltip removed (no usage detected)
   const [alert, setAlert] = useState<{
     type: "success" | "error";
@@ -726,6 +729,16 @@ const formatMoney = (amount: number) =>
     }
   }, [selectedBusiness]);
 
+  // limpiar timeout de navegación si el componente se desmonta
+  useEffect(() => {
+    return () => {
+      if (navigateTimeoutRef.current) {
+        window.clearTimeout(navigateTimeoutRef.current as unknown as number);
+        navigateTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   // Función para abrir el modal de eliminación
@@ -956,6 +969,26 @@ const formatMoney = (amount: number) =>
                                 <Button
                                   style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
                                   onClick={() => {
+                                    const productoObj = producto as Producto;
+                                    const matching = providers.filter((prov) =>
+                                      Array.isArray(prov.products) &&
+                                      prov.products.some((p) => p.id === productoObj.id)
+                                    );
+                                    if (matching.length === 0) {
+                                      setAlert({
+                                        type: "error",
+                                        message:
+                                          "No hay proveedores para este producto. Redirigiendo a Proveedores...",
+                                      });
+                                      // limpiar timeout previo 
+                                      if (navigateTimeoutRef.current) {
+                                        window.clearTimeout(navigateTimeoutRef.current as unknown as number);
+                                      }
+                                      navigateTimeoutRef.current = window.setTimeout(() => {
+                                        navigate({ to: "/provider" });
+                                      }, 2000);
+                                      return;
+                                    }
                                     setEditMode(true);
                                     setFormLote({
                                       codigo_producto: producto.codigo_producto,
@@ -1017,7 +1050,7 @@ const formatMoney = (amount: number) =>
                                     open={true}
                                     onClose={() => setProductoAEliminar(null)}
                                   >
-                                    <div className="z-10 relative bg-white rounded-xl w-full max-w-md p-8">
+                                    
                                       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
                                         Eliminar producto
                                       </h2>
@@ -1076,7 +1109,7 @@ const formatMoney = (amount: number) =>
                                           }
                                         />
                                       </div>
-                                    </div>
+                                    
                                   </SimpleModal>
                                 )}
                               </td>

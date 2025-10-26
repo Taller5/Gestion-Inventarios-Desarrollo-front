@@ -50,6 +50,8 @@ export default function Modal({
   // Mostrar siempre una sola línea de error dinámico según lo digitado
   const firstPasswordError = getPasswordErrors(form.password)[0] || null;
   const [showPassword, setShowPassword] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   // Inicializa el formulario con los datos del usuario a editar
   useEffect(() => {
@@ -74,6 +76,7 @@ export default function Modal({
         });
       }
       setAlert(null);
+      setEmailError(null);
     }
   }, [open, userToEdit, isEditMode]);
 
@@ -95,6 +98,8 @@ export default function Modal({
         // max 100
         if (value.length <= 30) {
           setForm((prev) => ({ ...prev, [name]: value }));
+          // limpiar error de email si ahora es válido
+          if (emailRegex.test(value)) setEmailError(null);
         }
         break;
       case "phone":
@@ -160,6 +165,14 @@ export default function Modal({
         type: "error",
         message: "El correo debe tener entre 5 y 100 caracteres.",
       });
+      return;
+    }
+
+    // Validación email (dominio válido)
+    if (!emailRegex.test(form.email)) {
+      setEmailError(
+        "Debe ingresar un email con dominio válido, por ejemplo: usuario@dominio.com"
+      );
       return;
     }
 
@@ -259,6 +272,7 @@ export default function Modal({
       if (res.ok) {
         setTimeout(() => {
           setAlert(null);
+          setEmailError(null);
           onClose();
         }, 1200);
       }
@@ -274,7 +288,9 @@ export default function Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      
       <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+      
       <form
         className="relative bg-white p-8 rounded shadow-lg pointer-events-auto animate-modalShow transition-all duration-300 flex flex-col items-center"
         style={{
@@ -285,6 +301,25 @@ export default function Modal({
         }}
         onSubmit={handleSubmit}
       >
+         {/* Botón de cierre (SVG X personalizado) */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition cursor-pointer"
+          style={{ zIndex: 10 }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-[var(--color-rojo-oscuro)]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         <h2 className="text-2xl font-bold mb-8 text-center w-full">
           {isEditMode ? "Editar usuario" : "Añadir colaborador"}
         </h2>
@@ -323,6 +358,9 @@ export default function Modal({
               placeholder="Correo"
               required
             />
+            {emailError && (
+              <div className="text-sm text-red-700 mt-2">{emailError}</div>
+            )}
           </div>
           <div className="flex flex-col">
             <label className="mb-2 font-semibold text-gray-700">Teléfono</label>
