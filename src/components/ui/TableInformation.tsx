@@ -18,6 +18,12 @@ const headerMap: Record<string, string> = {
   payment_method: "Método de pago",
 };
 
+const formatearTelefono = (numero: string | number) => {
+  if (!numero) return "";
+  const limpio = numero.toString().replace(/\D/g, ""); // elimina todo menos dígitos
+  return limpio.replace(/(\d{4})(\d{4})/, "$1 $2");
+};
+
 export default function TableInformation(props: TableInformationProps) {
   return (
     <main className="w-full pl-1 md:pl-4 pt-8">
@@ -44,12 +50,11 @@ export default function TableInformation(props: TableInformationProps) {
                 className="hover:bg-gray-50 transition-colors duration-200"
               >
                 {props.headers.map((header, colIndex) => (
-                  <td
-                    key={colIndex}
-                    className="px-3 py-3 text-sm text-gray-600"
-                  >
-                    {row[header] ?? ""}
-                  </td>
+                  <td key={colIndex} className="px-3 py-3 text-sm text-gray-600">
+              {header === "phone"
+                ? formatearTelefono(row[header])
+                : row[header] ?? ""}
+            </td>
                 ))}
               </tr>
             ))}

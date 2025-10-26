@@ -28,24 +28,24 @@ export default function SucursalModal({
   };
 
   // Simular carga inicial de sucursales
-  useEffect(() => {
-    if (!modalSucursal) return;
+  // useEffect(() => {
+  //   if (!modalSucursal) return;
 
-    const cargarInicial = async () => {
-      setCargando(true);
-      try {
-        // Aquí podrías hacer fetch real si quisieras recargar desde API
-        await new Promise((res) => setTimeout(res, 200)); // simulación mínima
-      } catch (err) {
-        console.error(err);
-        mostrarAlerta("Error al cargar sucursales", "error");
-      } finally {
-        setCargando(false);
-      }
-    };
+  //   const cargarInicial = async () => {
+  //     setCargando(true);
+  //     try {
+  //       // Aquí podrías hacer fetch real si quisieras recargar desde API
+  //       await new Promise((res) => setTimeout(res, 200)); // simulación mínima
+  //     } catch (err) {
+  //       console.error(err);
+  //       mostrarAlerta("Error al cargar sucursales", "error");
+  //     } finally {
+  //       setCargando(false);
+  //     }
+  //   };
 
-    cargarInicial();
-  }, [modalSucursal]);
+  //   cargarInicial();
+  // }, [modalSucursal]);
 
   // Verificar caja cuando se selecciona la sucursal
   useEffect(() => {
@@ -75,7 +75,7 @@ export default function SucursalModal({
         setCajaAbierta(false);
       } finally {
         setVerificandoCaja(false);
-        setCargando(false);
+        // setCargando(false);
       }
     };
 
@@ -83,28 +83,51 @@ export default function SucursalModal({
   }, [sucursalSeleccionada, API_URL]);
 
   //use effect para reiniciar los estados
+// useEffect(() => {
+//   if (modalSucursal) {
+//     // cada vez que se abre el modal, reiniciamos los estados
+//     setCargando(true);
+//     setSucursalInterna(null);
+//     setCajaAbierta(null);
+
+//     const cargarInicial = async () => {
+//       try {
+//         // simulación de fetch, reemplazar por API real si quieres
+//         await new Promise((res) => setTimeout(res, 500));
+//       } catch (err) {
+//         console.error(err);
+//         mostrarAlerta("Error al cargar sucursales", "error");
+//       } finally {
+//         setCargando(false);
+//       }
+//     };
+
+//     cargarInicial();
+//   }
+// }, [modalSucursal]);
+
 useEffect(() => {
-  if (modalSucursal) {
-    // cada vez que se abre el modal, reiniciamos los estados
-    setCargando(true);
-    setSucursalInterna(null);
-    setCajaAbierta(null);
+  if (!modalSucursal) return; // Solo ejecuta cuando el modal se abre
 
-    const cargarInicial = async () => {
-      try {
-        // simulación de fetch, reemplazar por API real si quieres
-        await new Promise((res) => setTimeout(res, 500));
-      } catch (err) {
-        console.error(err);
-        mostrarAlerta("Error al cargar sucursales", "error");
-      } finally {
-        setCargando(false);
-      }
-    };
+  // Reiniciamos estados
+  setCargando(true);
+  setSucursalInterna(null);
+  setCajaAbierta(null);
 
-    cargarInicial();
+  // Tiempo máximo de carga (3 segundos)
+  const timeout = setTimeout(() => {
+    setCargando(false);
+  }, 3000);
+
+  // Si las sucursales llegan antes, desactivamos cargando
+  if (sucursales.length > 0) {
+    setCargando(false);
+    clearTimeout(timeout);
   }
-}, [modalSucursal]);
+
+  // Cleanup al cerrar el modal o desmontar
+  return () => clearTimeout(timeout);
+}, [modalSucursal, sucursales]);
 
 
   // Mostrar alerta si no hay caja después de verificar
@@ -156,7 +179,7 @@ useEffect(() => {
     <div className="w-14 h-14 border-4 border-t-azul-medio border-gray-200 rounded-full animate-spin"></div>
     <p className="text-gray-500 font-medium text-center">Cargando sucursales y caja...</p>
   </div>
-) : sucursales.length === 0 ? (
+) : sucursales.length > 0 ? (
   <div className="flex flex-col gap-3">
     {sucursales.map((sucursal) => (
       <button

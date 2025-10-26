@@ -170,7 +170,7 @@ const headers = [
   "Nombre",
   "Provincia",
   "Cantón",
-  "Teléfono",
+  "phone",
   "Acciones",
 ];
 
@@ -468,7 +468,7 @@ export default function Branches() {
     Nombre: branch.nombre,
     Provincia: branch.provincia,
     Cantón: branch.canton,
-    Teléfono: branch.telefono,
+    phone: branch.telefono,
     Acciones: (
       <div className="flex gap-2">
         <Button

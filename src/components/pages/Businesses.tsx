@@ -32,7 +32,7 @@ const headers = [
   "Identificación",
   "Margen de ganancia (%)",
   "Descripción",
-  "Teléfono",
+  "phone",
   "Email",
   "Acciones",
 ];
@@ -259,7 +259,7 @@ export default function Businesses() {
       ? parseFloat(Number(b.margen_ganancia).toFixed(4)).toString()
       : "-",
     Descripción: b.descripcion || "-",
-    Teléfono: b.telefono,
+    phone: b.telefono,
     Email: b.email,
     Acciones: (
       <div className="flex gap-2">
