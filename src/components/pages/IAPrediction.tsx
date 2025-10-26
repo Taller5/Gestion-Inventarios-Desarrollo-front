@@ -4,15 +4,16 @@ import PredictionService, {
   type PredictionResponse,
 } from "../services/PredictionService";
 import {
-  FaChartLine,
   FaExclamationTriangle,
   FaCheckCircle,
   FaRobot,
+  FaChartLine,
 } from "react-icons/fa";
 import Button from "../ui/Button";
 import ProtectedRoute from "../services/ProtectedRoute";
 import Container from "../ui/Container";
 import { SearchBar } from "../ui/SearchBar";
+import Plot from 'react-plotly.js';
 
 // --- Tipos de Datos del Formulario ---
 interface IAFormState {
@@ -40,8 +41,10 @@ export const IAPrediction = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [searchQuery, setSearchQuery] = useState("");
-const [showDropdown, setShowDropdown] = useState(false); // Control del dropdown
-showDropdown; // <-- Esto evita el error de variable no usada
+  const [yearsOptions, setYearsOptions] = useState<string[]>([]);
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
+  const [canSelectYears, setCanSelectYears] = useState(false);
+  const [anualResult, setAnualResult] = useState<any | null>(null);
 
   // Cargar productos al inicio
   useEffect(() => {
@@ -59,12 +62,11 @@ showDropdown; // <-- Esto evita el error de variable no usada
       .finally(() => setProductsLoading(false));
   }, []);
 
-  // Manejo de la predicción
+  // --- Predicción diaria ---
   const handlePrediction = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(undefined);
-    setResult(null);
 
     try {
       const data: PredictionRequest = {
@@ -74,7 +76,12 @@ showDropdown; // <-- Esto evita el error de variable no usada
         promocion_activa: parseInt(formData.promocion_activa) as 0 | 1,
       };
 
-      if (isNaN(data.id_products) || isNaN(data.precio_de_venta_esperado) || data.id_products <= 0) {
+      // Validaciones
+      if (
+        isNaN(data.id_products) ||
+        isNaN(data.precio_de_venta_esperado) ||
+        data.id_products <= 0
+      ) {
         throw new Error("Por favor, introduce ID de producto y precio válidos.");
       }
 
@@ -88,10 +95,48 @@ showDropdown; // <-- Esto evita el error de variable no usada
         return;
       }
 
+      // Consulta diaria
       const response = await PredictionService.getPrediction(data);
+
+      // Calcular años disponibles
+      const yearsToShow = ["2026", "2027", "2028", "2029"];
+      setYearsOptions(yearsToShow);
+      setCanSelectYears(true);
+
       setResult(response);
+
     } catch (err: any) {
-      setError(err.message || "Error al obtener la predicción.");
+      setError(err.message || "Error al consultar la predicción.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // --- Predicción anual ---
+  const handleYearsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedYears.length === 0 || selectedYears.length > 3) {
+      setError("Selecciona entre 1 y 3 años.");
+      return;
+    }
+    setLoading(true);
+    setError(undefined);
+
+    try {
+      const anualData = {
+      id_products: Number(formData.id_products),
+      precio_de_venta_esperado: Number(formData.precio_de_venta_esperado),
+      promocion_activa: Number(formData.promocion_activa),
+      anios: selectedYears.map(Number), // <-- convierte a números
+      };
+
+      // Consulta anual
+      const anualResult = await PredictionService.getPredictionAnual(anualData);
+
+      setAnualResult(anualResult); // <-- Guardar datos para Plotly
+
+    } catch (err: any) {
+      setError(err.message || "Error al consultar la predicción anual.");
     } finally {
       setLoading(false);
     }
@@ -107,7 +152,6 @@ showDropdown; // <-- Esto evita el error de variable no usada
     setFormData((prev) => ({ ...prev, id_products: String(product.id) }));
     setSearchQuery(product.nombre_producto);
     setFilteredProducts([]);
-    setShowDropdown(false); // Cerrar dropdown al seleccionar
   };
 
   // Manejo de input del SearchBar
@@ -116,14 +160,12 @@ showDropdown; // <-- Esto evita el error de variable no usada
 
     if (input.trim() === "") {
       setFilteredProducts([]);
-      setShowDropdown(false);
     } else {
       const results = allProducts.filter((p) =>
         [p.nombre_producto, p.codigo_producto, String(p.id)]
           .some((field: string) => field.toLowerCase().includes(input.toLowerCase()))
       );
       setFilteredProducts(results);
-      setShowDropdown(results.length > 0);
     }
   };
 
@@ -136,9 +178,12 @@ showDropdown; // <-- Esto evita el error de variable no usada
     setResult(null);
     setError(undefined);
     setSelectedProduct(null);
-    setFilteredProducts([]);
+    setFilteredProducts(allProducts);
     setSearchQuery("");
-    setShowDropdown(false); // cerrar dropdown
+    setCanSelectYears(false);
+    setSelectedYears([]);
+    setYearsOptions([]);
+    setAnualResult(null);
   };
 
   // Manejo de cambios de inputs
@@ -152,7 +197,115 @@ showDropdown; // <-- Esto evita el error de variable no usada
   // Filtrar productos (callback para SearchBar)
   const handleProductSearch = (results: any[]) => {
     setFilteredProducts(results);
-    setShowDropdown(results.length > 0);
+  };
+
+  // Manejo de selección de años
+  const handleYearToggle = (year: string) => {
+    setSelectedYears((prev) =>
+      prev.includes(year)
+        ? prev.filter((y) => y !== year)
+        : prev.length < 3
+        ? [...prev, year]
+        : prev
+    );
+    setAnualResult(null);
+    setError(undefined);
+  };
+
+  // Renderiza la gráfica anual con Plotly
+  const renderPlotlyChart = () => {
+    if (!anualResult || !Array.isArray(anualResult)) return null;
+
+    const colorPalette = [
+      "#369FF5", // azul-medio
+      "#D6CA4E", // amarillo-claro
+      "#4EB353", // verde-claro
+    ];
+
+    const mesesNombre = [
+      "Ene", "Feb", "Mar", "Abr", "May", "Jun",
+      "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"
+    ];
+
+    // Agrupa los datos por año y mes
+    const grouped: Record<string, number[]> = {};
+    selectedYears.forEach(year => {
+      grouped[year] = Array(12).fill(0); // 12 meses, inicializa en 0
+    });
+    anualResult.forEach((item: { mes: string, cantidad: number }) => {
+      const [year, month] = item.mes.split("-");
+      const idx = parseInt(month, 10) - 1;
+      if (grouped[year] && idx >= 0 && idx < 12) {
+        grouped[year][idx] = item.cantidad;
+      }
+    });
+
+    // Cada trace es un año, y para cada mes hay una barra por año
+    const traces = Object.keys(grouped).map((year, idx) => ({
+      x: mesesNombre,
+      y: grouped[year],
+      type: 'bar',
+      name: year,
+      marker: { color: colorPalette[idx % colorPalette.length] },
+      hovertemplate:
+        `Año: ${year}<br>Mes: %{x}<br>Cantidad Vendida Estimada: %{y}<extra></extra>`,
+    }));
+
+    return (
+      <Plot
+        data={traces}
+        layout={{
+          title: 'Predicción Mensual por Año',
+          xaxis: {
+            title: 'Mes',
+            tickangle: -45,
+            // Plotly usará los valores de x automáticamente como etiquetas
+          },
+          yaxis: { title: 'Cantidad Vendida Estimada' },
+          barmode: 'group',
+          autosize: true,
+          legend: { orientation: "h", y: -0.2 },
+        }}
+        style={{ width: '100%', height: '400px' }}
+        config={{ responsive: true }}
+      />
+    );
+  };
+
+  // Renderiza la predicción diaria
+  const renderPredictionBox = () => {
+    if (!result) return null;
+    return (
+      <div className="p-6 bg-white rounded-lg border-2 border-verde-claro mt-4 shadow-lg">
+        <div className="flex items-center mb-4">
+          <FaCheckCircle size={32} className="text-verde-claro mr-3" />
+          <h3 className="text-2xl font-bold text-verde-oscuro">Predicción Finalizada</h3>
+        </div>
+        <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
+          <p className="font-semibold">Producto:</p>
+          <p>{selectedProduct?.nombre_producto ?? "N/A"}</p>
+          <p className="font-semibold">Fecha:</p>
+          <p>{result.fecha_prediccion ?? "Sin fecha"}</p>
+          <p className="font-semibold">Precio Propuesto:</p>
+          <p>
+            {result.precio_usado !== undefined
+              ? `₡${Number(result.precio_usado).toFixed(2)}`
+              : "-"}
+          </p>
+          <p className="font-semibold">Promoción activa:</p>
+          <p>{formData.promocion_activa === "1" ? "Sí" : "No"}</p>
+        </div>
+        <div className="mt-4 pt-3 border-t border-gray-200">
+          <p className="text-base font-semibold text-gray-800">Cantidad Estimada:</p>
+          <p className="text-5xl font-extrabold text-azul-medio mt-1">
+            {result.cantidad_vendida_estimada ?? "-"}{" "}
+            <span className="text-lg font-normal text-gray-500">
+              {result.unidad ?? ""}
+            </span>
+          </p>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -197,7 +350,6 @@ showDropdown; // <-- Esto evita el error de variable no usada
                     }
                     value={searchQuery}
                     onInputChange={handleInputChange}
-                   
                   />
                 )}
 
@@ -226,7 +378,7 @@ showDropdown; // <-- Esto evita el error de variable no usada
                 </button>
               </div>
 
-              {/* COLUMNA 2: RESULTADO DE LA PREDICCIÓN */}
+              {/* COLUMNA 2: RESULTADO DE PREDICCIÓN DIARIA Y ANUAL */}
               <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col justify-center">
                 <h2 className="text-xl font-semibold mb-4 text-gray-700">
                   2. Resultado de la Consulta
@@ -240,7 +392,7 @@ showDropdown; // <-- Esto evita el error de variable no usada
                 )}
 
                 {error && !loading && <AlertMessage type="error" message={error} />}
-                {result && !loading && !error && <PredictionResult result={result} />}
+                {result && !loading && !error && renderPredictionBox()}
 
                 {!result && !loading && !error && (
                   <div className="text-center p-8 text-gray-400">
@@ -248,7 +400,66 @@ showDropdown; // <-- Esto evita el error de variable no usada
                     <p>Presiona "Consultar Predicción" para ver los resultados.</p>
                   </div>
                 )}
+
+                {/* Selección de años para predicción mensual */}
+                {canSelectYears && (
+                  <form onSubmit={handleYearsSubmit} className="mt-8">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Selecciona hasta 3 años para ver la predicción mensual:
+                    </label>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      {yearsOptions.map((year) => (
+                        <button
+                          type="button"
+                          key={year}
+                          className={`px-4 py-2 rounded-lg font-bold border transition
+                            ${selectedYears.includes(year)
+                              ? "bg-azul-medio text-white border-azul-oscuro "
+                              : "bg-white text-azul-oscuro border-gray-300 hover:bg-azul-medio hover:text-white"}
+                            hover:bg-azul-hover hover:border-azul-oscuro cursor-pointer`}
+                          onClick={() => handleYearToggle(year)}
+                        >
+                          {year}
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      type="submit"
+                      className={`w-full py-2 rounded-lg font-bold text-white shadow-md transition duration-150
+                        ${selectedYears.length === 0 || loading
+                          ? "bg-gray-400 cursor-not-allowed"
+                          : "bg-azul-medio hover:bg-azul-hover cursor-pointer"}`}
+                      disabled={selectedYears.length === 0 || loading}
+                    >
+                      Consultar predicción mensual
+                    </button>
+                    {selectedYears.length === 0 && (
+                      <div className="text-xs text-rojo-claro mt-2">
+                        Selecciona al menos un año para consultar la predicción mensual.
+                      </div>
+                    )}
+                  </form>
+                )}
               </div>
+            </div>
+
+            {/* GRÁFICO DE PREDICCIÓN ANUAL EN LA PARTE INFERIOR */}
+            <div className="mt-10">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">
+                3. Gráfico de Predicción Anual
+              </h2>
+              {loading && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-azul-medio"></div>
+                  <p className="ml-3 text-azul-medio">Actualizando gráfico...</p>
+                </div>
+              )}
+              {!loading && anualResult && renderPlotlyChart()}
+              {!loading && !anualResult && (
+                <div className="text-center p-8 text-gray-400">
+                  <p>Realiza una consulta anual para ver el gráfico.</p>
+                </div>
+              )}
             </div>
           </div>
         }
@@ -271,7 +482,13 @@ interface PredictionFormProps {
   error: string | undefined;
 }
 
-const PredictionForm: React.FC<PredictionFormProps> = ({ formData, handleChange, onSubmit, loading, error }) => {
+const PredictionForm: React.FC<PredictionFormProps> = ({
+  formData,
+  handleChange,
+  onSubmit,
+  loading,
+  error,
+}) => {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-4">
       <div>
@@ -351,33 +568,6 @@ const PredictionForm: React.FC<PredictionFormProps> = ({ formData, handleChange,
     </form>
   );
 };
-
-interface PredictionResultProps {
-  result: PredictionResponse;
-}
-
-const PredictionResult: React.FC<PredictionResultProps> = ({ result }) => (
-  <div className="p-6 bg-white rounded-lg border-2 border-verde-claro">
-    <div className="flex items-center mb-4">
-      <FaCheckCircle size={32} className="text-verde-claro mr-3" />
-      <h3 className="text-2xl font-bold text-verde-oscuro">Predicción Finalizada</h3>
-    </div>
-    <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
-      <p className="font-semibold">Producto ID:</p>
-      <p>{result.id_products}</p>
-      <p className="font-semibold">Fecha:</p>
-      <p>{result.fecha_prediccion}</p>
-      <p className="font-semibold">Precio Propuesto:</p>
-      <p>₡{result.precio_usado.toFixed(2)}</p>
-    </div>
-    <div className="mt-4 pt-3 border-t border-gray-200">
-      <p className="text-base font-semibold text-gray-800">Cantidad Estimada:</p>
-      <p className="text-5xl font-extrabold text-azul-medio mt-1">
-        {result.cantidad_vendida_estimada} <span className="text-lg font-normal text-gray-500">{result.unidad}</span>
-      </p>
-    </div>
-  </div>
-);
 
 interface AlertMessageProps {
   type: "error" | "success";

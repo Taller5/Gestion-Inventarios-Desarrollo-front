@@ -16,11 +16,25 @@ export interface PredictionRequest {
  * Datos que se reciben del API
  */
 export interface PredictionResponse {
-  id_products: number;
   fecha_prediccion: string;
-  precio_usado: number;
   cantidad_vendida_estimada: number;
-  unidad: string; // Ejemplo: "Unidades", "Litros", etc.
+  unidad: string;
+  precio_usado: number;
+  nombre_producto?: string;      // <-- Agregado
+  promocion_activa?: number;     // <-- Agregado
+}
+
+export interface PredictionAnualRequest {
+  id_products: number;
+  precio_de_venta_esperado: number;
+  promocion_activa: number;
+  anios: number[]; // <-- Cambiado a anios y tipo number[]
+}
+
+export interface PredictionAnualResponse {
+  [year: string]: {
+    [month: string]: number; // Ejemplo: { "2026": { "01": 123, "02": 456, ... } }
+  };
 }
 
 // --- Clase del Servicio ---
@@ -48,6 +62,22 @@ class PredictionService {
         throw new Error(error.response?.data?.detail || 'Error de conexión con el backend.');
       }
       throw new Error('No se pudo conectar con el servicio de predicción. Asegúrate de que FastAPI esté corriendo en http://localhost:8001.');
+    }
+  }
+
+  async getPredictionAnual(data: PredictionAnualRequest): Promise<any[]> {
+    const url = `${API_IA_URL}/predict_anual_quantity`;
+    try {
+      const response = await axios.post<any[]>(url, data);
+      if (response.status !== 200) {
+        throw new Error('La API respondió con un error al procesar la predicción anual.');
+      }
+      return response.data;
+    } catch (error: any) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(error.response?.data?.detail || 'Error de conexión con el backend.');
+      }
+      throw new Error('No se pudo conectar con el servicio de predicción anual.');
     }
   }
 }
