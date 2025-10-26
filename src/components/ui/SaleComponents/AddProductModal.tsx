@@ -27,6 +27,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
       <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+        
         <h2 className="text-xl font-bold mb-4">Añadir producto</h2>
         <p><strong>Código:</strong> {productoSeleccionado.codigo_producto}</p>
         <p><strong>Nombre:</strong> {productoSeleccionado.nombre_producto}</p>
