@@ -230,297 +230,252 @@ export default function Inventary() {
       });
   }, []);
 
-  // ----- CABYS -----
-  const [cabysModalOpen, setCabysModalOpen] = useState(false);
-  const [cabysLoading, setCabysLoading] = useState(false);
-  const [cabysError, setCabysError] = useState<string | null>(null);
-  const [cabysLoadProgress, setCabysLoadProgress] = useState<{
-    loaded: number;
-    total: number;
-  }>({ loaded: 0, total: 0 });
-  const [cabysPageInfo, setCabysPageInfo] = useState<{
-    page: number;
-    last: number;
-  }>({ page: 0, last: 0 });
-  const [cabysSearchResults, setCabysSearchResults] = useState<
-    CabysItem[] | null
-  >(null);
-  const [searchBarResetKey, setSearchBarResetKey] = useState(0);
-  // --- Configuración y caché CABYS (optimizada para catálogo estático) ---
-  const AUTO_PRELOAD_CABYS = true; // activa precarga
-  const CABYS_CACHE_KEY_ITEMS = "cabys_items_v1"; // catálogo completo
-  const CABYS_CACHE_KEY_CATEGORIES = "cabys_categories_v1";
-  const CABYS_CACHE_KEY_ITEMS_SLIM = "cabys_items_v1_slim2"; // nueva versión incremental
-  const CABYS_CACHE_TTL_MS = Infinity; // catálogos estáticos: nunca expiran automáticamente
-  const CABYS_REFRESH_IN_BG = false; // sin refresco silencioso (evita peticiones redundantes)
+ // ---- CABYS ----
+const [cabysModalOpen, setCabysModalOpen] = useState(false);
+const [cabysLoading, setCabysLoading] = useState(false);
+const [cabysError, setCabysError] = useState<string | null>(null);
+const [cabysLoadProgress, setCabysLoadProgress] = useState<{ loaded: number; total: number; }>({ loaded: 0, total: 0 });
+const [cabysPageInfo, setCabysPageInfo] = useState<{ page: number; last: number; }>({ page: 0, last: 0 });
+const [cabysSearchResults, setCabysSearchResults] = useState<CabysItem[] | null>(null);
+const [searchBarResetKey, setSearchBarResetKey] = useState(0);
 
-  // Inicialización síncrona desde localStorage para render inmediato
-  const initialCategories: CabysCategory[] = (() => {
-    try {
-      const raw = localStorage.getItem(CABYS_CACHE_KEY_CATEGORIES);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed?.data && Array.isArray(parsed.data)) return parsed.data;
+// Configuración general
+// No precargar todos los CABYS por defecto (evita descargar 20k+ en clientes)
+const CABYS_REFRESH_IN_BG = false;
+
+// Inicialización vacía 
+const [cabysCategories, setCabysCategories] = useState<CabysCategory[]>([]);
+const [cabysItems, setCabysItems] = useState<CabysItem[]>([]);
+const cabysCategoriesLoadStarted = useRef(false);
+const [selectedCat1, setSelectedCat1] = useState("");
+
+// ---------------------------------------------------------
+//  IndexedDB Helpers 
+// ---------------------------------------------------------
+function openCabysDB() {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open("CabysDB_v1", 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains("categories")) {
+        db.createObjectStore("categories", { keyPath: "code" });
       }
-    } catch {}
-    return [];
-  })();
-  const initialItemsMeta = (() => {
-    try {
-      const rawSlim = localStorage.getItem(CABYS_CACHE_KEY_ITEMS_SLIM);
-      if (rawSlim) return JSON.parse(rawSlim);
-      const legacyFull = localStorage.getItem(CABYS_CACHE_KEY_ITEMS);
-      if (legacyFull) return JSON.parse(legacyFull);
-    } catch {}
-    return null;
-  })();
-  const initialItems: CabysItem[] = (() => {
-    if (initialItemsMeta?.data && Array.isArray(initialItemsMeta.data)) {
-      return initialItemsMeta.data.map((t: any) =>
-        Array.isArray(t) ? { code: t[0], description: t[1], tax_rate: t[2] } : t // soporte legacy full
-      );
-    }
-    return [];
-  })();
-  const initialItemsComplete: boolean = !!initialItemsMeta?.complete || false;
-
-  const [cabysCategories, setCabysCategories] =
-    useState<CabysCategory[]>(initialCategories);
-  const [cabysItems, setCabysItems] = useState<CabysItem[]>(initialItems);
-
-  // Refs para evitar doble carga por StrictMode (montar/desmontar en dev)
-  const cabysCategoriesLoadStarted = useRef(false);
-  const cabysItemsLoadStarted = useRef(false);
-  const cabysItemsCompleteRef = useRef(initialItemsComplete);
-  const [selectedCat1, setSelectedCat1] = useState("");
-
-  // Normalizador genérico para categorías (por si cambian nombres de campos en backend)
-  const normalizeCategory = (raw: any): CabysCategory => {
-    let code = raw.code || raw.codigo || raw.id || "";
-    if (!code && typeof raw.label === "string") {
-      const m = raw.label.match(/^([^\s-]+)/);
-      if (m) code = m[1];
-    }
-    const description =
-      raw.label ||
-      raw.description ||
-      raw.descripcion ||
-      raw.name ||
-      raw.nombre ||
-      raw.title ||
-      "";
-    return {
-      code: String(code),
-      description: String(description),
-      level: Number(raw.level ?? raw.nivel ?? raw.level_number ?? 1),
-      parent_code:
-        raw.parent_code ??
-        raw.padre ??
-        raw.parent ??
-        raw.parentId ??
-        raw.parent_id ??
-        null,
+      if (!db.objectStoreNames.contains("items")) {
+        db.createObjectStore("items", { keyPath: "code" });
+      }
     };
-  };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
 
-  const loadCache = <T,>(key: string): T | null => {
+async function getAllFromStore<T>(storeName: string): Promise<T[]> {
+  const db = await openCabysDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const req = store.getAll();
+    req.onsuccess = () => resolve(req.result as T[]);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveAllToStore(storeName: string, data: any[]) {
+  const db = await openCabysDB();
+  const tx = db.transaction(storeName, "readwrite");
+  const store = tx.objectStore(storeName);
+  data.forEach((d) => store.put(d));
+  return new Promise((resolve) => {
+    tx.oncomplete = resolve;
+  });
+}
+
+// ---------------------------------------------------------
+// 🧠 Normalizador
+// ---------------------------------------------------------
+const normalizeCategory = (raw: any): CabysCategory => ({
+  code: String(raw.code || raw.codigo || raw.id || ""),
+  description: String(raw.label || raw.description || raw.descripcion || raw.name || raw.nombre || ""),
+  level: Number(raw.level ?? raw.nivel ?? 1),
+  parent_code: raw.parent_code ?? raw.padre ?? raw.parent ?? null,
+});
+
+// ---------------------------------------------------------
+//  Carga de categorías
+// ---------------------------------------------------------
+useEffect(() => {
+  if (cabysCategories.length) return;
+  if (cabysCategoriesLoadStarted.current) return;
+  cabysCategoriesLoadStarted.current = true;
+
+  (async () => {
     try {
-      const raw = localStorage.getItem(key);
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object") return null;
-      if (Date.now() - (parsed.ts || 0) > CABYS_CACHE_TTL_MS) return null;
-      return parsed.data as T;
-    } catch {
-      return null;
-    }
-  };
+      const cached = await getAllFromStore<CabysCategory>("categories");
+      if (cached.length) {
+        setCabysCategories(cached);
+        if (!CABYS_REFRESH_IN_BG) return;
+      }
 
-  const saveCache = (key: string, data: any) => {
+      const res = await fetch(`${API_URL}/api/v1/cabys-categories`);
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const norm = data.map(normalizeCategory);
+        setCabysCategories(norm);
+        await saveAllToStore("categories", norm);
+      }
+    } catch (err) {
+      console.error("[CABYS] Error cargando categorías", err);
+    }
+  })();
+}, []);
+
+// ---------------------------------------------------------
+// Carga paginada y on-demand de items CABYS
+// ---------------------------------------------------------
+// Ya no intenta descargar todo el conjunto en el cliente.
+// En su lugar trae páginas cuando el usuario abre el modal o busca.
+const CABYS_CODE_LENGTH = 13;
+// Tamaños de página configurables
+const CABYS_INITIAL_PER_PAGE = 200; // cuántos traer en la primera carga al abrir modal
+const CABYS_LOAD_MORE_PER_PAGE = 200; // cuántos traer al pulsar "Cargar más"
+const CABYS_SEARCH_PER_PAGE = 50; // resultados por página en búsqueda
+async function fetchCabysPage(page = 1, query: string | null = null, signal?: AbortSignal, categoryMain: string | null = null, perPage?: number) {
+  // El backend expone /cabys (index) y /cabys/search (search).
+  // Usamos /cabys/search cuando hay query, y /cabys para paginación normal.
+  let url: string;
+  const catQs = categoryMain ? `&category_main=${encodeURIComponent(categoryMain)}` : "";
+  const perPageQs = typeof perPage === 'number' && perPage > 0 ? `&per_page=${perPage}` : "";
+  if (query && query.trim()) {
+    url = `${API_URL}/api/v1/cabys/search?q=${encodeURIComponent(query.trim())}&page=${page}${perPageQs}${catQs}`;
+  } else {
+    url = `${API_URL}/api/v1/cabys?page=${page}${perPageQs}${catQs}`;
+  }
+  const r = await fetch(url, { signal });
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  const data: any = await r.json();
+  // El backend puede devolver { data: [...], last_page, per_page } o directamente un array.
+  let list: any[] = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : (data.results || []);
+  if (!list) list = [];
+  const normalized = list.map((raw) => ({
+    code: String(raw.code ?? raw.codigo ?? "").padStart(CABYS_CODE_LENGTH, "0"),
+    description: raw.description ?? raw.descripcion ?? raw.name ?? "(Sin descripción)",
+    tax_rate: Number(raw.tax_rate ?? raw.tax ?? 0),
+    category_main: raw.category_main || raw.category1,
+  }));
+  const lastPage = Number(data.last_page || data.total_pages || data.lastPage || 1);
+  const perPageResp = Number(data.per_page || data.perPage || normalized.length || 0);
+  return { data: normalized, page: Number(page), lastPage, perPage: perPageResp };
+}
+
+// Carga la primera página cuando se abre el modal (o al buscar)
+useEffect(() => {
+  if (!cabysModalOpen) return;
+
+  const abort = new AbortController();
+  (async () => {
+    setCabysError(null);
+    setCabysLoading(true);
+    setCabysLoadProgress({ loaded: 0, total: 0 });
+
     try {
-      localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }));
-    } catch (e) {}
-  };
-
-  // Carga de categorías CABYS (solo si no están en caché / memoria)
-  useEffect(() => {
-    if (cabysCategories.length) return; // ya cargadas
-    if (cabysCategoriesLoadStarted.current) return; // prevenimos doble fetch StrictMode
-    cabysCategoriesLoadStarted.current = true;
-    if (!AUTO_PRELOAD_CABYS && !cabysModalOpen) return; // esperar apertura de modal
-
-    // Intentar caché primero
-    const cached = loadCache<CabysCategory[]>(CABYS_CACHE_KEY_CATEGORIES);
-    if (cached && cached.length) {
-      setCabysCategories(cached);
-      if (!CABYS_REFRESH_IN_BG) return; // no refrescar por ser estático
+      // Intentar traer primera página desde la API (sin descargar todo)
+    const res = await fetchCabysPage(1, null, abort.signal, selectedCat1 || null, CABYS_INITIAL_PER_PAGE);
+  if (abort.signal.aborted) return;
+  // agregar propiedad _combo para SearchBar local
+  const withCombo = res.data.map((it) => ({ ...it, _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase() }));
+  setCabysItems(withCombo);
+    setCabysPageInfo({ page: res.page, last: res.lastPage });
+    setCabysLoadProgress({ loaded: withCombo.length, total: res.lastPage * (res.perPage || withCombo.length) });
+    } catch (err) {
+      if (!(err instanceof DOMException && err.name === "AbortError")) {
+        console.error("[CABYS] Error cargando página CABYS", err);
+        setCabysError("Error cargando CABYS");
+      }
+    } finally {
+      if (!abort.signal.aborted) setCabysLoading(false);
     }
+  })();
 
-    fetch(`${API_URL}/api/v1/cabys-categories`)
-      .then((r) => (r.ok ? r.json() : []))
-      .then((data) => {
-        if (Array.isArray(data) && data.length) {
-          const norm = data.map(normalizeCategory);
-          setCabysCategories(norm);
-          saveCache(CABYS_CACHE_KEY_CATEGORIES, norm);
-          
-        }
-      })
-      .catch(() => {
-        /* silencioso */
-      });
-  }, [cabysModalOpen, cabysCategories.length]);
-  // Opciones por nivel
-  const cat1Options = useMemo(
-    () => cabysCategories.filter((c) => c.level === 1),
-    [cabysCategories]
-  );
+  return () => abort.abort();
+}, [cabysModalOpen, searchBarResetKey, selectedCat1]);
 
-  // Carga de items CABYS (solo si no están en caché / memoria)
-  useEffect(() => {
-    if (cabysItems.length && cabysItemsCompleteRef.current) return; // ya cargados completos
-    if (cabysItemsLoadStarted.current) return; // evitar doble fetch StrictMode
-    cabysItemsLoadStarted.current = true;
-    if (!AUTO_PRELOAD_CABYS && !cabysModalOpen) return; // espera apertura de modal
-    const abort = new AbortController();
-    (async () => {
-      setCabysError(null);
-      const CABYS_CODE_LENGTH = 13;
-      const HARD_LIMIT_ITEMS = 100000; // seguridad extrema
+// Cargar página siguiente y anexarla a la lista actual
+const loadNextCabysPage = async () => {
+  if (cabysLoading) return;
+  const next = cabysPageInfo.page + 1;
+  if (cabysPageInfo.last && next > cabysPageInfo.last) return;
 
-      // Intentar caché primero
-      // Si ya tiene items (aunque incompletos), continuamos sumando (resumen incremental)
-      if (cabysItems.length && !cabysItemsCompleteRef.current) {
-        console.info(
-          "[CABYS] Reanudando descarga incremental desde caché parcial"
-        );
-      }
+  setCabysLoading(true);
+  try {
+  const res = await fetchCabysPage(next, null, undefined, selectedCat1 || null, CABYS_LOAD_MORE_PER_PAGE);
+  const withCombo = res.data.map((it) => ({ ...it, _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase() }));
+  setCabysItems((prev) => prev.concat(withCombo));
+    setCabysPageInfo({ page: res.page, last: res.lastPage });
+    setCabysLoadProgress((prev) => ({ loaded: prev.loaded + withCombo.length, total: res.lastPage * (res.perPage || withCombo.length) }));
+  } catch (err) {
+    console.error('[CABYS] Error cargando siguiente página', err);
+    setCabysError('Error cargando CABYS');
+  } finally {
+    setCabysLoading(false);
+  }
+};
 
-      setCabysLoading(true);
-      setCabysLoadProgress({ loaded: 0, total: 0 });
-      setCabysPageInfo({ page: 0, last: 0 });
-      let all: CabysItem[] = [];
-      if (cabysItems.length) all = [...cabysItems];
-      try {
-        let page = 1;
-        let lastPage = 1;
-        
-        do {
-          const url = `${API_URL}/api/v1/cabys?page=${page}`;
-          const r = await fetch(url, { signal: abort.signal });
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          const data: any = await r.json();
-          let list: any[] | null = null;
-          if (Array.isArray(data)) list = data;
-          else if (Array.isArray(data.data)) list = data.data;
-          else if (Array.isArray(data.items)) list = data.items;
-          else if (Array.isArray(data.results)) list = data.results;
-          if (!list) {
-            for (const k of Object.keys(data)) {
-              const v = data[k];
-              if (
-                Array.isArray(v) &&
-                v.length &&
-                (v[0].code !== undefined || v[0].codigo !== undefined)
-              ) {
-                list = v;
-                break;
-              }
-            }
-          }
-          if (!list) break;
-          lastPage = Number(
-            data.last_page || data.total_pages || lastPage || 1
-          );
-          const normalized = list.map((raw: any) => {
-            let codeStr = String(raw.code ?? raw.codigo ?? "");
-            if (/^\d+$/.test(codeStr) && codeStr.length < CABYS_CODE_LENGTH) {
-              codeStr = codeStr.padStart(CABYS_CODE_LENGTH, "0");
-            }
-            return {
-              code: codeStr,
-              description:
-                raw.description ||
-                raw.descripcion ||
-                raw.name ||
-                raw.nombre ||
-                "(Sin descripción)",
-              tax_rate: Number(raw.tax_rate ?? raw.tax ?? raw.impuesto ?? 0),
-              category_main: raw.category_main || raw.category1,
-              category_main_name: raw.category_main_name || raw.category1_name,
-              category_2: raw.category_2 || raw.category2,
-              category_3: raw.category_3 || raw.category3,
-              category_4: raw.category_4 || raw.category4,
-            } as CabysItem;
-          });
-          all = all.concat(normalized);
-          const totalCalc = lastPage * (data.per_page || normalized.length);
-          setCabysLoadProgress({ loaded: all.length, total: totalCalc });
-          setCabysPageInfo({ page, last: lastPage });
-          page++;
-          if (page > lastPage) break;
-          if (all.length >= HARD_LIMIT_ITEMS) {
-            console.warn("[CABYS] Se alcanzó HARD_LIMIT_ITEMS, truncando.");
-            break;
-          }
-        } while (true);
-        if (!abort.signal.aborted && all.length) {
-          setCabysItems(all);
-          const complete = page > lastPage;
-          cabysItemsCompleteRef.current = complete;
-          try {
-            const slim = all.map((i) => [i.code, i.description, i.tax_rate]);
-            const slimPayload = JSON.stringify({
-              ts: Date.now(),
-              data: slim,
-              complete,
-            });
-            localStorage.setItem(CABYS_CACHE_KEY_ITEMS_SLIM, slimPayload);
-            console.info(
-              `[CABYS] Items cacheados incremental (${all.length}) complete=${complete}`
-            );
-          } catch (e) {
-             console.warn(
-              "[CABYS] No se pudo guardar progreso CABYS (quota?)",
-              e
-            );
-          }
-        }
-      } catch (e) {
-        if (!(e instanceof DOMException && e.name === "AbortError")) {
-          console.error("[CABYS] Error carga paginada", e);
-          setCabysError("Error cargando CABYS");
-        }
-      } finally {
-        if (!abort.signal.aborted) setCabysLoading(false);
-      }
-    })();
-    return () => abort.abort();
-  }, [cabysModalOpen, cabysItems.length]);
+// Buscar CABYS (consulta al backend). Devuelve y muestra la primera página de resultados.
+const searchCabys = async (query: string) => {
+  setCabysSearchResults(null);
+  setSearchBarResetKey((k) => k + 1);
+  setCabysLoading(true);
+  try {
+  const res = await fetchCabysPage(1, query, undefined, selectedCat1 || null, CABYS_SEARCH_PER_PAGE);
+  const withCombo = res.data.map((it) => ({ ...it, _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase() }));
+  setCabysSearchResults(withCombo);
+    setCabysPageInfo({ page: res.page, last: res.lastPage });
+    setCabysLoadProgress({ loaded: withCombo.length, total: res.lastPage * (res.perPage || withCombo.length) });
+  } catch (err) {
+    console.error('[CABYS] Error en búsqueda', err);
+    setCabysError('Error buscando CABYS');
+  } finally {
+    setCabysLoading(false);
+  }
+};
 
-  // Filtrado base sólo por categorías seleccionadas
-  const baseCabysFiltered = useMemo(() => {
-    return cabysItems.filter((i: CabysItem) => {
-      // Filtro por código prefijo según categoría principal seleccionada (id "0" -> códigos que inician con "0")
-      if (selectedCat1) {
-        if (!String(i.code).startsWith(selectedCat1)) return false;
-      }
-      return true;
-    });
-  }, [cabysItems, selectedCat1]);
+// Opcional: lista de categorías principales para el select
+const cat1Options = useMemo(() => {
+  return cabysCategories.filter((c) => (c.level ?? 1) === 1);
+}, [cabysCategories]);
 
-  const cabysSearchDataset = useMemo(() => {
-    const map: Record<string, CabysItem> = {};
-    const extended = baseCabysFiltered.map((item) => {
-      const codeNorm = String(item.code).trim();
-      map[codeNorm] = item;
-      if (!item._combo) {
-        item._combo = `${codeNorm} ${item.description}`.toLowerCase();
-      }
-      return item;
-    });
-    return { extended, map };
-  }, [baseCabysFiltered]);
+// Debounced input handler para SearchBar
+const cabysInputTimer = useRef<number | null>(null);
+const handleCabysInput = (val: string) => {
+  if (cabysInputTimer.current) {
+    window.clearTimeout(cabysInputTimer.current as unknown as number);
+    cabysInputTimer.current = null;
+  }
+  // esperar 300ms antes de buscar
+  cabysInputTimer.current = window.setTimeout(() => {
+    const q = val ?? "";
+    if (!q.trim()) {
+      // si está vacío, limpiar búsqueda y recargar primera página local
+      setCabysSearchResults(null);
+      setSearchBarResetKey((k) => k + 1);
+      return;
+    }
+    searchCabys(q);
+  }, 300) as unknown as number;
+};
+
+// ---------------------------------------------------------
+//  Filtros
+// ---------------------------------------------------------
+const baseCabysFiltered = useMemo(() => {
+  return cabysItems.filter((i) => {
+    if (selectedCat1 && !String(i.code).startsWith(selectedCat1)) return false;
+    return true;
+  });
+}, [cabysItems, selectedCat1]);
+
+// Nota: el dataset para SearchBar ahora usa cabysItems y cabysSearchResults directamente.
+
 
   const [baseProducts, setBaseProducts] = useState<Producto[]>([]);
   const [searchedProducts, setSearchedProducts] = useState<Producto[]>([]);
@@ -1900,16 +1855,16 @@ const formatMoney = (amount: number) =>
                           </span>
                           <SearchBar<CabysItem>
                             key={searchBarResetKey}
-                            data={cabysSearchDataset.extended}
+                            // dataset driven por servidor (si hubo búsqueda) o por items cargados
+                            data={(cabysSearchResults ?? cabysItems).map((it) => ({ ...it }))}
                             displayField="code"
                             searchFields={["code", "description", "_combo"]}
                             placeholder="Ej: 0101 o arroz"
                             numericPrefixStartsWith
-                            resultFormatter={(it) =>
-                              `${it.code} - ${it.description}`
-                            }
+                            resultFormatter={(it) => `${it.code} - ${it.description}`}
                             onResultsChange={(results) => {
-                              if (results.length === baseCabysFiltered.length) {
+                              // cuando el SearchBar filtra localmente, actualizamos estado para mostrar
+                              if (results.length === (cabysItems || []).length) {
                                 setCabysSearchResults(null);
                               } else {
                                 setCabysSearchResults(results as CabysItem[]);
@@ -1921,7 +1876,10 @@ const formatMoney = (amount: number) =>
                                 codigo_cabys: item.code,
                                 impuesto: item.tax_rate,
                               }));
+                              setCabysModalOpen(false);
+                              setCabysSearchResults(null);
                             }}
+                            onInputChange={handleCabysInput}
                           />
                         </div>
                         <div className="flex gap-2 text-xs font-semibold text-gray-600 items-center">
@@ -2080,7 +2038,20 @@ const formatMoney = (amount: number) =>
                         )}
                       </div>
                       {/* Botones */}
-                      <div className="flex justify-end gap-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          {/* Mostrar botón Cargar más si hay más páginas */}
+                          {!cabysLoading && cabysPageInfo.last > cabysPageInfo.page && (
+                            <button
+                              type="button"
+                              className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition text-sm cursor-pointer"
+                              onClick={() => loadNextCabysPage()}
+                            >
+                              Cargar más
+                            </button>
+                          )}
+                        </div>
+                        <div>
                         <button
                           type="button"
                           className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-3 rounded-lg shadow-md transition text-sm cursor-pointer"
@@ -2092,6 +2063,7 @@ const formatMoney = (amount: number) =>
                         >
                           Salir
                         </button>
+                        </div>
                       </div>
                     </div>
                   </SimpleModal>
