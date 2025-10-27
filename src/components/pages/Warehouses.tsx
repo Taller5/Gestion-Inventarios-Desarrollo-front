@@ -118,7 +118,7 @@ export default function Warehouses() {
       if (warehouseToEdit?.bodega_id) {
         // Update existing warehouse
         response = await fetch(
-          `${API_URL}api/v1/warehouses/${warehouseToEdit.bodega_id}`,
+          `${API_URL}/api/v1/warehouses/${warehouseToEdit.bodega_id}`,
           {
             method: "PUT",
             headers: {
