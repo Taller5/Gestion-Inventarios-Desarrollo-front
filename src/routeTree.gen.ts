@@ -15,6 +15,7 @@ import { Route as SaleReportsRouteImport } from './routes/saleReports'
 import { Route as RecoverPasswordRouteImport } from './routes/recoverPassword'
 import { Route as ProviderRouteImport } from './routes/provider'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ProductReportsRouteImport } from './routes/productReports'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventaryRouteImport } from './routes/inventary'
 import { Route as IapredictionRouteImport } from './routes/iaprediction'
@@ -55,6 +56,11 @@ const ProviderRoute = ProviderRouteImport.update({
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProductReportsRoute = ProductReportsRouteImport.update({
+  id: '/productReports',
+  path: '/productReports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -125,6 +131,7 @@ export interface FileRoutesByFullPath {
   '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
+  '/productReports': typeof ProductReportsRoute
   '/profile': typeof ProfileRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
@@ -144,6 +151,7 @@ export interface FileRoutesByTo {
   '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
+  '/productReports': typeof ProductReportsRoute
   '/profile': typeof ProfileRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
@@ -164,6 +172,7 @@ export interface FileRoutesById {
   '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
+  '/productReports': typeof ProductReportsRoute
   '/profile': typeof ProfileRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
@@ -185,6 +194,7 @@ export interface FileRouteTypes {
     | '/iaprediction'
     | '/inventary'
     | '/login'
+    | '/productReports'
     | '/profile'
     | '/provider'
     | '/recoverPassword'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/iaprediction'
     | '/inventary'
     | '/login'
+    | '/productReports'
     | '/profile'
     | '/provider'
     | '/recoverPassword'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/iaprediction'
     | '/inventary'
     | '/login'
+    | '/productReports'
     | '/profile'
     | '/provider'
     | '/recoverPassword'
@@ -243,6 +255,7 @@ export interface RootRouteChildren {
   IapredictionRoute: typeof IapredictionRoute
   InventaryRoute: typeof InventaryRoute
   LoginRoute: typeof LoginRoute
+  ProductReportsRoute: typeof ProductReportsRoute
   ProfileRoute: typeof ProfileRoute
   ProviderRoute: typeof ProviderRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof ProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/productReports': {
+      id: '/productReports'
+      path: '/productReports'
+      fullPath: '/productReports'
+      preLoaderRoute: typeof ProductReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -387,6 +407,7 @@ const rootRouteChildren: RootRouteChildren = {
   IapredictionRoute: IapredictionRoute,
   InventaryRoute: InventaryRoute,
   LoginRoute: LoginRoute,
+  ProductReportsRoute: ProductReportsRoute,
   ProfileRoute: ProfileRoute,
   ProviderRoute: ProviderRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,

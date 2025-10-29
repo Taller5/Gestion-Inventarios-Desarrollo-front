@@ -500,9 +500,9 @@ export default function Branches() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="flex">
+          <div className="flex ">
           
-            <div className="w-full pl-10 pt-10">
+            <div className="w-full pl-5 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Sucursales
               </h1>
