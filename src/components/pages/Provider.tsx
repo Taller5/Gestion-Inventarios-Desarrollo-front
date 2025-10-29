@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
@@ -60,8 +60,8 @@ export default function Providers() {
     };
     fetchProducts();
   }, [API_URL]);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+ 
+
 
   const [alert, setAlert] = useState<{
     type: "success" | "error";
@@ -554,7 +554,7 @@ export default function Providers() {
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole}></SideBar>
+           
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Proveedores

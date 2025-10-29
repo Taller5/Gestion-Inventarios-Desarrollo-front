@@ -1,13 +1,14 @@
+import React, { useEffect, useState } from "react";
+import Nav from "./Nav";
+import SideBar from "./SideBar";
 import Form from "./Form";
 import InformationCards from "./informationCards";
 import MiniCards from "./MiniCards";
+import SimpleModal from "./SimpleModal";
+import { LoginService } from "../services/LoginService";
 import { MdOutlineMail } from "react-icons/md";
 import { FaFacebook, FaInstagram } from "react-icons/fa";
 import { FaRegCopyright } from "react-icons/fa6";
-import Nav from "./Nav";
-import { LoginService } from "../services/LoginService";
-import { useEffect, useState } from "react";
-import SimpleModal from "./SimpleModal";
 
 interface NavProps {
   logo?: string;
@@ -33,7 +34,6 @@ interface CardItem {
   description?: string;
   imageUrl?: string;
 }
-
 interface InformationCardsProps {
   title?: string;
   text?: string;
@@ -42,8 +42,8 @@ interface InformationCardsProps {
   onButtonClick?: () => void;
   containerClassName?: string;
   buttonClassName?: string;
-  isMiniCard?: boolean; // <-- nueva propiedad
-  image?: string; // Para MiniCard
+  isMiniCard?: boolean;
+  image?: string;
 }
 interface MiniCardsProps {
   title?: string;
@@ -60,36 +60,54 @@ interface ContainerProps {
 }
 
 export default function Container(props: ContainerProps) {
-  const nav = <Nav {...props.nav} />;
+  const [user, setUser] = useState<any>(null);
   const [showInactivityModal, setShowInactivityModal] = useState(false);
-  // Callback para el cierre por inactividad
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // --- Manejar usuario loggeado ---
   useEffect(() => {
-    LoginService.setInactivityCallback(() => {
-      setShowInactivityModal(true);
-    });
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) setUser(JSON.parse(storedUser));
+
+    const handleUserUpdate = () => {
+      const updated = localStorage.getItem("user");
+      setUser(updated ? JSON.parse(updated) : null);
+    };
+
+    window.addEventListener("userUpdated", handleUserUpdate);
+    return () => window.removeEventListener("userUpdated", handleUserUpdate);
   }, []);
+
+  // --- Modal por inactividad ---
+  useEffect(() => {
+    LoginService.setInactivityCallback(() => setShowInactivityModal(true));
+  }, []);
+
   const handleCloseModal = () => {
     setShowInactivityModal(false);
-    window.location.href = "/login"; // redirige al login
+    window.location.href = "/login";
   };
-  let pageContent;
 
-  // Normalizar arrays
+  const handleOpenSidebar = () => setIsSidebarOpen(true);
+  const handleCloseSidebar = () => setIsSidebarOpen(false);
+
+  // --- Normalizar arrays ---
   const informationCardsArray = Array.isArray(props.informationCardsProps)
     ? props.informationCardsProps
     : props.informationCardsProps
-      ? [props.informationCardsProps]
-      : [];
+    ? [props.informationCardsProps]
+    : [];
 
   const miniCardsArray = Array.isArray(props.miniCards)
     ? props.miniCards
     : props.miniCards
-      ? [props.miniCards]
-      : [];
+    ? [props.miniCards]
+    : [];
 
-  if (props.form) {
-    pageContent = <Form {...props.form} />;
-  } else if (informationCardsArray.length) {
+  // --- Contenido de página ---
+  let pageContent;
+  if (props.form) pageContent = <Form {...props.form} />;
+  else if (informationCardsArray.length) {
     pageContent = (
       <>
         {informationCardsArray.map((infoCard, idx) =>
@@ -104,17 +122,48 @@ export default function Container(props: ContainerProps) {
         ))}
       </>
     );
-  } else if (props.page) {
-    pageContent = <div>{props.page}</div>;
-  } else {
-    pageContent = <div className="bg-white">Error</div>;
-  }
+  } else if (props.page) pageContent = <div>{props.page}</div>;
+  else pageContent = <div className="bg-white">Error</div>;
 
+  // --- Mostrar sidebar solo si hay usuario y no estamos en login/home ---
+  const showSidebar =
+    user &&
+    window.location.pathname !== "/" &&
+    window.location.pathname !== "/login";
+useEffect(() => {
+  if (isSidebarOpen) {
+    document.body.style.overflow = "hidden";
+  } else {
+    document.body.style.overflow = "auto";
+  }
+  return () => {
+    document.body.style.overflow = "auto";
+  };
+}, [isSidebarOpen]);
   return (
     <div className="flex flex-col min-h-screen">
-      {nav}
+      {/* Nav siempre visible, ahora recibe función para abrir sidebar */}
+      <Nav {...props.nav} onHamburgerClick={handleOpenSidebar} />
 
-      <div className="flex flex-col flex-grow">{pageContent}</div>
+      {/* Contenedor principal */}
+      <div className="flex flex-1 w-full">
+        {showSidebar && (
+          <SideBar
+            role={user.role}
+            isOpen={isSidebarOpen} // Para mobile
+            onClose={handleCloseSidebar} // Cerrar al dar click fuera o ✕
+          />
+        )}
+        <main className="flex flex-col flex-grow p-4">{pageContent}</main>
+      </div>
+
+
+
+
+
+
+
+      {/* Modal de inactividad */}
       {showInactivityModal && (
         <SimpleModal
           open={showInactivityModal}
@@ -130,12 +179,12 @@ export default function Container(props: ContainerProps) {
           </button>
         </SimpleModal>
       )}
+
+      {/* Footer */}
       <footer className="w-full bg-sky-950 text-white py-3 px-6">
         <div className="max-w-6xl mx-auto flex flex-col items-center gap-2 text-center">
-          {/* Logo o nombre */}
           <div className="text-2xl font-bold tracking-wide">Gestior</div>
 
-          {/* Contacto y redes */}
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm">
             <a
               href="mailto:tallermultimedia50@gmail.com"
@@ -166,7 +215,6 @@ export default function Container(props: ContainerProps) {
             </a>
           </div>
 
-          {/* Derechos */}
           <div className="flex items-center gap-1 text-sm text-gray-400">
             <FaRegCopyright />
             <span>2025 Gestior. Todos los derechos reservados.</span>

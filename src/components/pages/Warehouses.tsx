@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
@@ -195,15 +195,15 @@ export default function Warehouses() {
   if (error) return <div className="text-rojo-claro p-4">{error}</div>;
 
   // Get user role for protected route
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+
+
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "bodeguero"]}>
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole} />
+           
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Bodegas

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
@@ -111,7 +111,7 @@ const formatDateSafe = (input?: string | number | null) => {
 
 export default function CashRegisterPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+
   const userId = user.id;
 
   const [branches, setBranches] = useState<Branch[]>([]);
@@ -426,7 +426,7 @@ const handleOpenCashRegister = async () => {
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole} />
+       
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Cajas

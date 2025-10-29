@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
@@ -175,8 +175,8 @@ const headers = [
 ];
 
 export default function Branches() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+
+  
   const token = localStorage.getItem("token");
 
   // State
@@ -501,7 +501,7 @@ export default function Branches() {
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole} />
+          
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Sucursales
@@ -511,14 +511,14 @@ export default function Branches() {
                 {/* SearchBar */}
                 <div className="w-full h-10">
                 <SearchBar<Branch>
-  data={branches}
-  displayField="sucursal_id" // ⚠️ se mantiene para tipado, no afecta el formatter
-  searchFields={["sucursal_id", "nombre"]}
-  placeholder="Buscar por ID o nombre..."
-  onResultsChange={(results) => {
-    setBranchesFiltered(results);
-    if (results.length > 0) setAlert(null);
-  }}
+              data={branches}
+              displayField="sucursal_id" // ⚠️ se mantiene para tipado, no afecta el formatter
+              searchFields={["sucursal_id", "nombre"]}
+              placeholder="Buscar por ID o nombre..."
+              onResultsChange={(results) => {
+                setBranchesFiltered(results);
+                if (results.length > 0) setAlert(null);
+              }}
   onSelect={(item) => setBranchesFiltered([item])}
   onNotFound={(q) => {
     if (!q || q.trim() === "") {

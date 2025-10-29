@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
 import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
@@ -22,8 +21,8 @@ const headers = ["ID", "Nombre", "Cédula", "phone", "Email", "Acciones"];
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CustomersPage() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+
+
 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
@@ -323,7 +322,7 @@ if (errorEmail) {
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole} />
+          
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Clientes y Fidelización
