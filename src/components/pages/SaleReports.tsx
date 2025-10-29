@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Container from "../ui/Container";
 import TableInformation from "../ui/TableInformation";
 import ExcelExporter from "../ui/ExcelExporter";
@@ -9,8 +9,8 @@ import PDFExporter from "../ui/PDFExporter";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SaleReports() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+
+
 
   const [invoices, setInvoices] = useState<any[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
@@ -98,7 +98,7 @@ export default function SaleReports() {
       <Container
         page={
           <div className="flex flex-col md:flex-row">
-            <SideBar role={userRole} />
+         
 
             <div className="w-full pl-0 md:pl-10">
               <h1 className="text-3xl font-bold mb-6 mt-6">

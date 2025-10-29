@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import Container from "../ui/Container";
@@ -26,7 +26,7 @@ const headers = ["id", "name", "rol", "contact", "state", "phone", "actions"];
 
 export default function Employees() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+ 
 
   const [alert, setAlert] = useState<{
     type: "success" | "error";
@@ -122,7 +122,7 @@ export default function Employees() {
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole}></SideBar>
+          
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Personal y Roles

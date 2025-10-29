@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Button from "../ui/Button";
 import Container from "../ui/Container";
 import { SearchBar } from "../ui/SearchBar";
@@ -21,7 +21,6 @@ const API_URL = import.meta.env.VITE_API_URL;
 
 //type bodega
 
-
 //type producto
 type Producto = {
   id?: number;
@@ -37,7 +36,6 @@ type Producto = {
   impuesto?: number;
   unit_id?: string; // unidad de medida (ej: 'kg', 'unidad')
 };
-
 
 //type lote
 type Lote = {
@@ -155,8 +153,6 @@ export default function Inventary() {
   });
 
   const [loadingForm, setLoadingForm] = useState(false);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
 
   const [lotes, setLotes] = useState<Lote[]>([]);
   // Error específico de fechas dentro de los modales de lote (no alerta global detrás)
@@ -187,10 +183,13 @@ export default function Inventary() {
     }
   );
 
-    useEffect(() => {
+  useEffect(() => {
     if (simpleModal.open && loteAEliminar) {
-      console.debug('Modal abierto para lote:', loteAEliminar, setSuggestedPrice);
-      
+      console.debug(
+        "Modal abierto para lote:",
+        loteAEliminar,
+        setSuggestedPrice
+      );
     }
   }, [simpleModal.open, loteAEliminar]);
   const [_hasSearched, _setHasSearched] = useState(false);
@@ -230,252 +229,329 @@ export default function Inventary() {
       });
   }, []);
 
- // ---- CABYS ----
-const [cabysModalOpen, setCabysModalOpen] = useState(false);
-const [cabysLoading, setCabysLoading] = useState(false);
-const [cabysError, setCabysError] = useState<string | null>(null);
-const [cabysLoadProgress, setCabysLoadProgress] = useState<{ loaded: number; total: number; }>({ loaded: 0, total: 0 });
-const [cabysPageInfo, setCabysPageInfo] = useState<{ page: number; last: number; }>({ page: 0, last: 0 });
-const [cabysSearchResults, setCabysSearchResults] = useState<CabysItem[] | null>(null);
-const [searchBarResetKey, setSearchBarResetKey] = useState(0);
+  // ---- CABYS ----
+  const [cabysModalOpen, setCabysModalOpen] = useState(false);
+  const [cabysLoading, setCabysLoading] = useState(false);
+  const [cabysError, setCabysError] = useState<string | null>(null);
+  const [cabysLoadProgress, setCabysLoadProgress] = useState<{
+    loaded: number;
+    total: number;
+  }>({ loaded: 0, total: 0 });
+  const [cabysPageInfo, setCabysPageInfo] = useState<{
+    page: number;
+    last: number;
+  }>({ page: 0, last: 0 });
+  const [cabysSearchResults, setCabysSearchResults] = useState<
+    CabysItem[] | null
+  >(null);
+  const [searchBarResetKey, setSearchBarResetKey] = useState(0);
 
-// Configuración general
-// No precargar todos los CABYS por defecto (evita descargar 20k+ en clientes)
-const CABYS_REFRESH_IN_BG = false;
+  // Configuración general
+  // No precargar todos los CABYS por defecto (evita descargar 20k+ en clientes)
+  const CABYS_REFRESH_IN_BG = false;
 
-// Inicialización vacía 
-const [cabysCategories, setCabysCategories] = useState<CabysCategory[]>([]);
-const [cabysItems, setCabysItems] = useState<CabysItem[]>([]);
-const cabysCategoriesLoadStarted = useRef(false);
-const [selectedCat1, setSelectedCat1] = useState("");
+  // Inicialización vacía
+  const [cabysCategories, setCabysCategories] = useState<CabysCategory[]>([]);
+  const [cabysItems, setCabysItems] = useState<CabysItem[]>([]);
+  const cabysCategoriesLoadStarted = useRef(false);
+  const [selectedCat1, setSelectedCat1] = useState("");
 
-// ---------------------------------------------------------
-//  IndexedDB Helpers 
-// ---------------------------------------------------------
-function openCabysDB() {
-  return new Promise<IDBDatabase>((resolve, reject) => {
-    const request = indexedDB.open("CabysDB_v1", 1);
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains("categories")) {
-        db.createObjectStore("categories", { keyPath: "code" });
-      }
-      if (!db.objectStoreNames.contains("items")) {
-        db.createObjectStore("items", { keyPath: "code" });
-      }
-    };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
+  // ---------------------------------------------------------
+  //  IndexedDB Helpers
+  // ---------------------------------------------------------
+  function openCabysDB() {
+    return new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open("CabysDB_v1", 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains("categories")) {
+          db.createObjectStore("categories", { keyPath: "code" });
+        }
+        if (!db.objectStoreNames.contains("items")) {
+          db.createObjectStore("items", { keyPath: "code" });
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
 
-async function getAllFromStore<T>(storeName: string): Promise<T[]> {
-  const db = await openCabysDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(storeName, "readonly");
+  async function getAllFromStore<T>(storeName: string): Promise<T[]> {
+    const db = await openCabysDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, "readonly");
+      const store = tx.objectStore(storeName);
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result as T[]);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  async function saveAllToStore(storeName: string, data: any[]) {
+    const db = await openCabysDB();
+    const tx = db.transaction(storeName, "readwrite");
     const store = tx.objectStore(storeName);
-    const req = store.getAll();
-    req.onsuccess = () => resolve(req.result as T[]);
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function saveAllToStore(storeName: string, data: any[]) {
-  const db = await openCabysDB();
-  const tx = db.transaction(storeName, "readwrite");
-  const store = tx.objectStore(storeName);
-  data.forEach((d) => store.put(d));
-  return new Promise((resolve) => {
-    tx.oncomplete = resolve;
-  });
-}
-
-// ---------------------------------------------------------
-// 🧠 Normalizador
-// ---------------------------------------------------------
-const normalizeCategory = (raw: any): CabysCategory => ({
-  code: String(raw.code || raw.codigo || raw.id || ""),
-  description: String(raw.label || raw.description || raw.descripcion || raw.name || raw.nombre || ""),
-  level: Number(raw.level ?? raw.nivel ?? 1),
-  parent_code: raw.parent_code ?? raw.padre ?? raw.parent ?? null,
-});
-
-// ---------------------------------------------------------
-//  Carga de categorías
-// ---------------------------------------------------------
-useEffect(() => {
-  if (cabysCategories.length) return;
-  if (cabysCategoriesLoadStarted.current) return;
-  cabysCategoriesLoadStarted.current = true;
-
-  (async () => {
-    try {
-      const cached = await getAllFromStore<CabysCategory>("categories");
-      if (cached.length) {
-        setCabysCategories(cached);
-        if (!CABYS_REFRESH_IN_BG) return;
-      }
-
-      const res = await fetch(`${API_URL}/api/v1/cabys-categories`);
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        const norm = data.map(normalizeCategory);
-        setCabysCategories(norm);
-        await saveAllToStore("categories", norm);
-      }
-    } catch (err) {
-      console.error("[CABYS] Error cargando categorías", err);
-    }
-  })();
-}, []);
-
-// ---------------------------------------------------------
-// Carga paginada y on-demand de items CABYS
-// ---------------------------------------------------------
-// Ya no intenta descargar todo el conjunto en el cliente.
-// En su lugar trae páginas cuando el usuario abre el modal o busca.
-const CABYS_CODE_LENGTH = 13;
-// Tamaños de página configurables
-const CABYS_INITIAL_PER_PAGE = 200; // cuántos traer en la primera carga al abrir modal
-const CABYS_LOAD_MORE_PER_PAGE = 200; // cuántos traer al pulsar "Cargar más"
-const CABYS_SEARCH_PER_PAGE = 50; // resultados por página en búsqueda
-async function fetchCabysPage(page = 1, query: string | null = null, signal?: AbortSignal, categoryMain: string | null = null, perPage?: number) {
-  // El backend expone /cabys (index) y /cabys/search (search).
-  // Usamos /cabys/search cuando hay query, y /cabys para paginación normal.
-  let url: string;
-  const catQs = categoryMain ? `&category_main=${encodeURIComponent(categoryMain)}` : "";
-  const perPageQs = typeof perPage === 'number' && perPage > 0 ? `&per_page=${perPage}` : "";
-  if (query && query.trim()) {
-    url = `${API_URL}/api/v1/cabys/search?q=${encodeURIComponent(query.trim())}&page=${page}${perPageQs}${catQs}`;
-  } else {
-    url = `${API_URL}/api/v1/cabys?page=${page}${perPageQs}${catQs}`;
+    data.forEach((d) => store.put(d));
+    return new Promise((resolve) => {
+      tx.oncomplete = resolve;
+    });
   }
-  const r = await fetch(url, { signal });
-  if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const data: any = await r.json();
-  // El backend puede devolver { data: [...], last_page, per_page } o directamente un array.
-  let list: any[] = Array.isArray(data.data) ? data.data : Array.isArray(data) ? data : (data.results || []);
-  if (!list) list = [];
-  const normalized = list.map((raw) => ({
-    code: String(raw.code ?? raw.codigo ?? "").padStart(CABYS_CODE_LENGTH, "0"),
-    description: raw.description ?? raw.descripcion ?? raw.name ?? "(Sin descripción)",
-    tax_rate: Number(raw.tax_rate ?? raw.tax ?? 0),
-    category_main: raw.category_main || raw.category1,
-  }));
-  const lastPage = Number(data.last_page || data.total_pages || data.lastPage || 1);
-  const perPageResp = Number(data.per_page || data.perPage || normalized.length || 0);
-  return { data: normalized, page: Number(page), lastPage, perPage: perPageResp };
-}
 
-// Carga la primera página cuando se abre el modal (o al buscar)
-useEffect(() => {
-  if (!cabysModalOpen) return;
+  // ---------------------------------------------------------
+  // 🧠 Normalizador
+  // ---------------------------------------------------------
+  const normalizeCategory = (raw: any): CabysCategory => ({
+    code: String(raw.code || raw.codigo || raw.id || ""),
+    description: String(
+      raw.label ||
+        raw.description ||
+        raw.descripcion ||
+        raw.name ||
+        raw.nombre ||
+        ""
+    ),
+    level: Number(raw.level ?? raw.nivel ?? 1),
+    parent_code: raw.parent_code ?? raw.padre ?? raw.parent ?? null,
+  });
 
-  const abort = new AbortController();
-  (async () => {
-    setCabysError(null);
+  // ---------------------------------------------------------
+  //  Carga de categorías
+  // ---------------------------------------------------------
+  useEffect(() => {
+    if (cabysCategories.length) return;
+    if (cabysCategoriesLoadStarted.current) return;
+    cabysCategoriesLoadStarted.current = true;
+
+    (async () => {
+      try {
+        const cached = await getAllFromStore<CabysCategory>("categories");
+        if (cached.length) {
+          setCabysCategories(cached);
+          if (!CABYS_REFRESH_IN_BG) return;
+        }
+
+        const res = await fetch(`${API_URL}/api/v1/cabys-categories`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          const norm = data.map(normalizeCategory);
+          setCabysCategories(norm);
+          await saveAllToStore("categories", norm);
+        }
+      } catch (err) {
+        console.error("[CABYS] Error cargando categorías", err);
+      }
+    })();
+  }, []);
+
+  // ---------------------------------------------------------
+  // Carga paginada y on-demand de items CABYS
+  // ---------------------------------------------------------
+  // Ya no intenta descargar todo el conjunto en el cliente.
+  // En su lugar trae páginas cuando el usuario abre el modal o busca.
+  const CABYS_CODE_LENGTH = 13;
+  // Tamaños de página configurables
+  const CABYS_INITIAL_PER_PAGE = 200; // cuántos traer en la primera carga al abrir modal
+  const CABYS_LOAD_MORE_PER_PAGE = 200; // cuántos traer al pulsar "Cargar más"
+  const CABYS_SEARCH_PER_PAGE = 50; // resultados por página en búsqueda
+  async function fetchCabysPage(
+    page = 1,
+    query: string | null = null,
+    signal?: AbortSignal,
+    categoryMain: string | null = null,
+    perPage?: number
+  ) {
+    // El backend expone /cabys (index) y /cabys/search (search).
+    // Usamos /cabys/search cuando hay query, y /cabys para paginación normal.
+    let url: string;
+    const catQs = categoryMain
+      ? `&category_main=${encodeURIComponent(categoryMain)}`
+      : "";
+    const perPageQs =
+      typeof perPage === "number" && perPage > 0 ? `&per_page=${perPage}` : "";
+    if (query && query.trim()) {
+      url = `${API_URL}/api/v1/cabys/search?q=${encodeURIComponent(query.trim())}&page=${page}${perPageQs}${catQs}`;
+    } else {
+      url = `${API_URL}/api/v1/cabys?page=${page}${perPageQs}${catQs}`;
+    }
+    const r = await fetch(url, { signal });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data: any = await r.json();
+    // El backend puede devolver { data: [...], last_page, per_page } o directamente un array.
+    let list: any[] = Array.isArray(data.data)
+      ? data.data
+      : Array.isArray(data)
+        ? data
+        : data.results || [];
+    if (!list) list = [];
+    const normalized = list.map((raw) => ({
+      code: String(raw.code ?? raw.codigo ?? "").padStart(
+        CABYS_CODE_LENGTH,
+        "0"
+      ),
+      description:
+        raw.description ?? raw.descripcion ?? raw.name ?? "(Sin descripción)",
+      tax_rate: Number(raw.tax_rate ?? raw.tax ?? 0),
+      category_main: raw.category_main || raw.category1,
+    }));
+    const lastPage = Number(
+      data.last_page || data.total_pages || data.lastPage || 1
+    );
+    const perPageResp = Number(
+      data.per_page || data.perPage || normalized.length || 0
+    );
+    return {
+      data: normalized,
+      page: Number(page),
+      lastPage,
+      perPage: perPageResp,
+    };
+  }
+
+  // Carga la primera página cuando se abre el modal (o al buscar)
+  useEffect(() => {
+    if (!cabysModalOpen) return;
+
+    const abort = new AbortController();
+    (async () => {
+      setCabysError(null);
+      setCabysLoading(true);
+      setCabysLoadProgress({ loaded: 0, total: 0 });
+
+      try {
+        // Intentar traer primera página desde la API (sin descargar todo)
+        const res = await fetchCabysPage(
+          1,
+          null,
+          abort.signal,
+          selectedCat1 || null,
+          CABYS_INITIAL_PER_PAGE
+        );
+        if (abort.signal.aborted) return;
+        // agregar propiedad _combo para SearchBar local
+        const withCombo = res.data.map((it) => ({
+          ...it,
+          _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase(),
+        }));
+        setCabysItems(withCombo);
+        setCabysPageInfo({ page: res.page, last: res.lastPage });
+        setCabysLoadProgress({
+          loaded: withCombo.length,
+          total: res.lastPage * (res.perPage || withCombo.length),
+        });
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          console.error("[CABYS] Error cargando página CABYS", err);
+          setCabysError("Error cargando CABYS");
+        }
+      } finally {
+        if (!abort.signal.aborted) setCabysLoading(false);
+      }
+    })();
+
+    return () => abort.abort();
+  }, [cabysModalOpen, searchBarResetKey, selectedCat1]);
+
+  // Cargar página siguiente y anexarla a la lista actual
+  const loadNextCabysPage = async () => {
+    if (cabysLoading) return;
+    const next = cabysPageInfo.page + 1;
+    if (cabysPageInfo.last && next > cabysPageInfo.last) return;
+
     setCabysLoading(true);
-    setCabysLoadProgress({ loaded: 0, total: 0 });
-
     try {
-      // Intentar traer primera página desde la API (sin descargar todo)
-    const res = await fetchCabysPage(1, null, abort.signal, selectedCat1 || null, CABYS_INITIAL_PER_PAGE);
-  if (abort.signal.aborted) return;
-  // agregar propiedad _combo para SearchBar local
-  const withCombo = res.data.map((it) => ({ ...it, _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase() }));
-  setCabysItems(withCombo);
-    setCabysPageInfo({ page: res.page, last: res.lastPage });
-    setCabysLoadProgress({ loaded: withCombo.length, total: res.lastPage * (res.perPage || withCombo.length) });
+      const res = await fetchCabysPage(
+        next,
+        null,
+        undefined,
+        selectedCat1 || null,
+        CABYS_LOAD_MORE_PER_PAGE
+      );
+      const withCombo = res.data.map((it) => ({
+        ...it,
+        _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase(),
+      }));
+      setCabysItems((prev) => prev.concat(withCombo));
+      setCabysPageInfo({ page: res.page, last: res.lastPage });
+      setCabysLoadProgress((prev) => ({
+        loaded: prev.loaded + withCombo.length,
+        total: res.lastPage * (res.perPage || withCombo.length),
+      }));
     } catch (err) {
-      if (!(err instanceof DOMException && err.name === "AbortError")) {
-        console.error("[CABYS] Error cargando página CABYS", err);
-        setCabysError("Error cargando CABYS");
-      }
+      console.error("[CABYS] Error cargando siguiente página", err);
+      setCabysError("Error cargando CABYS");
     } finally {
-      if (!abort.signal.aborted) setCabysLoading(false);
+      setCabysLoading(false);
     }
-  })();
+  };
 
-  return () => abort.abort();
-}, [cabysModalOpen, searchBarResetKey, selectedCat1]);
-
-// Cargar página siguiente y anexarla a la lista actual
-const loadNextCabysPage = async () => {
-  if (cabysLoading) return;
-  const next = cabysPageInfo.page + 1;
-  if (cabysPageInfo.last && next > cabysPageInfo.last) return;
-
-  setCabysLoading(true);
-  try {
-  const res = await fetchCabysPage(next, null, undefined, selectedCat1 || null, CABYS_LOAD_MORE_PER_PAGE);
-  const withCombo = res.data.map((it) => ({ ...it, _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase() }));
-  setCabysItems((prev) => prev.concat(withCombo));
-    setCabysPageInfo({ page: res.page, last: res.lastPage });
-    setCabysLoadProgress((prev) => ({ loaded: prev.loaded + withCombo.length, total: res.lastPage * (res.perPage || withCombo.length) }));
-  } catch (err) {
-    console.error('[CABYS] Error cargando siguiente página', err);
-    setCabysError('Error cargando CABYS');
-  } finally {
-    setCabysLoading(false);
-  }
-};
-
-// Buscar CABYS (consulta al backend). Devuelve y muestra la primera página de resultados.
-const searchCabys = async (query: string) => {
-  setCabysSearchResults(null);
-  setSearchBarResetKey((k) => k + 1);
-  setCabysLoading(true);
-  try {
-  const res = await fetchCabysPage(1, query, undefined, selectedCat1 || null, CABYS_SEARCH_PER_PAGE);
-  const withCombo = res.data.map((it) => ({ ...it, _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase() }));
-  setCabysSearchResults(withCombo);
-    setCabysPageInfo({ page: res.page, last: res.lastPage });
-    setCabysLoadProgress({ loaded: withCombo.length, total: res.lastPage * (res.perPage || withCombo.length) });
-  } catch (err) {
-    console.error('[CABYS] Error en búsqueda', err);
-    setCabysError('Error buscando CABYS');
-  } finally {
-    setCabysLoading(false);
-  }
-};
-
-// Opcional: lista de categorías principales para el select
-const cat1Options = useMemo(() => {
-  return cabysCategories.filter((c) => (c.level ?? 1) === 1);
-}, [cabysCategories]);
-
-// Debounced input handler para SearchBar
-const cabysInputTimer = useRef<number | null>(null);
-const handleCabysInput = (val: string) => {
-  if (cabysInputTimer.current) {
-    window.clearTimeout(cabysInputTimer.current as unknown as number);
-    cabysInputTimer.current = null;
-  }
-  // esperar 300ms antes de buscar
-  cabysInputTimer.current = window.setTimeout(() => {
-    const q = val ?? "";
-    if (!q.trim()) {
-      // si está vacío, limpiar búsqueda y recargar primera página local
-      setCabysSearchResults(null);
-      setSearchBarResetKey((k) => k + 1);
-      return;
+  // Buscar CABYS (consulta al backend). Devuelve y muestra la primera página de resultados.
+  const searchCabys = async (query: string) => {
+    setCabysSearchResults(null);
+    setSearchBarResetKey((k) => k + 1);
+    setCabysLoading(true);
+    try {
+      const res = await fetchCabysPage(
+        1,
+        query,
+        undefined,
+        selectedCat1 || null,
+        CABYS_SEARCH_PER_PAGE
+      );
+      const withCombo = res.data.map((it) => ({
+        ...it,
+        _combo: `${String(it.code).trim()} ${it.description}`.toLowerCase(),
+      }));
+      setCabysSearchResults(withCombo);
+      setCabysPageInfo({ page: res.page, last: res.lastPage });
+      setCabysLoadProgress({
+        loaded: withCombo.length,
+        total: res.lastPage * (res.perPage || withCombo.length),
+      });
+    } catch (err) {
+      console.error("[CABYS] Error en búsqueda", err);
+      setCabysError("Error buscando CABYS");
+    } finally {
+      setCabysLoading(false);
     }
-    searchCabys(q);
-  }, 300) as unknown as number;
-};
+  };
 
-// ---------------------------------------------------------
-//  Filtros
-// ---------------------------------------------------------
-const baseCabysFiltered = useMemo(() => {
-  return cabysItems.filter((i) => {
-    if (selectedCat1 && !String(i.code).startsWith(selectedCat1)) return false;
-    return true;
-  });
-}, [cabysItems, selectedCat1]);
+  // Opcional: lista de categorías principales para el select
+  const cat1Options = useMemo(() => {
+    return cabysCategories.filter((c) => (c.level ?? 1) === 1);
+  }, [cabysCategories]);
 
-// Nota: el dataset para SearchBar ahora usa cabysItems y cabysSearchResults directamente.
+  // Debounced input handler para SearchBar
+  const cabysInputTimer = useRef<number | null>(null);
+  const handleCabysInput = (val: string) => {
+    if (cabysInputTimer.current) {
+      window.clearTimeout(cabysInputTimer.current as unknown as number);
+      cabysInputTimer.current = null;
+    }
+    // esperar 300ms antes de buscar
+    cabysInputTimer.current = window.setTimeout(() => {
+      const q = val ?? "";
+      if (!q.trim()) {
+        // si está vacío, limpiar búsqueda y recargar primera página local
+        setCabysSearchResults(null);
+        setSearchBarResetKey((k) => k + 1);
+        return;
+      }
+      searchCabys(q);
+    }, 300) as unknown as number;
+  };
 
+  // ---------------------------------------------------------
+  //  Filtros
+  // ---------------------------------------------------------
+  const baseCabysFiltered = useMemo(() => {
+    return cabysItems.filter((i) => {
+      if (selectedCat1 && !String(i.code).startsWith(selectedCat1))
+        return false;
+      return true;
+    });
+  }, [cabysItems, selectedCat1]);
+
+  // Nota: el dataset para SearchBar ahora usa cabysItems y cabysSearchResults directamente.
 
   const [baseProducts, setBaseProducts] = useState<Producto[]>([]);
   const [searchedProducts, setSearchedProducts] = useState<Producto[]>([]);
@@ -623,26 +699,29 @@ const baseCabysFiltered = useMemo(() => {
     }
   };
   const deleteCategory = async (nombre: string) => {
-  try {
-    const res = await fetch(`${API_URL}/api/v1/categories/${encodeURIComponent(nombre)}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) throw new Error("No se pudo eliminar la categoría");
+    try {
+      const res = await fetch(
+        `${API_URL}/api/v1/categories/${encodeURIComponent(nombre)}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!res.ok) throw new Error("No se pudo eliminar la categoría");
 
-    setCategories((prev) => prev.filter((c) => c.nombre !== nombre));
-  } catch {
-    setAlertMessage("No se pudo eliminar la categoría.");
-  } finally {
-    setCategoryToDelete(null);
-  }
-};
+      setCategories((prev) => prev.filter((c) => c.nombre !== nombre));
+    } catch {
+      setAlertMessage("No se pudo eliminar la categoría.");
+    } finally {
+      setCategoryToDelete(null);
+    }
+  };
 
-//format de los numeros
-const formatMoney = (amount: number) =>
-  `₡${amount.toLocaleString("es-CR", {
-    minimumFractionDigits: 1,
-    maximumFractionDigits: 1,
-  })}`;
+  //format de los numeros
+  const formatMoney = (amount: number) =>
+    `₡${amount.toLocaleString("es-CR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })}`;
   // 1️ Cargar bodegas y extraer negocios únicos
   useEffect(() => {
     fetch(`${API_URL}/api/v1/warehouses`)
@@ -751,7 +830,7 @@ const formatMoney = (amount: number) =>
         setLotes(lotesData);
       })
       .catch(() => {
-         console.error("Error al obtener productos y lotes");
+        console.error("Error al obtener productos y lotes");
         setProductos([]);
         setLotes([]);
       })
@@ -762,7 +841,7 @@ const formatMoney = (amount: number) =>
     fetch(`${API_URL}/api/v1/categories`)
       .then((res) => res.json())
       .then((data) => setCategories(data))
-       .catch((err) => console.error("Error cargando categorías:", err));
+      .catch((err) => console.error("Error cargando categorías:", err));
   }, []);
 
   // Une productos y lotes para mostrar todos los productos aunque no tengan lotes
@@ -809,8 +888,7 @@ const formatMoney = (amount: number) =>
       setProductsFiltered(productosAgrupados);
     }
   }, [productos, lotes, selectedBusiness, categorySearchMain, warehouses]);
-// Estado inicial del formulario
-
+  // Estado inicial del formulario
 
   return (
     <ProtectedRoute
@@ -820,7 +898,6 @@ const formatMoney = (amount: number) =>
         page={
           <div>
             <div className="flex">
-              <SideBar role={userRole} />
               <div className="w-full pl-10 pt-10">
                 <h1 className="text-2xl font-bold mb-6 text-left">
                   Gestionar Inventario
@@ -828,345 +905,638 @@ const formatMoney = (amount: number) =>
                 {/* Barra de búsqueda y botones principales */}
                 <div className="flex flex-col sm:flex-row justify-between gap-10 mb-4 w-full">
                   {/* 🟦 Sección Izquierda: Filtros */}
-                
-                    <ProductFilters
-                        products={productos}
-                        warehouses={warehouses}
-                        businesses={businesses}
-                        selectedBusiness={selectedBusiness}
-                        setSelectedBusiness={setSelectedBusiness}
-                        categorySearchMain={categorySearchMain}
-                        setCategorySearchMain={setCategorySearchMain}
-                        searchedProducts={searchedProducts}
-                        setSearchedProducts={setSearchedProducts}
-                        productsFiltered={productsFiltered}
-                        setProductsFiltered={setProductsFiltered}
-                        setEditProductMode={setEditProductMode}
-                        setFormProducto={setFormProducto}
-                        setModalOpen={setModalOpen}
-                        alert={alert}                
-                        setAlert={setAlert}        
-                      />
 
-
-                
+                  <ProductFilters
+                    products={productos}
+                    warehouses={warehouses}
+                    businesses={businesses}
+                    selectedBusiness={selectedBusiness}
+                    setSelectedBusiness={setSelectedBusiness}
+                    categorySearchMain={categorySearchMain}
+                    setCategorySearchMain={setCategorySearchMain}
+                    searchedProducts={searchedProducts}
+                    setSearchedProducts={setSearchedProducts}
+                    productsFiltered={productsFiltered}
+                    setProductsFiltered={setProductsFiltered}
+                    setEditProductMode={setEditProductMode}
+                    setFormProducto={setFormProducto}
+                    setModalOpen={setModalOpen}
+                    alert={alert}
+                    setAlert={setAlert}
+                  />
                 </div>
-            
-                  
 
-                {/* Tabla de productos agrupados */}
-                <div className="shadow-md rounded-lg max-h-[63vh] overflow-y-auto mb-10 mr-10">
-                  <table className="min-w-full divide-y divide-gray-200 ">
-                    <thead className="bg-gray-100">
-                      <tr>
-                        {headers.map((header, idx) => (
-                          <th
-                            key={idx}
-                            className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
-                          >
-                            {header}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-
-                    {/* -- FIXED tbody: asegurarse de JSX balanceado y sin tokens sueltos -- */}
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {loading ? (
+                {/* Contenedor principal */}
+                <div className="mb-10 mr-10 max-h-[63vh] overflow-y-auto">
+                  {/* --- Tabla para escritorio --- */}
+                  <div className="hidden md:block shadow-md rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-100">
                         <tr>
-                          <td colSpan={headers.length} className="text-center py-4">
-                            Cargando...
-                          </td>
-                        </tr>
-                      ) : productsFiltered.length === 0 ? (
-                        <tr>
-                          <td colSpan={headers.length} className="text-center py-4">
-                            Sin resultados
-                          </td>
-                        </tr>
-                      ) : (
-                        productsFiltered.map((producto: any) => (
-                          <React.Fragment key={producto.codigo_producto}>
-                            <tr
-                              className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
-                              onClick={() =>
-                                setExpanded(
-                                  expanded === producto.codigo_producto
-                                    ? null
-                                    : producto.codigo_producto
-                                )
-                              }
+                          {headers.map((header, idx) => (
+                            <th
+                              key={idx}
+                              className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
                             >
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.codigo_producto}
-                              </td>
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.nombre_producto}
-                              </td>
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.categoria}
-                              </td>
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.descripcion}
-                              </td>
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.stock}
-                              </td>
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                               {formatMoney(Number(producto.precio_venta))}
-                              </td>
-                              <td className="px-3 py-3 text-sm text-gray-600">
-                                {producto.bodega_id?.codigo_producto ??
-                                  producto.bodega_id ??
-                                  ""}
-                              </td>
-                              <td className="flex flex-row py-3 px-3 text-sm gap-2">
-                                <Button
-                                  style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
-                                  onClick={() => {
-                                    const productoObj = producto as Producto;
-                                    const matching = providers.filter((prov) =>
-                                      Array.isArray(prov.products) &&
-                                      prov.products.some((p) => p.id === productoObj.id)
-                                    );
-                                    if (matching.length === 0) {
-                                      setAlert({
-                                        type: "error",
-                                        message:
-                                          "No hay proveedores para este producto. Redirigiendo a Proveedores...",
-                                      });
-                                      // limpiar timeout previo 
-                                      if (navigateTimeoutRef.current) {
-                                        window.clearTimeout(navigateTimeoutRef.current as unknown as number);
+                              {header}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {loading ? (
+                          <tr>
+                            <td
+                              colSpan={headers.length}
+                              className="text-center py-4"
+                            >
+                              Cargando...
+                            </td>
+                          </tr>
+                        ) : productsFiltered.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={headers.length}
+                              className="text-center py-4"
+                            >
+                              Sin resultados
+                            </td>
+                          </tr>
+                        ) : (
+                          productsFiltered.map((producto: any) => (
+                            <React.Fragment key={producto.codigo_producto}>
+                              <tr
+                                className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                                onClick={() =>
+                                  setExpanded(
+                                    expanded === producto.codigo_producto
+                                      ? null
+                                      : producto.codigo_producto
+                                  )
+                                }
+                              >
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                  {producto.codigo_producto}
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                  {producto.nombre_producto}
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                  {producto.categoria}
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                  {producto.descripcion}
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                  {producto.stock}
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                  {formatMoney(Number(producto.precio_venta))}
+                                </td>
+                                <td className="px-3 py-3 text-sm text-gray-600">
+                                  {producto.bodega_id?.codigo_producto ??
+                                    producto.bodega_id ??
+                                    ""}
+                                </td>
+                                <td className="flex flex-row py-3 px-3 text-sm gap-2">
+                                  {/* Agregar Lote */}
+                                  <Button
+                                    style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                    onClick={() => {
+                                      const productoObj = producto as Producto;
+                                      const matching = providers.filter(
+                                        (prov) =>
+                                          Array.isArray(prov.products) &&
+                                          prov.products.some(
+                                            (p) => p.id === productoObj.id
+                                          )
+                                      );
+                                      if (matching.length === 0) {
+                                        setAlert({
+                                          type: "error",
+                                          message:
+                                            "No hay proveedores para este producto. Redirigiendo a Proveedores...",
+                                        });
+                                        if (navigateTimeoutRef.current) {
+                                          window.clearTimeout(
+                                            navigateTimeoutRef.current as unknown as number
+                                          );
+                                        }
+                                        navigateTimeoutRef.current =
+                                          window.setTimeout(() => {
+                                            navigate({ to: "/provider" });
+                                          }, 2000);
+                                        return;
                                       }
-                                      navigateTimeoutRef.current = window.setTimeout(() => {
-                                        navigate({ to: "/provider" });
-                                      }, 2000);
-                                      return;
-                                    }
-                                    setEditMode(true);
-                                    setFormLote({
-                                      codigo_producto: producto.codigo_producto,
-                                      nombre_producto: producto.nombre_producto,
-                                      numero_lote: "",
-                                      cantidad: 0,
-                                      proveedor: "",
-                                      fecha_entrada: "",
-                                      fecha_vencimiento: "",
-                                      fecha_salida_lote: "",
-                                      descripcion: "",
-                                      lote_id: undefined,
-                                    });
-                                    setModalOpen("add-lote");
-                                  }}
-                                >
-                                  <IoAddCircle />
-                                  Agregar lote
-                                </Button>
-
-                                <Button
-                                  style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
-                                  onClick={() => {
-                                    setEditProductMode(true);
-
-                                    setFormProducto({
-                                      id: producto.id,
-                                      codigo_producto: producto.codigo_producto,
-                                      nombre_producto: producto.nombre_producto,
-                                      categoria: producto.categoria,
-                                      descripcion: producto.descripcion || "",
-                                      stock: producto.stock,
-                                      precio_compra: producto.precio_compra,
-                                      precio_venta: producto.precio_venta,
-                                      bodega_id: producto.bodega_id?.bodega_id
-                                        ? producto.bodega_id.bodega_id
-                                        : producto.bodega_id,
-                                      codigo_cabys: producto.codigo_cabys || "",
-                                      impuesto: producto.impuesto ?? 0,
-                                      unit_id: producto.unit_id || "",
-                                    });
-                                    setModalOpen("add-product");
-                                  }}
-                                >
-                                  <RiEdit2Fill />
-                                  Editar
-                                </Button>
-                                <Button
-                                  style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
-                                  onClick={() => setProductoAEliminar(producto)}
-                                >
-                                  <FaTrash />
-                                  Eliminar
-                                </Button>
-
-                                {/* Modal de confirmación para eliminar producto */}
-                                {productoAEliminar && productoAEliminar.codigo_producto === producto.codigo_producto && (
-                                  <SimpleModal
-                                    open={true}
-                                    onClose={() => setProductoAEliminar(null)}
+                                      setEditMode(true);
+                                      setFormLote({
+                                        codigo_producto:
+                                          producto.codigo_producto,
+                                        nombre_producto:
+                                          producto.nombre_producto,
+                                        numero_lote: "",
+                                        cantidad: 0,
+                                        proveedor: "",
+                                        fecha_entrada: "",
+                                        fecha_vencimiento: "",
+                                        fecha_salida_lote: "",
+                                        descripcion: "",
+                                        lote_id: undefined,
+                                      });
+                                      setModalOpen("add-lote");
+                                    }}
                                   >
-                                    
-                                      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                                        Eliminar producto
-                                      </h2>
-                                      <p className="mb-6 text-center">
-                                        ¿Seguro que deseas eliminar el producto{" "}
-                                        <b>
-                                          {productoAEliminar.nombre_producto}
-                                        </b>
-                                        ?
-                                      </p>
-                                      <div className="flex gap-4 justify-center">
-                                        <Button
-                                          text="Eliminar"
-                                          style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
-                                          onClick={async () => {
-                                            try {
-                                              const res = await fetch(
-                                                `${API_URL}/api/v1/products/${productoAEliminar.id}`,
-                                                {
-                                                  method: "DELETE",
+                                    <IoAddCircle /> Agregar lote
+                                  </Button>
+
+                                  {/* Editar Producto */}
+                                  <Button
+                                    style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
+                                    onClick={() => {
+                                      setEditProductMode(true);
+                                      setFormProducto({
+                                        id: producto.id,
+                                        codigo_producto:
+                                          producto.codigo_producto,
+                                        nombre_producto:
+                                          producto.nombre_producto,
+                                        categoria: producto.categoria,
+                                        descripcion: producto.descripcion || "",
+                                        stock: producto.stock,
+                                        precio_compra: producto.precio_compra,
+                                        precio_venta: producto.precio_venta,
+                                        bodega_id: producto.bodega_id?.bodega_id
+                                          ? producto.bodega_id.bodega_id
+                                          : producto.bodega_id,
+                                        codigo_cabys:
+                                          producto.codigo_cabys || "",
+                                        impuesto: producto.impuesto ?? 0,
+                                        unit_id: producto.unit_id || "",
+                                      });
+                                      setModalOpen("add-product");
+                                    }}
+                                  >
+                                    <RiEdit2Fill /> Editar
+                                  </Button>
+
+                                  {/* Eliminar Producto */}
+                                  <Button
+                                    style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                    onClick={() =>
+                                      setProductoAEliminar(producto)
+                                    }
+                                  >
+                                    <FaTrash /> Eliminar
+                                  </Button>
+
+                                  {/* Modal eliminar producto */}
+                                  {productoAEliminar &&
+                                    productoAEliminar.codigo_producto ===
+                                      producto.codigo_producto && (
+                                      <SimpleModal
+                                        open={true}
+                                        onClose={() =>
+                                          setProductoAEliminar(null)
+                                        }
+                                      >
+                                        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                                          Eliminar producto
+                                        </h2>
+                                        <p className="mb-6 text-center">
+                                          ¿Seguro que deseas eliminar el
+                                          producto{" "}
+                                          <b>
+                                            {productoAEliminar.nombre_producto}
+                                          </b>
+                                          ?
+                                        </p>
+                                        <div className="flex gap-4 justify-center">
+                                          <Button
+                                            text="Eliminar"
+                                            style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
+                                            onClick={async () => {
+                                              try {
+                                                const res = await fetch(
+                                                  `${API_URL}/api/v1/products/${productoAEliminar.id}`,
+                                                  { method: "DELETE" }
+                                                );
+                                                if (res.ok) {
+                                                  setProductos((prev) =>
+                                                    prev.filter(
+                                                      (p) =>
+                                                        p.codigo_producto !==
+                                                        productoAEliminar.codigo_producto
+                                                    )
+                                                  );
+                                                  setAlert({
+                                                    type: "success",
+                                                    message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`,
+                                                  });
+                                                } else {
+                                                  setAlert({
+                                                    type: "error",
+                                                    message:
+                                                      "Error al eliminar el producto",
+                                                  });
                                                 }
-                                              );
-                                              if (res.ok) {
-                                                setProductos((prev) =>
-                                                  prev.filter(
-                                                    (p) =>
-                                                      p.codigo_producto !==
-                                                      productoAEliminar.codigo_producto
-                                                  )
+                                              } catch (err) {
+                                                console.error(
+                                                  "Error eliminando producto",
+                                                  err
                                                 );
                                                 setAlert({
-                                                  type: "success",
-                                                  message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`
-                                                });
-                                              } else {
-                                                setAlert({
                                                   type: "error",
-                                                  message: "Error al eliminar el producto"
+                                                  message:
+                                                    "Error al eliminar el producto",
                                                 });
                                               }
-                                            } catch (err) {
-                                              console.error("Error eliminando producto", err);
-                                              setAlert({
-                                                type: "error",
-                                                message: "Error al eliminar el producto"
-                                              });
+                                              setProductoAEliminar(null);
+                                            }}
+                                          />
+                                          <Button
+                                            text="Cancelar"
+                                            style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                            onClick={() =>
+                                              setProductoAEliminar(null)
                                             }
-                                            setProductoAEliminar(null);
-                                          }}
-                                        />
-                                        <Button
-                                          text="Cancelar"
-                                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                                          onClick={() =>
-                                            setProductoAEliminar(null)
-                                          }
-                                        />
-                                      </div>
-                                    
-                                  </SimpleModal>
-                                )}
-                              </td>
-                            </tr>
-
-                            {/* Fila colapsable con los lotes de ese producto */}
-                            {expanded === producto.codigo_producto && (
-                              <tr className="bg-gray-100">
-                                <td
-                                  colSpan={headers.length}
-                                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wide"
-                                >
-                                  <div className="flex flex-col gap-2">
-                                    {producto.lotes?.map((lote: Lote) => (
-                                      <div
-                                        key={lote.lote_id}
-                                        className="mb p-2 flex flex-row items-center gap-5"
-                                      >
-                                        <span>
-                                          <b>Número de lote:</b>{" "}
-                                          {lote.numero_lote}
-                                        </span>
-                                        <span>
-                                          <b>Fecha de vencimiento:</b>{" "}
-                                          {lote.fecha_vencimiento}
-                                        </span>
-                                        <span>
-                                          <b>Productos ingresados por lote:</b>{" "}
-                                          {lote.cantidad}
-                                        </span>
-                                        <div className="ml-auto flex gap-2">
-                                          <Button
-                                            style="text-sm cursor-pointer bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded"
-                                            onClick={() => {
-                                              setEditMode(false);
-                                              setFormLote(lote);
-                                              setModalOpen(lote);
-                                            }}
-                                          >
-                                            <CgDetailsMore />
-                                            Detalles
-                                          </Button>
-                                          <Button
-                                            style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
-                                            onClick={() => {
-                                              setEditMode(true);
-                                              setFormLote(lote);
-                                              setModalOpen(lote);
-                                            }}
-                                          >
-                                            <RiEdit2Fill />
-                                            Editar
-                                          </Button>
-                                          <Button
-                                            style="text-sm cursor-pointer bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded justify-self-end"
-                                            onClick={() => {
-                                              setLoteAEliminar(lote);
-                                              setSimpleModal({
-                                                open: true,
-                                                title: "Confirmación",
-                                                message:
-                                                  "¿Seguro que deseas eliminar este lote?",
-                                              });
-                                            }}
-                                          >
-                                            <FaTrash />
-                                            Eliminar
-                                          </Button>
+                                          />
                                         </div>
-                                      </div>
-                                    ))}
-                                  </div>
+                                      </SimpleModal>
+                                    )}
                                 </td>
                               </tr>
+
+                              {/* --- Lotes colapsables --- */}
+                              {expanded === producto.codigo_producto && (
+                                <tr className="bg-gray-100">
+                                  <td
+                                    colSpan={headers.length}
+                                    className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wide"
+                                  >
+                                    <div className="flex flex-col gap-2">
+                                      {producto.lotes?.map((lote: Lote) => (
+                                        <div
+                                          key={lote.lote_id}
+                                          className="mb p-2 flex flex-row items-center gap-5"
+                                        >
+                                          <span>
+                                            <b>Número de lote:</b>{" "}
+                                            {lote.numero_lote}
+                                          </span>
+                                          <span>
+                                            <b>Fecha de vencimiento:</b>{" "}
+                                            {lote.fecha_vencimiento}
+                                          </span>
+                                          <span>
+                                            <b>Cantidad:</b> {lote.cantidad}
+                                          </span>
+                                          <div className="ml-auto flex gap-2">
+                                            <Button
+                                              style="text-sm cursor-pointer bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded"
+                                              onClick={() => {
+                                                setEditMode(false);
+                                                setFormLote(lote);
+                                                setModalOpen(lote);
+                                              }}
+                                            >
+                                              <CgDetailsMore /> Detalles
+                                            </Button>
+                                            <Button
+                                              style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
+                                              onClick={() => {
+                                                setEditMode(true);
+                                                setFormLote(lote);
+                                                setModalOpen(lote);
+                                              }}
+                                            >
+                                              <RiEdit2Fill /> Editar
+                                            </Button>
+                                            <Button
+                                              style="text-sm cursor-pointer bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded"
+                                              onClick={() => {
+                                                setLoteAEliminar(lote);
+                                                setSimpleModal({
+                                                  open: true,
+                                                  title: "Confirmación",
+                                                  message:
+                                                    "¿Seguro que deseas eliminar este lote?",
+                                                });
+                                              }}
+                                            >
+                                              <FaTrash /> Eliminar
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                            </React.Fragment>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Tarjetas móviles */}
+                    <div className="md:hidden flex flex-col gap-4">
+                      {loading ? (
+                        <p className="text-center py-4">Cargando...</p>
+                      ) : productsFiltered.length === 0 ? (
+                        <p className="text-center py-4">Sin resultados</p>
+                      ) : (
+                        productsFiltered.map((producto: any) => (
+                          <div
+                            key={producto.codigo_producto}
+                            className="bg-white shadow-md rounded-lg p-4 flex flex-col gap-3"
+                          >
+                            {/* Header de la tarjeta */}
+                            <div className="flex justify-between items-start">
+                {/* Header de la tarjeta con líneas grises */}
+<div className="flex flex-col gap-1">
+  <div className="border-b border-gray-300 pb-1">
+    <b>Código:</b> {producto.codigo_producto}
+  </div>
+  <div className="border-b border-gray-300 pb-1">
+    <b>Nombre:</b> {producto.nombre_producto}
+  </div>
+  <div className="border-b border-gray-300 pb-1">
+    <b>Categoría:</b> {producto.categoria}
+  </div>
+  <div className="border-b border-gray-300 pb-1">
+    <b>Descripción:</b> {producto.descripcion}
+  </div>
+  <div className="border-b border-gray-300 pb-1">
+    <b>Stock:</b> {producto.stock}
+  </div>
+  <div className="border-b border-gray-300 pb-1">
+    <b>Precio:</b> {formatMoney(Number(producto.precio_venta))}
+  </div>
+  <div className="border-b border-gray-300 pb-1">
+    <b>Bodega:</b> {producto.bodega_id?.codigo_producto ?? producto.bodega_id ?? ""}
+  </div>
+</div>
+{/* Botones compactos (abajo de la tarjeta, horizontales y más separados) */}
+<div className="flex flex-wrap justify-center gap-3" >
+  <div className="w-full text-center text-azul-oscuro font-semibold mb-3">Acciones</div>
+
+  <Button
+    style="bg-verde-claro hover:bg-verde-oscuro text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
+    onClick={() => {
+      const productoObj = producto as Producto;
+      const matching = providers.filter(
+        (prov) =>
+          Array.isArray(prov.products) &&
+          prov.products.some((p) => p.id === productoObj.id)
+      );
+      if (matching.length === 0) {
+        setAlert({
+          type: 'error',
+          message: 'No hay proveedores para este producto. Redirigiendo a Proveedores...',
+        });
+        if (navigateTimeoutRef.current) {
+          window.clearTimeout(navigateTimeoutRef.current as unknown as number);
+        }
+        navigateTimeoutRef.current = window.setTimeout(() => {
+          navigate({ to: '/provider' });
+        }, 2000);
+        return;
+      }
+      setEditMode(true);
+      setFormLote({
+        codigo_producto: producto.codigo_producto,
+        nombre_producto: producto.nombre_producto,
+        numero_lote: '',
+        cantidad: 0,
+        proveedor: '',
+        fecha_entrada: '',
+        fecha_vencimiento: '',
+        fecha_salida_lote: '',
+        descripcion: '',
+        lote_id: undefined,
+      });
+      setModalOpen('add-lote');
+    }}
+  >
+    <IoAddCircle /> Agregar
+  </Button>
+
+  <Button
+    style="bg-azul-medio hover:bg-azul-hover text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
+    onClick={() => {
+      setEditProductMode(true);
+      setFormProducto({
+        id: producto.id,
+        codigo_producto: producto.codigo_producto,
+        nombre_producto: producto.nombre_producto,
+        categoria: producto.categoria,
+        descripcion: producto.descripcion || '',
+        stock: producto.stock,
+        precio_compra: producto.precio_compra,
+        precio_venta: producto.precio_venta,
+        bodega_id: producto.bodega_id?.bodega_id
+          ? producto.bodega_id.bodega_id
+          : producto.bodega_id,
+        codigo_cabys: producto.codigo_cabys || '',
+        impuesto: producto.impuesto ?? 0,
+        unit_id: producto.unit_id || '',
+      });
+      setModalOpen('add-product');
+    }}
+  >
+    <RiEdit2Fill /> Editar
+  </Button>
+
+  <Button
+    style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
+    onClick={() => setProductoAEliminar(producto)}
+  >
+    <FaTrash /> Eliminar
+  </Button>
+</div>
+
+
+
+                          </div>
+
+                          {/* Mostrar/ocultar lotes */}
+                          {producto.lotes?.length > 0 && (
+                            <div>
+                           {/* Mostrar/ocultar lotes */}
+                            {producto.lotes?.length > 0 && (
+                              <div className="mt-2">
+                                <button
+                                  className="bg-azul-claro hover:bg-azul-medio text-white font-semibold py-1 px-3 rounded text-sm transition-colors duration-200"
+                                  onClick={() =>
+                                    setExpanded(
+                                      expanded === producto.codigo_producto
+                                        ? null
+                                        : producto.codigo_producto
+                                    )
+                                  }
+                                >
+                                  {expanded === producto.codigo_producto ? "Ocultar lotes" : "Ver lotes"}
+                                </button>
+                              </div>
                             )}
-                          </React.Fragment>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
+
+
+                              {expanded === producto.codigo_producto && (
+                                <div className="flex flex-col gap-2 bg-gray-100 p-2 rounded">
+                                  {producto.lotes.map((lote: Lote) => (
+                                    <div
+                                      key={lote.lote_id}
+                                      className="flex flex-col gap-1 border-b border-gray-300 pb-2"
+                                    >
+                                      <span>
+                                        <b>Número de lote:</b>{" "}
+                                        {lote.numero_lote}
+                                      </span>
+                                      <span>
+                                        <b>Fecha vencimiento:</b>{" "}
+                                        {lote.fecha_vencimiento}
+                                      </span>
+                                      <span>
+                                        <b>Cantidad:</b> {lote.cantidad}
+                                      </span>
+                                      <div className="flex gap-2 mt-1">
+                                        <Button
+                                          style="bg-verde-claro hover:bg-verde-oscuro text-white py-1 px-2 rounded text-sm"
+                                          onClick={() => {
+                                            setEditMode(false);
+                                            setFormLote(lote);
+                                            setModalOpen(lote);
+                                          }}
+                                        >
+                                          <CgDetailsMore /> Detalles
+                                        </Button>
+
+                                        <Button
+                                          style="bg-azul-medio hover:bg-azul-hover text-white py-1 px-2 rounded text-sm"
+                                          onClick={() => {
+                                            setEditMode(true);
+                                            setFormLote(lote);
+                                            setModalOpen(lote);
+                                          }}
+                                        >
+                                          <RiEdit2Fill /> Editar
+                                        </Button>
+
+                                        <Button
+                                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white py-1 px-2 rounded text-sm"
+                                          onClick={() => {
+                                            setLoteAEliminar(lote);
+                                            setSimpleModal({
+                                              open: true,
+                                              title: "Confirmación",
+                                              message:
+                                                "¿Seguro que deseas eliminar este lote?",
+                                            });
+                                          }}
+                                        >
+                                          <FaTrash /> Eliminar
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Modal de eliminar producto */}
+                          {productoAEliminar &&
+                            productoAEliminar.codigo_producto ===
+                              producto.codigo_producto && (
+                              <SimpleModal
+                                open={true}
+                                onClose={() => setProductoAEliminar(null)}
+                              >
+                                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                                  Eliminar producto
+                                </h2>
+                                <p className="mb-6 text-center">
+                                  ¿Seguro que deseas eliminar el producto{" "}
+                                  <b>{productoAEliminar.nombre_producto}</b>?
+                                </p>
+                                <div className="flex gap-4 justify-center">
+                                  <Button
+                                    text="Eliminar"
+                                    style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
+                                    onClick={async () => {
+                                      try {
+                                        const res = await fetch(
+                                          `${API_URL}/api/v1/products/${productoAEliminar.id}`,
+                                          { method: "DELETE" }
+                                        );
+                                        if (res.ok) {
+                                          setProductos((prev) =>
+                                            prev.filter(
+                                              (p) =>
+                                                p.codigo_producto !==
+                                                productoAEliminar.codigo_producto
+                                            )
+                                          );
+                                          setAlert({
+                                            type: "success",
+                                            message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`,
+                                          });
+                                        } else {
+                                          setAlert({
+                                            type: "error",
+                                            message:
+                                              "Error al eliminar el producto",
+                                          });
+                                        }
+                                      } catch (err) {
+                                        console.error(
+                                          "Error eliminando producto",
+                                          err
+                                        );
+                                        setAlert({
+                                          type: "error",
+                                          message:
+                                            "Error al eliminar el producto",
+                                        });
+                                      }
+                                      setProductoAEliminar(null);
+                                    }}
+                                  />
+                                  <Button
+                                    text="Cancelar"
+                                    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                    onClick={() => setProductoAEliminar(null)}
+                                  />
+                                </div>
+                              </SimpleModal>
+                            )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
 
-                  <CategoryModals
-                              categoryModalOpen={categoryModalOpen}
-                              setCategoryModalOpen={setCategoryModalOpen}
-                              categoryEditMode={categoryEditMode}
-                              setCategoryEditMode={setCategoryEditMode}
-                              categoryForm={categoryForm}
-                              setCategoryForm={setCategoryForm}
-                              categorySearchModal={categorySearchModal}
-                              setCategorySearchModal={setCategorySearchModal}
-                              categories={categories}
-                              openEditCategory={openEditCategory}
-                              categoryLoadingForm={categoryLoadingForm}
-                              saveCategory={saveCategory}
-                              categoryToDelete={categoryToDelete}
-                              setCategoryToDelete={setCategoryToDelete}
-                              alertMessage={alertMessage}
-                              setAlertMessage={setAlertMessage}
-                              setCategoryOriginalNombre={setCategoryOriginalNombre}
-                              deleteCategory={deleteCategory}
-                            />
+                <CategoryModals
+                  categoryModalOpen={categoryModalOpen}
+                  setCategoryModalOpen={setCategoryModalOpen}
+                  categoryEditMode={categoryEditMode}
+                  setCategoryEditMode={setCategoryEditMode}
+                  categoryForm={categoryForm}
+                  setCategoryForm={setCategoryForm}
+                  categorySearchModal={categorySearchModal}
+                  setCategorySearchModal={setCategorySearchModal}
+                  categories={categories}
+                  openEditCategory={openEditCategory}
+                  categoryLoadingForm={categoryLoadingForm}
+                  saveCategory={saveCategory}
+                  categoryToDelete={categoryToDelete}
+                  setCategoryToDelete={setCategoryToDelete}
+                  alertMessage={alertMessage}
+                  setAlertMessage={setAlertMessage}
+                  setCategoryOriginalNombre={setCategoryOriginalNombre}
+                  deleteCategory={deleteCategory}
+                />
                 {/* Modal para agregar/editar producto (extraído a ProductsModal) */}
                 <ProductsModal
                   open={modalOpen === "add-product"}
@@ -1240,7 +1610,7 @@ const formatMoney = (amount: number) =>
                           ).then((r) => r.json());
                           setProductos(productosActualizados);
                         } catch (error) {
-                         console.error("Error al agregar lote:", error); 
+                          console.error("Error al agregar lote:", error);
                         } finally {
                           setLoadingForm(false);
                           setModalOpen(false);
@@ -1408,8 +1778,7 @@ const formatMoney = (amount: number) =>
                                     {prov.name}
                                   </option>
                                 ))
-                              )
-                            }
+                              )}
                             </select>
                           </label>
                           <label className="font-semibold">
@@ -1856,15 +2225,21 @@ const formatMoney = (amount: number) =>
                           <SearchBar<CabysItem>
                             key={searchBarResetKey}
                             // dataset driven por servidor (si hubo búsqueda) o por items cargados
-                            data={(cabysSearchResults ?? cabysItems).map((it) => ({ ...it }))}
+                            data={(cabysSearchResults ?? cabysItems).map(
+                              (it) => ({ ...it })
+                            )}
                             displayField="code"
                             searchFields={["code", "description", "_combo"]}
                             placeholder="Ej: 0101 o arroz"
                             numericPrefixStartsWith
-                            resultFormatter={(it) => `${it.code} - ${it.description}`}
+                            resultFormatter={(it) =>
+                              `${it.code} - ${it.description}`
+                            }
                             onResultsChange={(results) => {
                               // cuando el SearchBar filtra localmente, actualizamos estado para mostrar
-                              if (results.length === (cabysItems || []).length) {
+                              if (
+                                results.length === (cabysItems || []).length
+                              ) {
                                 setCabysSearchResults(null);
                               } else {
                                 setCabysSearchResults(results as CabysItem[]);
@@ -2041,28 +2416,29 @@ const formatMoney = (amount: number) =>
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           {/* Mostrar botón Cargar más si hay más páginas */}
-                          {!cabysLoading && cabysPageInfo.last > cabysPageInfo.page && (
-                            <button
-                              type="button"
-                              className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition text-sm cursor-pointer"
-                              onClick={() => loadNextCabysPage()}
-                            >
-                              Cargar más
-                            </button>
-                          )}
+                          {!cabysLoading &&
+                            cabysPageInfo.last > cabysPageInfo.page && (
+                              <button
+                                type="button"
+                                className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition text-sm cursor-pointer"
+                                onClick={() => loadNextCabysPage()}
+                              >
+                                Cargar más
+                              </button>
+                            )}
                         </div>
                         <div>
-                        <button
-                          type="button"
-                          className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-3 rounded-lg shadow-md transition text-sm cursor-pointer"
-                          onClick={() => {
-                            setCabysModalOpen(false);
-                            setCabysSearchResults(null);
-                            setSelectedCat1("");
-                          }}
-                        >
-                          Salir
-                        </button>
+                          <button
+                            type="button"
+                            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-3 rounded-lg shadow-md transition text-sm cursor-pointer"
+                            onClick={() => {
+                              setCabysModalOpen(false);
+                              setCabysSearchResults(null);
+                              setSelectedCat1("");
+                            }}
+                          >
+                            Salir
+                          </button>
                         </div>
                       </div>
                     </div>

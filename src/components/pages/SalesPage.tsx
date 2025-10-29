@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Container from "../ui/Container";
 import type { GenerateInvoiceRef } from "../ui/SaleComponents/GenerateInvoice";
 import { FaCashRegister } from 'react-icons/fa';
@@ -43,7 +43,7 @@ import CashRegisterModal from "../ui/SaleComponents/CashRegisterModal";
 
 export default function SalesPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+
   const API_URL = import.meta.env.VITE_API_URL;
   // Estados
   const [clientes, setClientes] = useState<Customer[]>([]);
@@ -635,7 +635,7 @@ useEffect(() => {
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole} />
+        
             <div className="w-full pl-10 pt-10 flex gap-6">
               <div className="w-3/2 flex flex-col pl-10">
                 <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>

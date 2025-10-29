@@ -23,13 +23,13 @@ const formatearTelefono = (numero: string | number) => {
   const limpio = numero.toString().replace(/\D/g, ""); // elimina todo menos dígitos
   return limpio.replace(/(\d{4})(\d{4})/, "$1 $2");
 };
-
 export default function TableInformation(props: TableInformationProps) {
   return (
     <main className="w-full pl-1 md:pl-4 pt-8">
-      <div className="  overflow-x-auto overflow-y-auto
+      {/* --- Tabla Desktop --- */}
+      <div className="hidden md:block overflow-x-auto overflow-y-auto
           shadow-md rounded-lg max-w-[95%] ml-0
-          max-h-[500px]   /*  altura máxima de la tabla */">
+          max-h-[500px]">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
@@ -51,15 +51,34 @@ export default function TableInformation(props: TableInformationProps) {
               >
                 {props.headers.map((header, colIndex) => (
                   <td key={colIndex} className="px-3 py-3 text-sm text-gray-600">
-              {header === "phone"
-                ? formatearTelefono(row[header])
-                : row[header] ?? ""}
-            </td>
+                    {header === "phone"
+                      ? formatearTelefono(row[header])
+                      : row[header] ?? ""}
+                  </td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* --- Cards Mobile --- */}
+      <div className="md:hidden flex flex-col gap-4">
+        {props.tableContent?.map((row, rowIndex) => (
+          <div
+            key={rowIndex}
+            className="bg-white shadow rounded-lg p-4 flex flex-col gap-2"
+          >
+            {props.headers.map((header, colIndex) => (
+              <div key={colIndex} className="flex justify-between">
+                <span className="font-semibold text-gray-700">{headerMap[header] ?? header}</span>
+                <span className="text-gray-600">
+                  {header === "phone" ? formatearTelefono(row[header]) : row[header] ?? ""}
+                </span>
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
     </main>
   );
