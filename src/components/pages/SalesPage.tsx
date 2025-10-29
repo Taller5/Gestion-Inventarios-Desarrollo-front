@@ -43,7 +43,7 @@ import CashRegisterModal from "../ui/SaleComponents/CashRegisterModal";
 
 export default function SalesPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-
+  
   const API_URL = import.meta.env.VITE_API_URL;
   // Estados
   const [clientes, setClientes] = useState<Customer[]>([]);
@@ -631,133 +631,139 @@ useEffect(() => {
     }
   }, [facturaCreada, loadingFactura]);
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
-      <Container
-        page={
-          <div className="flex">
-        
-            <div className="w-full pl-10 pt-10 flex gap-6">
-              <div className="w-3/2 flex flex-col pl-10">
-                <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
+<ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
+  <Container
+    page={
+      <div className="flex flex-col md:flex-row">
+        <div className="w-full px-4 sm:px-10 pt-10 flex flex-col md:flex-row gap-4 md:gap-6">
+          
+          <div className="flex-1 flex flex-col">
+            <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
 
-                {/* Selector de clientes */}
-                <CustomerSelector
-                  queryCliente={queryCliente}
-                  setQueryCliente={setQueryCliente}
-                  clientesFiltrados={clientesFiltrados}
-                  clienteSeleccionado={clienteSeleccionado}
-                  setClienteSeleccionado={setClienteSeleccionado}
-                  sucursalSeleccionada={sucursalSeleccionada}
-                  modalSucursal={modalSucursal}
-                  setModalSucursal={setModalSucursal}
-                />
-                <div>
-                  <button
-                    className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 m-2 py-2 rounded-lg shadow-md transition-transform duration-150 
-                                      transform flex items-center justify-center cursor-pointer"
-                    onClick={() => setModalCaja(true)}
-                  >
-                   <FaCashRegister className="mr-2.5" size={20}/> Información de caja
-                  </button>
-                </div>
+            {/* Selector de clientes */}
+            <CustomerSelector
+              queryCliente={queryCliente}
+              setQueryCliente={setQueryCliente}
+              clientesFiltrados={clientesFiltrados}
+              clienteSeleccionado={clienteSeleccionado}
+              setClienteSeleccionado={setClienteSeleccionado}
+              sucursalSeleccionada={sucursalSeleccionada}
+              modalSucursal={modalSucursal}
+              setModalSucursal={setModalSucursal}
+            />
 
-                {/* Selector de productos con filtrado por sucursal */}
-                <ProductSelector
-                  productos={productos}
-                  carrito={carrito}
-                  queryProducto={queryProducto}
-                  setQueryProducto={setQueryProducto}
-                  productoSeleccionado={productoSeleccionado}
-                  setProductoSeleccionado={setProductoSeleccionado}
-                  setModalOpen={setModalOpen}
-                  sucursalSeleccionada={sucursalSeleccionada}
-                  bodegas={bodegas}
-                  cajaSeleccionada={cajaSeleccionada}
-                />
-
-                {/* Tabla de carrito */}
-                <CartTable
-                  carrito={carrito}
-                  editIdx={editIdx}
-                  editCantidad={editCantidad}
-                  setEditCantidad={setEditCantidad}
-                  editDescuento={editDescuento}
-                  setEditDescuento={setEditDescuento}
-                  iniciarEdicion={iniciarEdicion}
-                  guardarEdicion={guardarEdicion}
-                  eliminarDelCarrito={eliminarDelCarrito}
-                  setCarrito={setCarrito}
-                  clienteSeleccionado={clienteSeleccionado}
-                  setFacturaModal={setFacturaModal}
-                />
-              </div>
-
-              <div className="w-1/3"></div>
-              {/* Modal de agregar producto */}
-              {modalOpen && productoSeleccionado && (
-                <AddProductModal
-                  productoSeleccionado={productoSeleccionado}
-                  cantidadSeleccionada={cantidadSeleccionada}
-                  setCantidadSeleccionada={setCantidadSeleccionada}
-                  getAvailableStock={getAvailableStock}
-                  setModalOpen={setModalOpen}
-                  agregarAlCarrito={agregarAlCarritoConCantidad}
-                />
-              )}
-              {/* Modal de sucursal */}
-              <SucursalModal
-                sucursales={sucursales}
-                modalSucursal={modalSucursal}
-                setModalSucursal={setModalSucursal}
-                setSucursalSeleccionada={setSucursalSeleccionada}
-                API_URL={API_URL}
-              />
-              <CashRegisterModal
-                modalCaja={modalCaja}
-                setModalCaja={setModalCaja}
-                sucursalSeleccionada={sucursalSeleccionada}
-                API_URL={API_URL}
-                mostrarAlerta={mostrarAlerta}
-                onCerrarCaja={(caja) => setCajaSeleccionada(caja)} // asigna automáticamente la caja activa al cargar
-                obtenerCajaUsuario={obtenerCajaUsuario} // pasa la función que obtiene la caja del usuario
-              />
-
-              <FacturaModal
-                facturaModal={facturaModal}
-                setFacturaModal={setFacturaModal}
-                carrito={carrito}
-                clienteSeleccionado={clienteSeleccionado}
-                sucursalSeleccionada={sucursalSeleccionada}
-                user={user}
-                metodoPago={metodoPago}
-                setMetodoPago={setMetodoPago}
-                montoEntregado={montoEntregado}
-                setMontoEntregado={setMontoEntregado}
-                comprobante={comprobante}
-                setComprobante={setComprobante}
-                facturaCreada={facturaCreada}
-                invoiceRef={invoiceRef}
-                botonDisabled={botonDisabled}
-                finalizarVenta={finalizarVenta}
-                loadingSucursal={loadingSucursal}
-                errorSucursal={errorSucursal}
-              />
-              {/* Alert */}
-              {alert && (
-                <div
-                  className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
-                    alert.type === "success"
-                      ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                      : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-                  }`}
-                >
-                  {alert.message}
-                </div>
-              )}
+            <div className="my-2">
+              <button
+                className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 
+                            transform flex items-center justify-center cursor-pointer w-full sm:w-auto"
+                onClick={() => setModalCaja(true)}
+              >
+                <FaCashRegister className="mr-2.5" size={20}/> Información de caja
+              </button>
             </div>
+
+            {/* Selector de productos */}
+            <ProductSelector
+              productos={productos}
+              carrito={carrito}
+              queryProducto={queryProducto}
+              setQueryProducto={setQueryProducto}
+              productoSeleccionado={productoSeleccionado}
+              setProductoSeleccionado={setProductoSeleccionado}
+              setModalOpen={setModalOpen}
+              sucursalSeleccionada={sucursalSeleccionada}
+              bodegas={bodegas}
+              cajaSeleccionada={cajaSeleccionada}
+            />
+
+            {/* Tabla de carrito */}
+            <CartTable
+              carrito={carrito}
+              editIdx={editIdx}
+              editCantidad={editCantidad}
+              setEditCantidad={setEditCantidad}
+              editDescuento={editDescuento}
+              setEditDescuento={setEditDescuento}
+              iniciarEdicion={iniciarEdicion}
+              guardarEdicion={guardarEdicion}
+              eliminarDelCarrito={eliminarDelCarrito}
+              setCarrito={setCarrito}
+              clienteSeleccionado={clienteSeleccionado}
+              setFacturaModal={setFacturaModal}
+            />
           </div>
-        }
-      />
-    </ProtectedRoute>
+
+          {/* Sidebar o espacio adicional */}
+          <div className="w-full md:w-1/3 mt-6 md:mt-0"></div>
+
+          {/* Modales */}
+          {modalOpen && productoSeleccionado && (
+            <AddProductModal
+              productoSeleccionado={productoSeleccionado}
+              cantidadSeleccionada={cantidadSeleccionada}
+              setCantidadSeleccionada={setCantidadSeleccionada}
+              getAvailableStock={getAvailableStock}
+              setModalOpen={setModalOpen}
+              agregarAlCarrito={agregarAlCarritoConCantidad}
+            />
+          )}
+
+          <SucursalModal
+            sucursales={sucursales}
+            modalSucursal={modalSucursal}
+            setModalSucursal={setModalSucursal}
+            setSucursalSeleccionada={setSucursalSeleccionada}
+            API_URL={API_URL}
+          />
+
+          <CashRegisterModal
+            modalCaja={modalCaja}
+            setModalCaja={setModalCaja}
+            sucursalSeleccionada={sucursalSeleccionada}
+            API_URL={API_URL}
+            mostrarAlerta={mostrarAlerta}
+            onCerrarCaja={(caja) => setCajaSeleccionada(caja)}
+            obtenerCajaUsuario={obtenerCajaUsuario}
+          />
+
+          <FacturaModal
+            facturaModal={facturaModal}
+            setFacturaModal={setFacturaModal}
+            carrito={carrito}
+            clienteSeleccionado={clienteSeleccionado}
+            sucursalSeleccionada={sucursalSeleccionada}
+            user={user}
+            metodoPago={metodoPago}
+            setMetodoPago={setMetodoPago}
+            montoEntregado={montoEntregado}
+            setMontoEntregado={setMontoEntregado}
+            comprobante={comprobante}
+            setComprobante={setComprobante}
+            facturaCreada={facturaCreada}
+            invoiceRef={invoiceRef}
+            botonDisabled={botonDisabled}
+            finalizarVenta={finalizarVenta}
+            loadingSucursal={loadingSucursal}
+            errorSucursal={errorSucursal}
+          />
+
+          {/* Alert */}
+          {alert && (
+            <div
+              className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
+                alert.type === "success"
+                  ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                  : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+              }`}
+            >
+              {alert.message}
+            </div>
+          )}
+        </div>
+      </div>
+    }
+  />
+</ProtectedRoute>
+
   );
 }

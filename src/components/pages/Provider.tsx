@@ -553,9 +553,9 @@ export default function Providers() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="flex">
+          <div className="lex flex-col">
            
-            <div className="w-full pl-10 pt-10">
+            <div className="w-full pl-7 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Proveedores
               </h1>

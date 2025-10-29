@@ -1,8 +1,8 @@
 import React from "react";
 import { IoPencil } from "react-icons/io5";
-import { BsCash } from 'react-icons/bs';
-import Button from "../Button";
+import { BsCash } from "react-icons/bs";
 import { FaTrash } from "react-icons/fa6";
+import Button from "../Button";
 
 type Producto = {
   id?: number;
@@ -72,8 +72,9 @@ export default function CartTable({
   const totalAPagar = (subtotal - totalDescuento) * 1.13;
 
   return (
-    <div>
-      <div className="shadow-md rounded-lg mb-6">
+    <div className="w-full">
+      {/* --- Tabla Desktop --- */}
+      <div className="hidden md:block shadow-md rounded-lg mb-6 overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-100">
             <tr>
@@ -155,18 +156,110 @@ export default function CartTable({
         )}
       </div>
 
-      <div className="flex justify-end items-center bg-azul-oscuro text-white px-10 py-4 rounded-lg">
-        <div className="flex-1">
+      {/* --- Cards Mobile --- */}
+      <div className="md:hidden flex flex-col gap-4">
+        {carrito.length === 0 ? (
+          <div className="text-center py-4 bg-white shadow rounded-lg">Sin productos</div>
+        ) : (
+          carrito.map((item, idx) => {
+            const descuentoPct = Math.max(0, Math.min(item.descuento, 100));
+            const totalItem = item.producto.precio_venta * item.cantidad * (1 - descuentoPct / 100);
+            const descuentoColones = Math.round((item.producto.precio_venta * item.cantidad * descuentoPct) / 100);
+            const precioVenta = Number(item.producto.precio_venta) || 0;
+
+            return (
+              <div
+                key={idx}
+                className="bg-white shadow-md rounded-lg p-4 flex flex-col gap-2"
+              >
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Código:</span>
+                  <span className="text-gray-600">{item.producto.codigo_producto}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Nombre:</span>
+                  <span className="text-gray-600">{item.producto.nombre_producto}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Cantidad:</span>
+                  {editIdx === idx ? (
+                    <input
+                      type="number"
+                      min={1}
+                      value={editCantidad}
+                      onChange={(e) => setEditCantidad(Math.max(1, Number(e.target.value)))}
+                      className="border rounded px-2 py-1 w-16"
+                    />
+                  ) : (
+                    <span className="text-gray-600">{item.cantidad}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Precio c/u:</span>
+                  <span className="text-gray-600">{formatMoney(precioVenta)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Descuento %:</span>
+                  {editIdx === idx ? (
+                    <select
+                      value={editDescuento}
+                      onChange={(e) => setEditDescuento(Number(e.target.value))}
+                      className="border rounded px-2 py-1 w-20"
+                    >
+                      {Array.from({ length: 21 }, (_, i) => i * 5).map((pct) => (
+                        <option key={pct} value={pct}>
+                          {pct}%
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className="text-gray-600">{`${descuentoPct}%`}</span>
+                  )}
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Descuento ₡:</span>
+                  <span className="text-gray-600">{formatMoney(descuentoColones)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="font-semibold text-gray-700">Total ₡:</span>
+                  <span className="text-gray-600">{formatMoney(totalItem)}</span>
+                </div>
+
+                {/* Botones acciones */}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {editIdx === idx ? (
+                    <>
+                      <Button text="Guardar" style="bg-verde-claro text-white px-2 py-1 rounded" onClick={() => guardarEdicion(idx)} />
+                      <Button text="Cancelar" style="bg-gris-claro text-white px-2 py-1 rounded" onClick={() => iniciarEdicion(-1)} />
+                    </>
+                  ) : (
+                    <>
+                      <Button text="Editar" style="bg-amarillo-claro hover:bg-amarillo-oscuro text-white px-2 py-1 rounded flex items-center gap-1 cursor-pointer" onClick={() => iniciarEdicion(idx)}>
+                        <IoPencil className="m-1" />
+                      </Button>
+                      <Button style="bg-rojo-claro hover:bg-rojo-oscuro text-white px-2 py-1 rounded flex items-center gap-1 cursor-pointer" onClick={() => eliminarDelCarrito(item.producto.codigo_producto)}>
+                        <FaTrash className="m-1"/>
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </div>
+            )
+          })
+        )}
+      </div>
+
+      {/* --- Footer Totales y Pagar --- */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-azul-oscuro text-white px-6 py-4 rounded-lg mt-4">
+        <div className="flex-1 flex flex-col gap-1">
           <div>Costo antes de descuento: {formatMoney(subtotal)}</div>
           <div>Descuento total: {formatMoney(totalDescuento)}</div>
           <div>Impuestos: {formatMoney((subtotal - totalDescuento) * 0.13)}</div>
-          <div className="text-lg font-bold">
-            Total a pagar: {formatMoney(totalAPagar)}
-          </div>
+          <div className="text-lg font-bold">Total a pagar: {formatMoney(totalAPagar)}</div>
         </div>
 
         <Button 
-          style="bg-azul-medio hover:bg-azul-hover text-white px-8 py-3 rounded text-lg font-bold cursor-pointer"
+          style="bg-azul-medio hover:bg-azul-hover text-white px-8 py-3 rounded text-lg font-bold cursor-pointer w-full md:w-auto"
           onClick={() => setFacturaModal(true)}
           disabled={carrito.length === 0 || !clienteSeleccionado}>
           <BsCash className="mr-2.5" size={20}/> Pagar
@@ -203,9 +296,10 @@ const CartItem = ({
   const descuentoPct = Math.max(0, Math.min(item.descuento, 100));
   const totalItem = item.producto.precio_venta * item.cantidad * (1 - descuentoPct / 100);
   const descuentoColones = Math.round((item.producto.precio_venta * item.cantidad * descuentoPct) / 100);
-   const precioVenta = Number(item.producto.precio_venta) || 0;
+  const precioVenta = Number(item.producto.precio_venta) || 0;
+
   return (
-    <tr>
+    <tr className="hidden md:table-row">
       <td className="px-3 py-3">{item.producto.codigo_producto}</td>
       <td className="px-3 py-3">{item.producto.nombre_producto}</td>
       <td className="px-3 py-3">
@@ -221,8 +315,7 @@ const CartItem = ({
           item.cantidad
         )}
       </td>
-      
-     <td className="px-3 py-3">{formatMoney(precioVenta)}</td>
+      <td className="px-3 py-3">{formatMoney(precioVenta)}</td>
       <td className="px-3 py-3">
         {editIdx === idx ? (
           <select
