@@ -1,6 +1,7 @@
 import React, { useState, useEffect, type JSX } from "react";
 import Button from "./Button";
 import { TbReportSearch, TbReportMoney } from "react-icons/tb";
+import { HiOutlineChartBar } from "react-icons/hi";
 import {
   MdInventory,
   MdPeople,
@@ -17,6 +18,8 @@ import {
   MdCategory,
   MdOutlineApartment,
   MdSavings,
+
+
 } from "react-icons/md";
 import { FaUsersGear } from "react-icons/fa6";
 
@@ -52,6 +55,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     "/customer": "Administración de Usuarios",
     "/employees": "Administración de Usuarios",
     "/saleReports": "Reportes",
+    "/productReports": "Reportes",
   };
 
   const currentSection = Object.keys(sectionMap).find((path) =>
@@ -126,6 +130,11 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       <TbReportMoney size={20} color="white" /> Reportes de Ventas
     </Button>
   );
+    const btnProductReports = (
+    <Button style={btnStyle} to="/productReports">
+      <HiOutlineChartBar size={20} color="white" /> Reportes de Productos
+    </Button>
+  );
 
   const sectionIcons: { [key: string]: JSX.Element } = {
     "Administración de Productos": <MdCategory size={20} color="white" />,
@@ -156,7 +165,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
       Finanzas: [btnCashRegisterPage, btnSalesPages],
       "Administración de Usuarios": [btnClientes, btnPersonal],
-      Reportes: [btnSaleReports],
+      Reportes: [btnSaleReports, btnProductReports],
     };
   }
 

@@ -41,14 +41,15 @@ export default function Nav({ logo, onHamburgerClick }: NavProps) {
    <nav className="bg-white flex items-center justify-between py-2 px-4 lg:px-7 shadow h-[80px] w-full top-0 left-0">
   <div className="flex items-center gap-3">
     {/* Botón hamburguesa visible solo en móvil */}
-    {onHamburgerClick && (
-      <button
-        className="lg:hidden text-2xl font-bold text-azul-oscuro cursor-pointer hover:text-azul-hover flex-shrink-0"
-        onClick={onHamburgerClick}
-      >
-        ☰
-      </button>
-    )}
+{onHamburgerClick && !["/", "/login", "/recoverPassword"].includes(window.location.pathname) && (
+  <button
+    className="lg:hidden text-2xl font-bold text-azul-oscuro cursor-pointer hover:text-azul-hover flex-shrink-0"
+    onClick={onHamburgerClick}
+  >
+    ☰
+  </button>
+)}
+
 
     {/* Logo */}
     <button

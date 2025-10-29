@@ -896,9 +896,9 @@ export default function Inventary() {
     >
       <Container
         page={
-          <div>
-            <div className="flex">
-              <div className="w-full pl-10 pt-10">
+         
+         <div className="w-full flex justify-center px-2 md:px-10 pt-10">
+              <div className="w-full pl-2">
                 <h1 className="text-2xl font-bold mb-6 text-left">
                   Gestionar Inventario
                 </h1>
@@ -927,7 +927,7 @@ export default function Inventary() {
                 </div>
 
                 {/* Contenedor principal */}
-                <div className="mb-10 mr-10 max-h-[63vh] overflow-y-auto">
+                <div className="overflow-x-hidden overflow-y-auto shadow-md rounded-lg max-w-full max-h-[500px] pr-20">
                   {/* --- Tabla para escritorio --- */}
                   <div className="hidden md:block shadow-md rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -2458,7 +2458,7 @@ export default function Inventary() {
                 </div>
               </div>
             </div>
-          </div>
+      
         }
       />
     </ProtectedRoute>

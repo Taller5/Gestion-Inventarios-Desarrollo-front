@@ -634,9 +634,10 @@ useEffect(() => {
 <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
   <Container
     page={
-      <div className="flex flex-col md:flex-row">
-        <div className="w-full px-4 sm:px-10 pt-10 flex flex-col md:flex-row gap-4 md:gap-6">
+      <div className="w-full flex justify-center px-2 md:px-10 pt-10">
+        <div className="w-full max-w-[1200px] flex flex-col md:flex-row gap-4 md:gap-6">
           
+          {/* Contenido principal */}
           <div className="flex-1 flex flex-col">
             <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
 
@@ -655,7 +656,7 @@ useEffect(() => {
             <div className="my-2">
               <button
                 className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 
-                            transform flex items-center justify-center cursor-pointer w-full sm:w-auto"
+                           transform flex items-center justify-center cursor-pointer w-full sm:w-auto"
                 onClick={() => setModalCaja(true)}
               >
                 <FaCashRegister className="mr-2.5" size={20}/> Información de caja
@@ -693,8 +694,8 @@ useEffect(() => {
             />
           </div>
 
-          {/* Sidebar o espacio adicional */}
-          <div className="w-full md:w-1/3 mt-6 md:mt-0"></div>
+          {/* Sidebar opcional: solo si quieres algo, si no, eliminar */}
+          {/* <div className="hidden md:block md:w-1/3"></div> */}
 
           {/* Modales */}
           {modalOpen && productoSeleccionado && (
@@ -764,6 +765,7 @@ useEffect(() => {
     }
   />
 </ProtectedRoute>
+
 
   );
 }

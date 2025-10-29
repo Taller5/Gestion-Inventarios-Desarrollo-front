@@ -553,13 +553,15 @@ export default function Providers() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="lex flex-col">
+          <div className="flex flex-col md:flex-row">
            
-            <div className="w-full pl-7 pt-10">
+        <div className="w-full pl-4 sm:pl-7 pt-6 sm:pt-10">
+
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Proveedores
               </h1>
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
+           <div className="flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-10 mb-6">
+
                 <div className="w-full h-10">
                   <SearchBar<Provider>
                     data={providers}

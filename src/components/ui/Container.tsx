@@ -154,7 +154,7 @@ useEffect(() => {
             onClose={handleCloseSidebar} // Cerrar al dar click fuera o ✕
           />
         )}
-        <main className="flex flex-col flex-grow p-4">{pageContent}</main>
+        <main className="flex flex-col flex-grow ">{pageContent}</main>
       </div>
 
 
