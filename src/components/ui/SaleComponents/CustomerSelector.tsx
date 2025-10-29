@@ -27,7 +27,8 @@ export default function CustomerSelector({
 }: Props) {
   return (
     <div className="mb-6">
-      <div className="relative mb-2">
+      {/* Buscador */}
+      <div className="relative mb-2 w-full">
         <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
         <input
           type="text"
@@ -38,6 +39,7 @@ export default function CustomerSelector({
         />
       </div>
 
+      {/* Resultados */}
       {queryCliente && (
         <div className="max-h-40 overflow-y-auto border rounded bg-white">
           {clientesFiltrados
@@ -49,7 +51,7 @@ export default function CustomerSelector({
             .map((cliente) => (
               <div
                 key={cliente.customer_id}
-                className={`px-4 py-2 cursor-pointer hover:bg-gris-claro ${
+                className={`px-4 py-2 cursor-pointer hover:bg-gris-claro break-words ${
                   clienteSeleccionado?.customer_id === cliente.customer_id
                     ? "bg-gris-oscuro font-bold"
                     : ""
@@ -79,22 +81,24 @@ export default function CustomerSelector({
         </div>
       )}
 
+      {/* Cliente seleccionado */}
       {clienteSeleccionado && (
-        <p className="mt-2 font-bold text-azul-hover">
+        <p className="mt-2 font-bold text-azul-hover break-words">
           Cliente seleccionado: {clienteSeleccionado.name} ({clienteSeleccionado.identity_number})
         </p>
       )}
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 mt-4">
+      {/* Botones de acción */}
+      <div className="flex flex-col sm:flex-row items-center gap-4 mt-4 w-full">
         <Button
-          style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center cursor-pointer"
+          style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center w-full sm:w-auto cursor-pointer"
           onClick={() => (window.location.href = "/customer")}
         >
           <IoPersonAdd className="mr-2" size={18} /> Nuevo cliente
         </Button>
 
         <Button
-          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center cursor-pointer"
+          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center w-full sm:w-auto cursor-pointer"
           onClick={() =>
             setClienteSeleccionado({
               customer_id: 0,
@@ -107,15 +111,16 @@ export default function CustomerSelector({
         </Button>
       </div>
 
+      {/* Info Sucursal */}
       {sucursalSeleccionada && !modalSucursal && (
-        <div className="w-full flex flex-row md:items-center items-start mb-6 gap-6 mt-4">
+        <div className="w-full flex flex-col md:flex-row md:items-center items-start mb-6 gap-2 md:gap-6 mt-4">
           <button
-            className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200 cursor-pointer flex flex-row"
+            className="px-4 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg shadow transition-colors duration-200 cursor-pointer flex flex-row justify-center md:justify-start w-full md:w-auto"
             onClick={() => setModalSucursal(true)}
           >
             <MdStore className="mr-2 mt-0.5" size={20}/> Cambiar sucursal
           </button>
-          <span className="text-black font-semibold text-left md:text-right">
+          <span className="text-black font-semibold text-left md:text-right break-words">
             Sucursal actual: {sucursalSeleccionada.nombre} - {sucursalSeleccionada.business.nombre_comercial}
           </span>
         </div>
