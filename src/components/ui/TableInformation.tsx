@@ -41,7 +41,7 @@ return (
   <main className="w-full md:pl-1 pt-8">
     {!useCards ? (
       // --- Tabla Desktop ---
-      <div className="overflow-x-hidden overflow-y-auto shadow-md rounded-lg max-w-full max-h-[500px] pr-20">
+      <div className="overflow-x-hidden overflow-y-auto rounded-lg max-w-full max-h-[500px] pr-4">
         <table className="min-w-full table-auto divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-100">
             <tr>

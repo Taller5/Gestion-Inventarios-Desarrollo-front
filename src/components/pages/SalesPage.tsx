@@ -21,6 +21,12 @@ export type Producto = {
   bodega?: string;
   bodega_id?: number;
 };
+interface CartItemType {
+  producto: Producto;
+  cantidad: number;
+  descuento: number;
+  infoPromo?: string | { id: number; descripcion: string; cantidadAplicada: number };
+}
 
 type Lote = {
   lote_id: number;
@@ -90,6 +96,7 @@ export default function SalesPage() {
   const [bodegas, setBodegas] = useState<Warehouse[]>([]);
   // Definir los tipos completos
   interface Business {
+    negocio_id?: number;
     nombre_comercial: string;
     nombre_legal: string;
     telefono: string;
@@ -140,6 +147,7 @@ export default function SalesPage() {
           canton: s.canton || "-",
           telefono: s.telefono || "-",
           business: {
+            negocio_id: s.business.negocio_id || null,
             nombre_comercial: s.business.nombre_comercial || "-",
             nombre_legal: s.business.nombre_legal || "-",
             telefono: s.business.telefono || "-",
@@ -180,7 +188,7 @@ export default function SalesPage() {
 
     fetchSucursales();
   }, [API_URL]);
-  // Recuperar caja guardada al iniciar la página o cambiar de sucursal
+
 // Recuperar caja guardada al iniciar la página o cambiar de sucursal
 useEffect(() => {
   if (!sucursalSeleccionada) return;
@@ -477,6 +485,40 @@ useEffect(() => {
         return;
       }
 
+   // --- Aplicar promociones antes de armar factura ---
+await Promise.all(
+  carrito.map(async (item: CartItemType) => {
+    const tienePromoValida =
+      item.descuento > 0 &&
+      item.infoPromo !== undefined &&
+      (typeof item.infoPromo === "string" || typeof item.infoPromo === "object");
+
+    if (tienePromoValida) {
+      try {
+        const token = localStorage.getItem("token");
+        await fetch(`${API_URL}/api/v1/promotions/reduce-stock`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            product_id: item.producto.id,
+            quantity: item.cantidad,
+          }),
+        });
+      } catch (error) {
+        console.warn(
+          "No se pudo reducir la promoción para el producto:",
+          item.producto.codigo_producto,
+          error
+        );
+      }
+    }
+  })
+);
+
+
       // Preparar productos para la factura
       const productosFactura = carrito.map((item) => ({
         code: item.producto.codigo_producto,
@@ -677,25 +719,31 @@ useEffect(() => {
               cajaSeleccionada={cajaSeleccionada}
             />
 
-            {/* Tabla de carrito */}
-            <CartTable
-              carrito={carrito}
-              editIdx={editIdx}
-              editCantidad={editCantidad}
-              setEditCantidad={setEditCantidad}
-              editDescuento={editDescuento}
-              setEditDescuento={setEditDescuento}
-              iniciarEdicion={iniciarEdicion}
-              guardarEdicion={guardarEdicion}
-              eliminarDelCarrito={eliminarDelCarrito}
-              setCarrito={setCarrito}
-              clienteSeleccionado={clienteSeleccionado}
-              setFacturaModal={setFacturaModal}
-            />
+           {/* Tabla de carrito */}
+            {sucursalSeleccionada && (
+              <CartTable
+                carrito={carrito}
+                editIdx={editIdx}
+                editCantidad={editCantidad}
+                setEditCantidad={setEditCantidad}
+                editDescuento={editDescuento}
+                setEditDescuento={setEditDescuento}
+                iniciarEdicion={iniciarEdicion}
+                guardarEdicion={guardarEdicion}
+                eliminarDelCarrito={eliminarDelCarrito}
+                setCarrito={setCarrito}
+                clienteSeleccionado={clienteSeleccionado}
+                setFacturaModal={setFacturaModal}
+                businessId={sucursalSeleccionada.business.negocio_id}
+                branch_id={sucursalSeleccionada.sucursal_id}
+                clienteType={clienteSeleccionado?.name} // aquí solo el string
+              />
+            )}
+
+
           </div>
 
-          {/* Sidebar opcional: solo si quieres algo, si no, eliminar */}
-          {/* <div className="hidden md:block md:w-1/3"></div> */}
+          
 
           {/* Modales */}
           {modalOpen && productoSeleccionado && (
