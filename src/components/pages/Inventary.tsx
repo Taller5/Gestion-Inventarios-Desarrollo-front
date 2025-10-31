@@ -927,9 +927,9 @@ export default function Inventary() {
                 </div>
 
                 {/* Contenedor principal */}
-                <div className="overflow-x-hidden overflow-y-auto shadow-md rounded-lg max-w-full max-h-[500px] pr-20">
+                <div className="overflow-x-hidden overflow-y-auto shadow-md rounded-lg max-w-full max-h-[500px] pr-4">
                   {/* --- Tabla para escritorio --- */}
-                  <div className="hidden md:block shadow-md rounded-lg">
+                  <div className="hidden md:block rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-100">
                         <tr>

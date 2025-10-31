@@ -14,9 +14,9 @@ import ProtectedRoute from "../services/ProtectedRoute";
 import Container from "../ui/Container";
 import { SearchBar } from "../ui/SearchBar";
 import Plot from 'react-plotly.js';
-//import HistoryComponent from "../ui/HistoryComponent";
+import HistoryComponent from "../ui/HistoryComponent";
 
-//const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL;
 
 // --- Tipos de Datos del Formulario ---
 interface IAFormState {
@@ -48,7 +48,7 @@ export const IAPrediction = () => {
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [canSelectYears, setCanSelectYears] = useState(false);
   const [anualResult, setAnualResult] = useState<any | null>(null);
-  //const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
 
   // Paleta de colores usada en los gráficos
   const colorPalette = [
@@ -131,31 +131,8 @@ export const IAPrediction = () => {
         }
       ]);
 
-      // --- Comentar la llamada al backend ---
-      /*
-      const res = await fetch(`${API_URL}/api/v1/ia-history`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify([
-          {
-            user_id: userId,
-            type: "diario",
-            product_id: data.id_products,
-            future_price: data.precio_de_venta_esperado,
-            promotion_active: data.promocion_activa,
-            history: [
-              {
-                prediction_date: formData.fecha_prediccion,
-                predicted_quantity: response.cantidad_vendida_estimada,
-              }
-            ],
-          }
-        ]),
-      });
+   
 
-      if(res.ok){alert("predicción guardada en el historial correctamente")}
-      else{alert("Error al guardar la predicción en el historial")}
-      */
 
 
       // Calcular años disponibles
@@ -172,75 +149,80 @@ export const IAPrediction = () => {
     }
   };
 
-  // --- Predicción anual ---
-  const handleYearsSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedYears.length === 0 || selectedYears.length > 3) {
-      setError("Selecciona entre 1 y 3 años.");
-      return;
+// --- Predicción anual ---
+const handleYearsSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (selectedYears.length === 0 || selectedYears.length > 3) {
+    setError("Selecciona entre 1 y 3 años.");
+    return;
+  }
+
+  setLoading(true);
+  setError(undefined);
+
+  try {
+    const anualData = {
+      id_products: Number(formData.id_products),
+      precio_de_venta_esperado: Number(formData.precio_de_venta_esperado),
+      promocion_activa: Number(formData.promocion_activa),
+      anios: selectedYears.map(Number),
+    };
+
+    // Llamada a tu servicio de predicción (frontend)
+    const anualResult = await PredictionService.getPredictionAnual(anualData);
+
+    // Guardar en historial local
+    setLocalHistory((prev) => [
+      ...prev,
+      {
+        type: "anual",
+        product_id: anualData.id_products,
+        product_name: selectedProduct?.nombre_producto ?? "N/A",
+        future_price: anualData.precio_de_venta_esperado,
+        promotion_active: anualData.promocion_activa,
+        history: anualResult.map((item: { mes: string; cantidad: number }) => ({
+          month: item.mes,
+          quantity: item.cantidad,
+        })),
+        created_at: new Date().toISOString(),
+      },
+    ]);
+
+    // --- Llamada al backend Laravel ---
+    const res = await fetch(`${API_URL}/api/v1/ia-history`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        type: "anual",
+        product_id: anualData.id_products,
+        future_price: anualData.precio_de_venta_esperado,
+        promotion_active: anualData.promocion_activa,
+        history: anualResult.map((item: { mes: string; cantidad: number }) => ({
+          month: item.mes,
+          quantity: item.cantidad,
+        })),
+      }),
+    });
+
+    if (res.ok) {
+      alert("Predicción guardada en el historial correctamente");
+    } else {
+      const errorData = await res.json();
+      console.error("Error Laravel:", errorData);
+      alert("Error al guardar la predicción anual en el historial");
     }
-    setLoading(true);
-    setError(undefined);
 
-    try {
-      const anualData = {
-        id_products: Number(formData.id_products),
-        precio_de_venta_esperado: Number(formData.precio_de_venta_esperado),
-        promocion_activa: Number(formData.promocion_activa),
-        anios: selectedYears.map(Number),
-      };
+    setAnualResult(anualResult);
 
-      const anualResult = await PredictionService.getPredictionAnual(anualData);
-
-      // Guardar en historial local
-      setLocalHistory((prev) => [
-        ...prev,
-        {
-          type: "anual",
-          product_id: anualData.id_products,
-          product_name: selectedProduct?.nombre_producto ?? "N/A",
-          future_price: anualData.precio_de_venta_esperado,
-          promotion_active: anualData.promocion_activa,
-          history: anualResult.map((item: { mes: string, cantidad: number }) => ({
-            month: item.mes,
-            quantity: item.cantidad,
-          })),
-          created_at: new Date().toISOString(),
-        }
-      ]);
-
-      // --- Comentar la llamada al backend ---
-      /*
-      const res = await fetch(`${API_URL}/api/v1/ia-history`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify([
-          {
-            user_id: userId,
-            type: "anual",
-            product_id: anualData.id_products,
-            future_price: anualData.precio_de_venta_esperado,
-            promotion_active: anualData.promocion_activa,
-            history: anualResult.map((item: { mes: string, cantidad: number }) => ({
-              month: item.mes,
-              quantity: item.cantidad,
-            })),
-          }
-        ]),
-      });
-
-      if(res.ok){alert("predicción guardada en el historial correctamente")}
-      else{alert("Error al guardar la predicción anual en el historial")}
-      */
-
-      setAnualResult(anualResult);
-
-    } catch (err: any) {
-      setError(err.message || "Error al consultar la predicción anual.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  } catch (err: any) {
+    console.error("Error frontend:", err);
+    setError(err.message || "Error al consultar la predicción anual.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Manejo de selección de producto
   const handleProductSelect = (product: any) => {
@@ -402,8 +384,8 @@ export const IAPrediction = () => {
     );
   };
 
- // const user = JSON.parse(localStorage.getItem("user") || "{}");
- // const userId = user.id;
+ const user = JSON.parse(localStorage.getItem("user") || "{}");
+ const userId = user.id;
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor", "bodeguero"]}>
@@ -422,7 +404,7 @@ export const IAPrediction = () => {
             </Button>
 
             {/* --- Comentar el modal de historial --- */}
-            {/*
+            
             <Button
               onClick={() => setShowHistoryModal(true)}
               style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-3 mb-4 cursor-pointer rounded-lg"
@@ -436,7 +418,7 @@ export const IAPrediction = () => {
                 onClose={() => setShowHistoryModal(false)}
               />
             )}
-            */}
+            
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* COLUMNA 1: FORMULARIO DE ENTRADA */}

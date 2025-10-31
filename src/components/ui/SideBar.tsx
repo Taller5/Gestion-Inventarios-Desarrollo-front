@@ -18,10 +18,12 @@ import {
   MdCategory,
   MdOutlineApartment,
   MdSavings,
+  MdMonetizationOn 
 
 
 } from "react-icons/md";
 import { FaUsersGear } from "react-icons/fa6";
+import { FaPercent } from "react-icons/fa6";
 
 interface SideBarProps {
   role: string;
@@ -56,6 +58,9 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     "/employees": "Administración de Usuarios",
     "/saleReports": "Reportes",
     "/productReports": "Reportes",
+    "/financeReports": "Reportes",
+    "/promotionPage": "Promociones",
+    "/financialReports": "Reportes de ganancias",
   };
 
   const currentSection = Object.keys(sectionMap).find((path) =>
@@ -135,6 +140,17 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       <HiOutlineChartBar size={20} color="white" /> Reportes de Productos
     </Button>
   );
+     const btnPromociones = (
+    <Button style={btnStyle} to="/promotionPage">
+      <FaPercent size={20} color="white" /> Promociones
+    </Button>
+  );
+       const btnFinanceReports = (
+    <Button style={btnStyle} to="/financialReports">
+      <MdMonetizationOn  size={20} color="white" /> Reportes de Ganancias
+    </Button>
+  );
+
 
   const sectionIcons: { [key: string]: JSX.Element } = {
     "Administración de Productos": <MdCategory size={20} color="white" />,
@@ -161,11 +177,11 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     };
   } else {
     sections = {
-      "Administración de Productos": [btnInventario, btnProvider],
+      "Administración de Productos": [btnInventario, btnProvider,btnPromociones],
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
       Finanzas: [btnCashRegisterPage, btnSalesPages],
       "Administración de Usuarios": [btnClientes, btnPersonal],
-      Reportes: [btnSaleReports, btnProductReports],
+      Reportes: [btnSaleReports, btnProductReports,btnFinanceReports],
     };
   }
 

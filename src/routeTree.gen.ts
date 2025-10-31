@@ -14,12 +14,14 @@ import { Route as SalesPageRouteImport } from './routes/salesPage'
 import { Route as SaleReportsRouteImport } from './routes/saleReports'
 import { Route as RecoverPasswordRouteImport } from './routes/recoverPassword'
 import { Route as ProviderRouteImport } from './routes/provider'
+import { Route as PromotionPageRouteImport } from './routes/promotionPage'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProductReportsRouteImport } from './routes/productReports'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventaryRouteImport } from './routes/inventary'
 import { Route as IapredictionRouteImport } from './routes/iaprediction'
 import { Route as HomepageRouteImport } from './routes/homepage'
+import { Route as FinancialReportsRouteImport } from './routes/financialReports'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as EmployeesRouteImport } from './routes/employees'
 import { Route as CustomerRouteImport } from './routes/customer'
@@ -53,6 +55,11 @@ const ProviderRoute = ProviderRouteImport.update({
   path: '/provider',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PromotionPageRoute = PromotionPageRouteImport.update({
+  id: '/promotionPage',
+  path: '/promotionPage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProfileRoute = ProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -81,6 +88,11 @@ const IapredictionRoute = IapredictionRouteImport.update({
 const HomepageRoute = HomepageRouteImport.update({
   id: '/homepage',
   path: '/homepage',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FinancialReportsRoute = FinancialReportsRouteImport.update({
+  id: '/financialReports',
+  path: '/financialReports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FinanceRoute = FinanceRouteImport.update({
@@ -127,12 +139,14 @@ export interface FileRoutesByFullPath {
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
+  '/financialReports': typeof FinancialReportsRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/productReports': typeof ProductReportsRoute
   '/profile': typeof ProfileRoute
+  '/promotionPage': typeof PromotionPageRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
   '/saleReports': typeof SaleReportsRoute
@@ -147,12 +161,14 @@ export interface FileRoutesByTo {
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
+  '/financialReports': typeof FinancialReportsRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/productReports': typeof ProductReportsRoute
   '/profile': typeof ProfileRoute
+  '/promotionPage': typeof PromotionPageRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
   '/saleReports': typeof SaleReportsRoute
@@ -168,12 +184,14 @@ export interface FileRoutesById {
   '/customer': typeof CustomerRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
+  '/financialReports': typeof FinancialReportsRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/productReports': typeof ProductReportsRoute
   '/profile': typeof ProfileRoute
+  '/promotionPage': typeof PromotionPageRoute
   '/provider': typeof ProviderRoute
   '/recoverPassword': typeof RecoverPasswordRoute
   '/saleReports': typeof SaleReportsRoute
@@ -190,12 +208,14 @@ export interface FileRouteTypes {
     | '/customer'
     | '/employees'
     | '/finance'
+    | '/financialReports'
     | '/homepage'
     | '/iaprediction'
     | '/inventary'
     | '/login'
     | '/productReports'
     | '/profile'
+    | '/promotionPage'
     | '/provider'
     | '/recoverPassword'
     | '/saleReports'
@@ -210,12 +230,14 @@ export interface FileRouteTypes {
     | '/customer'
     | '/employees'
     | '/finance'
+    | '/financialReports'
     | '/homepage'
     | '/iaprediction'
     | '/inventary'
     | '/login'
     | '/productReports'
     | '/profile'
+    | '/promotionPage'
     | '/provider'
     | '/recoverPassword'
     | '/saleReports'
@@ -230,12 +252,14 @@ export interface FileRouteTypes {
     | '/customer'
     | '/employees'
     | '/finance'
+    | '/financialReports'
     | '/homepage'
     | '/iaprediction'
     | '/inventary'
     | '/login'
     | '/productReports'
     | '/profile'
+    | '/promotionPage'
     | '/provider'
     | '/recoverPassword'
     | '/saleReports'
@@ -251,12 +275,14 @@ export interface RootRouteChildren {
   CustomerRoute: typeof CustomerRoute
   EmployeesRoute: typeof EmployeesRoute
   FinanceRoute: typeof FinanceRoute
+  FinancialReportsRoute: typeof FinancialReportsRoute
   HomepageRoute: typeof HomepageRoute
   IapredictionRoute: typeof IapredictionRoute
   InventaryRoute: typeof InventaryRoute
   LoginRoute: typeof LoginRoute
   ProductReportsRoute: typeof ProductReportsRoute
   ProfileRoute: typeof ProfileRoute
+  PromotionPageRoute: typeof PromotionPageRoute
   ProviderRoute: typeof ProviderRoute
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   SaleReportsRoute: typeof SaleReportsRoute
@@ -301,6 +327,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProviderRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/promotionPage': {
+      id: '/promotionPage'
+      path: '/promotionPage'
+      fullPath: '/promotionPage'
+      preLoaderRoute: typeof PromotionPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/profile': {
       id: '/profile'
       path: '/profile'
@@ -341,6 +374,13 @@ declare module '@tanstack/react-router' {
       path: '/homepage'
       fullPath: '/homepage'
       preLoaderRoute: typeof HomepageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/financialReports': {
+      id: '/financialReports'
+      path: '/financialReports'
+      fullPath: '/financialReports'
+      preLoaderRoute: typeof FinancialReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/finance': {
@@ -403,12 +443,14 @@ const rootRouteChildren: RootRouteChildren = {
   CustomerRoute: CustomerRoute,
   EmployeesRoute: EmployeesRoute,
   FinanceRoute: FinanceRoute,
+  FinancialReportsRoute: FinancialReportsRoute,
   HomepageRoute: HomepageRoute,
   IapredictionRoute: IapredictionRoute,
   InventaryRoute: InventaryRoute,
   LoginRoute: LoginRoute,
   ProductReportsRoute: ProductReportsRoute,
   ProfileRoute: ProfileRoute,
+  PromotionPageRoute: PromotionPageRoute,
   ProviderRoute: ProviderRoute,
   RecoverPasswordRoute: RecoverPasswordRoute,
   SaleReportsRoute: SaleReportsRoute,

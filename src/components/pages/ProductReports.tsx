@@ -17,42 +17,60 @@ interface Producto {
   precio_venta: number;
   unit: { nombre: string } | null;
   bodega_id: number;
+  sucursal_id: number;
   business_nombre: string;
+  branch_nombre: string;
 }
 
 type Warehouse = {
   bodega_id: number;
+  codigo: string;
+  sucursal_id: number;
   branch: {
+    nombre: string;
     business: {
       nombre_comercial: string;
     };
   };
 };
 
+type Branch = {
+  sucursal_id: number;
+  nombre: string;
+  business: {
+    nombre_comercial: string;
+  };
+};
+
 export default function ProductReports() {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
+  const [branches, setBranches] = useState<Branch[]>([]);
+  const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const [selectedBodega, setSelectedBodega] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Cargar productos y bodegas
+  // Cargar productos, bodegas y sucursales
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const token = localStorage.getItem("token");
 
-        const [productosRes, warehousesRes] = await Promise.all([
+        const [productosRes, warehousesRes, branchesRes] = await Promise.all([
           fetch(`${API_URL}/api/v1/products`, {
             headers: { Authorization: `Bearer ${token}` },
           }).then((res) => res.json()),
           fetch(`${API_URL}/api/v1/warehouses`, {
             headers: { Authorization: `Bearer ${token}` },
           }).then((res) => res.json()),
+          fetch(`${API_URL}/api/v1/branches`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }).then((res) => res.json()),
         ]);
 
-        // Mapear productos solo con stock > 0 y agregar nombre de negocio
+        // Mapear productos para incluir negocio, sucursal y código de bodega
         const mappedProductos: Producto[] = productosRes
           .filter((p: any) => p.stock > 0)
           .map((p: any) => {
@@ -61,15 +79,20 @@ export default function ProductReports() {
             );
             return {
               ...p,
-              business_nombre: warehouse?.branch.business.nombre_comercial || "",
+              business_nombre:
+                warehouse?.branch.business.nombre_comercial || "",
+              branch_nombre: warehouse?.branch.nombre || "",
+              sucursal_id: warehouse?.sucursal_id || null,
+              codigo: warehouse?.codigo || "", // <-- código real de la bodega
             };
           });
 
         setProductos(mappedProductos);
         setWarehouses(warehousesRes);
+        setBranches(branchesRes);
       } catch (err) {
-        console.error("Error fetching products or warehouses:", err);
-        setError("Error al cargar los productos. Por favor, intente de nuevo.");
+        console.error("Error fetching data:", err);
+        setError("Error al cargar los datos. Por favor, intente de nuevo.");
       } finally {
         setLoading(false);
       }
@@ -78,17 +101,35 @@ export default function ProductReports() {
     fetchData();
   }, []);
 
-  // Lista de bodegas disponibles
-  const bodegaList = Array.from(
-    new Set(productos.map((p) => p.bodega_id))
+  // Lista de negocios
+  const businessList = Array.from(
+    new Set(productos.map((p) => p.business_nombre).filter(Boolean))
   );
 
-  // Filtrar productos por bodega seleccionada
-  const filteredProductos = productos.filter((p) =>
-    selectedBodega ? p.bodega_id === selectedBodega : true
+  // Lista de sucursales del negocio seleccionado
+  const branchList = branches.filter(
+    (b) => b.business.nombre_comercial === selectedBusiness
   );
 
-  const clearFilters = () => setSelectedBodega(null);
+  // Lista de bodegas según sucursales del negocio
+  const warehouseList = warehouses.filter(
+    (w) =>
+      selectedBusiness &&
+      branchList.some((b) => b.sucursal_id === w.sucursal_id)
+  );
+
+  // Filtrado de productos
+  const filteredProductos = productos.filter((p) => {
+    if (selectedBusiness && p.business_nombre !== selectedBusiness)
+      return false;
+    if (selectedBodega && p.bodega_id !== selectedBodega) return false;
+    return true;
+  });
+
+  const clearFilters = () => {
+    setSelectedBusiness(null);
+    setSelectedBodega(null);
+  };
 
   const tableHeaders = [
     "codigo_producto",
@@ -98,13 +139,17 @@ export default function ProductReports() {
     "precio_compra",
     "precio_venta",
     "business_nombre",
+    "branch_nombre",
+
+    "codigo", // <-- aquí mostramos el código de bodega en la tabla
   ];
+  
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="w-full md:w-auto  px-2 md:px-10 mx-auto flex flex-col">
+          <div className="w-full md:w-auto px-2 md:px-10 mx-auto flex flex-col">
             <h1 className="text-3xl font-bold mb-6 mt-6">
               Reporte de productos
             </h1>
@@ -112,26 +157,48 @@ export default function ProductReports() {
             {loading && <p>Cargando...</p>}
             {error && <p className="text-red-500">{error}</p>}
 
-            {!loading && !error && bodegaList.length > 0 && (
+            {!loading && !error && businessList.length > 0 && (
               <div className="flex flex-wrap items-end gap-4 mb-6">
-                {/* Filtro por bodega */}
+                {/* Filtro negocio */}
                 <div className="flex flex-col">
-                  <label className="block mb-1 font-semibold">Bodega:</label>
+                  <label className="block mb-1 font-semibold">Negocio:</label>
                   <select
                     className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
-                    value={selectedBodega || ""}
-                    onChange={(e) =>
-                      setSelectedBodega(Number(e.target.value) || null)
-                    }
+                    value={selectedBusiness || ""}
+                    onChange={(e) => {
+                      setSelectedBusiness(e.target.value || null);
+                      setSelectedBodega(null);
+                    }}
                   >
-                    <option value="">-- Todas --</option>
-                    {bodegaList.map((b) => (
+                    <option value="">-- Todos --</option>
+                    {businessList.map((b) => (
                       <option key={b} value={b}>
-                        {warehouses.find((w) => w.bodega_id === b)?.branch.business.nombre_comercial || b}
+                        {b}
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {/* Filtro bodega */}
+                {selectedBusiness && warehouseList.length > 0 && (
+                  <div className="flex flex-col">
+                    <label className="block mb-1 font-semibold">Bodega:</label>
+                    <select
+                      className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
+                      value={selectedBodega || ""}
+                      onChange={(e) =>
+                        setSelectedBodega(Number(e.target.value) || null)
+                      }
+                    >
+                      <option value="">seleccione una bodega</option>
+                      {warehouseList.map((w) => (
+                        <option key={w.bodega_id} value={w.bodega_id}>
+                          {w.codigo} - {w.branch.nombre}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Botón limpiar */}
                 <div className="flex flex-col">
@@ -145,20 +212,19 @@ export default function ProductReports() {
               </div>
             )}
 
-            {/* Botones exportar */}
-            {selectedBodega && filteredProductos.length > 0 && (
+            {/* Exportadores */}
+            {filteredProductos.length > 0 && (
               <div className="mb-4 flex gap-4">
                 <ExcelExporter
                   data={filteredProductos}
                   headers={tableHeaders}
-                  fileName={`Productos_${filteredProductos[0].business_nombre}.xlsx`}
+                  fileName={`Productos_${selectedBusiness || "Todos"}.xlsx`}
                 />
-
                 <PDFExporter
                   data={filteredProductos}
                   headers={tableHeaders}
-                  fileName={`Productos_${filteredProductos[0].business_nombre}.pdf`}
-                  reportTitle={`Reporte de Productos - ${filteredProductos[0].business_nombre}`}
+                  fileName={`Productos_${selectedBusiness || "Todos"}.pdf`}
+                  reportTitle={`Reporte de Productos - ${selectedBusiness || "Todos"}`}
                 />
               </div>
             )}
@@ -172,7 +238,7 @@ export default function ProductReports() {
             )}
 
             {filteredProductos.length === 0 && !loading && (
-              <p>No hay productos disponibles para la bodega seleccionada.</p>
+              <p>No hay productos disponibles para el filtro seleccionado.</p>
             )}
           </div>
         }
