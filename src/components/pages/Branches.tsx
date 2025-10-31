@@ -633,10 +633,10 @@ export default function Branches() {
                       </svg>
                     </button>
                     <div className="p-6">
-                      <h2 className="text-xl font-bold mb-6">
+                      <h2 className="text-xl font-bold mb-3">
                         {branchToEdit ? "Editar Sucursal" : "Nueva Sucursal"}
                       </h2>
-
+                      <hr className="pb-3" />
                       {/* ALERTA CENTRALIZADA */}
                       {alert && (
                         <div

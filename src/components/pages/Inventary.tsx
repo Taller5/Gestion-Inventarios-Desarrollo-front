@@ -1858,10 +1858,11 @@ const formatMoney = (amount: number) =>
                     className="w-full max-w-7xl"
                     isWide
                   >
-                    <div className="flex flex-col gap-4 relative bg-white rounded-2xl w-[100%] mx-auto overflow-y-auto p-8">
-                      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    <div className="flex flex-col gap-4 relative bg-white rounded-2xl w-[100%] mx-auto overflow-y-auto ">
+                      <h2 className="text-2xl font-bold text-gray-800 mb-3 text-center">
                         Catálogo CABYS
                       </h2>
+                      <hr className="pb-4" />
                       {/* Categoría principal arriba */}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
                         <label className=" flex flex-col md:col-span-1">
