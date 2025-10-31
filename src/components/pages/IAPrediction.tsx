@@ -14,6 +14,9 @@ import ProtectedRoute from "../services/ProtectedRoute";
 import Container from "../ui/Container";
 import { SearchBar } from "../ui/SearchBar";
 import Plot from 'react-plotly.js';
+import HistoryComponent from "../ui/HistoryComponent";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 // --- Tipos de Datos del Formulario ---
 interface IAFormState {
@@ -45,6 +48,17 @@ export const IAPrediction = () => {
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [canSelectYears, setCanSelectYears] = useState(false);
   const [anualResult, setAnualResult] = useState<any | null>(null);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+
+  // Paleta de colores usada en los gráficos
+  const colorPalette = [
+    "#369FF5", // azul-medio
+    "#D6CA4E", // amarillo-claro
+    "#4EB353", // verde-claro
+  ];
+
+  // --- Historial local de predicciones ---
+  const [localHistory, setLocalHistory] = useState<any[]>([]);
 
   // Cargar productos al inicio
   useEffect(() => {
@@ -98,6 +112,29 @@ export const IAPrediction = () => {
       // Consulta diaria
       const response = await PredictionService.getPrediction(data);
 
+      // Guardar en historial local
+      setLocalHistory((prev) => [
+        ...prev,
+        {
+          type: "diario",
+          product_id: data.id_products,
+          product_name: selectedProduct?.nombre_producto ?? "N/A",
+          future_price: data.precio_de_venta_esperado,
+          promotion_active: data.promocion_activa,
+          history: [
+            {
+              prediction_date: formData.fecha_prediccion,
+              predicted_quantity: response.cantidad_vendida_estimada,
+            }
+          ],
+          created_at: new Date().toISOString(),
+        }
+      ]);
+
+   
+
+
+
       // Calcular años disponibles
       const yearsToShow = ["2026", "2027", "2028", "2029"];
       setYearsOptions(yearsToShow);
@@ -112,35 +149,80 @@ export const IAPrediction = () => {
     }
   };
 
-  // --- Predicción anual ---
-  const handleYearsSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (selectedYears.length === 0 || selectedYears.length > 3) {
-      setError("Selecciona entre 1 y 3 años.");
-      return;
-    }
-    setLoading(true);
-    setError(undefined);
+// --- Predicción anual ---
+const handleYearsSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    try {
-      const anualData = {
+  if (selectedYears.length === 0 || selectedYears.length > 3) {
+    setError("Selecciona entre 1 y 3 años.");
+    return;
+  }
+
+  setLoading(true);
+  setError(undefined);
+
+  try {
+    const anualData = {
       id_products: Number(formData.id_products),
       precio_de_venta_esperado: Number(formData.precio_de_venta_esperado),
       promocion_activa: Number(formData.promocion_activa),
-      anios: selectedYears.map(Number), // <-- convierte a números
-      };
+      anios: selectedYears.map(Number),
+    };
 
-      // Consulta anual
-      const anualResult = await PredictionService.getPredictionAnual(anualData);
+    // Llamada a tu servicio de predicción (frontend)
+    const anualResult = await PredictionService.getPredictionAnual(anualData);
 
-      setAnualResult(anualResult); // <-- Guardar datos para Plotly
+    // Guardar en historial local
+    setLocalHistory((prev) => [
+      ...prev,
+      {
+        type: "anual",
+        product_id: anualData.id_products,
+        product_name: selectedProduct?.nombre_producto ?? "N/A",
+        future_price: anualData.precio_de_venta_esperado,
+        promotion_active: anualData.promocion_activa,
+        history: anualResult.map((item: { mes: string; cantidad: number }) => ({
+          month: item.mes,
+          quantity: item.cantidad,
+        })),
+        created_at: new Date().toISOString(),
+      },
+    ]);
 
-    } catch (err: any) {
-      setError(err.message || "Error al consultar la predicción anual.");
-    } finally {
-      setLoading(false);
+    // --- Llamada al backend Laravel ---
+    const res = await fetch(`${API_URL}/api/v1/ia-history`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        user_id: userId,
+        type: "anual",
+        product_id: anualData.id_products,
+        future_price: anualData.precio_de_venta_esperado,
+        promotion_active: anualData.promocion_activa,
+        history: anualResult.map((item: { mes: string; cantidad: number }) => ({
+          month: item.mes,
+          quantity: item.cantidad,
+        })),
+      }),
+    });
+
+    if (res.ok) {
+      alert("Predicción guardada en el historial correctamente");
+    } else {
+      const errorData = await res.json();
+      console.error("Error Laravel:", errorData);
+      alert("Error al guardar la predicción anual en el historial");
     }
-  };
+
+    setAnualResult(anualResult);
+
+  } catch (err: any) {
+    console.error("Error frontend:", err);
+    setError(err.message || "Error al consultar la predicción anual.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Manejo de selección de producto
   const handleProductSelect = (product: any) => {
@@ -215,12 +297,6 @@ export const IAPrediction = () => {
   // Renderiza la gráfica anual con Plotly
   const renderPlotlyChart = () => {
     if (!anualResult || !Array.isArray(anualResult)) return null;
-
-    const colorPalette = [
-      "#369FF5", // azul-medio
-      "#D6CA4E", // amarillo-claro
-      "#4EB353", // verde-claro
-    ];
 
     const mesesNombre = [
       "Ene", "Feb", "Mar", "Abr", "May", "Jun",
@@ -308,6 +384,9 @@ export const IAPrediction = () => {
     );
   };
 
+ const user = JSON.parse(localStorage.getItem("user") || "{}");
+ const userId = user.id;
+
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor", "bodeguero"]}>
       <Container
@@ -323,6 +402,23 @@ export const IAPrediction = () => {
             >
               <span className="whitespace-nowrap text-base">Volver a Inventario</span>
             </Button>
+
+            {/* --- Comentar el modal de historial --- */}
+            
+            <Button
+              onClick={() => setShowHistoryModal(true)}
+              style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2 px-3 mb-4 cursor-pointer rounded-lg"
+            >
+              Ver historial de predicciones
+            </Button>
+
+            {showHistoryModal && (
+              <HistoryComponent
+                userId={userId}
+                onClose={() => setShowHistoryModal(false)}
+              />
+            )}
+            
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* COLUMNA 1: FORMULARIO DE ENTRADA */}
@@ -458,6 +554,79 @@ export const IAPrediction = () => {
               {!loading && !anualResult && (
                 <div className="text-center p-8 text-gray-400">
                   <p>Realiza una consulta anual para ver el gráfico.</p>
+                </div>
+              )}
+            </div>
+
+            {/* --- NUEVO HISTORIAL LOCAL DE PREDICCIONES --- */}
+            <div className="mt-10">
+              <h2 className="text-xl font-semibold mb-4 text-gray-700">
+                4. Historial de Predicciones Realizadas
+              </h2>
+              {localHistory.length === 0 ? (
+                <div className="text-center p-8 text-gray-400">
+                  <p>No hay predicciones en el historial de esta sesión.</p>
+                </div>
+              ) : (
+                <div className="grid gap-6">
+                  {localHistory.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-lg shadow border"
+                      style={{
+                        borderColor: colorPalette[idx % colorPalette.length],
+                        background: "#F8FAFC"
+                      }}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-azul-medio">{item.product_name}</span>
+                        <span className="text-xs text-gray-400">{new Date(item.created_at).toLocaleString()}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+                        <span>Tipo:</span>
+                        <span className="font-semibold" style={{ color: colorPalette[idx % colorPalette.length] }}>
+                          {item.type === "diario" ? "Diario" : "Anual"}
+                        </span>
+                        <span>Precio Propuesto:</span>
+                        <span>₡{item.future_price.toFixed(2)}</span>
+                        <span>Promoción activa:</span>
+                        <span>{item.promotion_active === 1 ? "Sí" : "No"}</span>
+                      </div>
+                      {/* Detalle para diario */}
+                      {item.type === "diario" && item.history[0] && (
+                        <div className="grid grid-cols-2 gap-2 text-sm">
+                          <span>Fecha:</span>
+                          <span>{item.history[0].prediction_date}</span>
+                          <span>Cantidad Estimada:</span>
+                          <span>{item.history[0].predicted_quantity}</span>
+                        </div>
+                      )}
+                      {/* Detalle para anual */}
+                      {item.type === "anual" && (
+                        <div className="mt-4">
+                          <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden shadow">
+                            <thead>
+                              <tr className="bg-azul-medio text-white">
+                                <th className="py-2 px-3 border-b border-gray-200 text-left">Mes</th>
+                                <th className="py-2 px-3 border-b border-gray-200 text-left">Cantidad Estimada</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {item.history.map((m: any, i: number) => (
+                                <tr
+                                  key={i}
+                                  className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}
+                                >
+                                  <td className="py-2 px-3 border-b border-gray-100">{m.month}</td>
+                                  <td className="py-2 px-3 border-b border-gray-100 font-semibold text-azul-medio">{m.quantity}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

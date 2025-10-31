@@ -16,280 +16,350 @@ interface GenerateInvoiceProps {
   user: { name?: string; username?: string };
   buttonText?: string;
   disabled?: boolean;
-  facturaCreada?: any; 
+  facturaCreada?: any;
 }
 
-const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>((props, ref) => {
-  const {
-    sucursalSeleccionada,
-    clienteSeleccionado,
-    carrito,
-    metodoPago,
-    montoEntregado,
-    comprobante,
-    user,
-    buttonText,
-    disabled,
-    facturaCreada,
-  } = props;
+const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>(
+  (props, ref) => {
+    const {
+      sucursalSeleccionada,
+      clienteSeleccionado,
+      carrito,
+      metodoPago,
+      montoEntregado,
+      comprobante,
+      user,
+      buttonText,
+      disabled,
+      facturaCreada,
+    } = props;
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const formatNumber = (value: number) =>
-    value.toLocaleString("es-CR", { maximumFractionDigits: 0 });
+    const formatNumber = (value: number) =>
+      value.toLocaleString("es-CR", { maximumFractionDigits: 0 });
 
-  const generarFactura = async () => {
-    setError(null);
-    setSuccessMessage(null);
-    setLoading(true);
+    const generarFactura = async () => {
+      setError(null);
+      setSuccessMessage(null);
+      setLoading(true);
 
-    try {
-      if (!sucursalSeleccionada) throw new Error("No se ha seleccionado ninguna sucursal.");
-      if (!clienteSeleccionado) throw new Error("Debe seleccionar un cliente antes de imprimir la factura.");
-      if (!carrito || carrito.length === 0) throw new Error("El carrito está vacío. No se puede generar la factura.");
+      try {
+        if (!sucursalSeleccionada)
+          throw new Error("No se ha seleccionado ninguna sucursal.");
+        if (!clienteSeleccionado)
+          throw new Error(
+            "Debe seleccionar un cliente antes de imprimir la factura."
+          );
+        if (!carrito || carrito.length === 0)
+          throw new Error(
+            "El carrito está vacío. No se puede generar la factura."
+          );
 
-      const doc = new jsPDF();
-      const padding = 10;
-      let y = padding;
+        const pageWidth = 82;
+        let pageHeight = 200;
+        const doc = new jsPDF({ unit: "mm", format: [pageWidth, pageHeight] });
 
-const numeroFactura = facturaCreada?.id || "N/D";
-doc.setFont("helvetica", "bold");
-doc.setFontSize(18);
-doc.text(`Factura #${numeroFactura}`, 105, y, { align: "center" });
-y += 10;
+        const padding = 5;
+        let y = padding;
 
-// --- Texto del sistema ---
-const sistemaFactura = "de Facturación: Gestior";
-doc.setFont("helvetica", "bold");
-doc.setFontSize(10);
-doc.text(`Sistema ${sistemaFactura}`, 105, y, { align: "center" });
-y += 10;
+        const titleFontSize = 12;
+        const subtitleFontSize = 8;
+        const normalFontSize = 7;
+        const smallFontSize = 6;
 
-// --- Logo del negocio ---
-try {
-  const logoUrl = sucursalSeleccionada?.business?.logo;
+        const numeroFactura = facturaCreada?.id || "N/D";
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(titleFontSize);
+        doc.text(`Factura #${numeroFactura}`, pageWidth / 2, y, {
+          align: "center",
+        });
+        y += 5;
 
-  if (logoUrl) {
-    const response = await fetch(logoUrl);
-    if (!response.ok) throw new Error("Error al descargar el logo");
+        const sistemaFactura = "de Facturación: Gestior";
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(smallFontSize);
+        doc.text(`Sistema ${sistemaFactura}`, pageWidth / 2, y, {
+          align: "center",
+        });
+        y += 5;
 
-    const blob = await response.blob();
+        // Logo
+        try {
+          const logoUrl = sucursalSeleccionada?.business?.logo;
+          if (logoUrl) {
+            const response = await fetch(logoUrl);
+            if (!response.ok) throw new Error("Error al descargar el logo");
+            const blob = await response.blob();
+            const reader = new FileReader();
+            const imgBase64: string = await new Promise((resolve, reject) => {
+              reader.onloadend = () => resolve(reader.result as string);
+              reader.onerror = reject;
+              reader.readAsDataURL(blob);
+            });
 
-    // Convertir a base64 (necesario para jsPDF)
-    const reader = new FileReader();
-    const imgBase64: string = await new Promise((resolve, reject) => {
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-
-    // Crear imagen para obtener proporciones reales
-    const img = new Image();
-    img.src = imgBase64;
-
-    await new Promise<void>((resolve) => {
-      img.onload = () => {
-        const maxSize = 40; // tamaño máximo
-        let width = img.width;
-        let height = img.height;
-
-        // Mantener proporción
-        if (width > height) {
-          height = (height / width) * maxSize;
-          width = maxSize;
-        } else {
-          width = (width / height) * maxSize;
-          height = maxSize;
+            const img = new Image();
+            img.src = imgBase64;
+            await new Promise<void>((resolve) => {
+              img.onload = () => {
+                const maxSize = 20;
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                  height = (height / width) * maxSize;
+                  width = maxSize;
+                } else {
+                  width = (width / height) * maxSize;
+                  height = maxSize;
+                }
+                const imgX = (pageWidth - width) / 2;
+                const imgY = y;
+                doc.addImage(imgBase64, "JPEG", imgX, imgY, width, height);
+                y += height + 5;
+                resolve();
+              };
+            });
+          } else {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(subtitleFontSize);
+            doc.text("LOGO", pageWidth / 2, y + 10, { align: "center" });
+            y += 20;
+          }
+        } catch (error) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(subtitleFontSize);
+          doc.text("LOGO", pageWidth / 2, y + 10, { align: "center" });
+          y += 20;
         }
 
-        const imgX = (210 - width) / 2; // centrado horizontal
-        const imgY = y; // debajo del texto del sistema
+        // Información de sucursal
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(subtitleFontSize);
+        doc.text(
+          sucursalSeleccionada.business?.nombre_comercial || "N/D",
+          padding,
+          y
+        );
+        y += 4;
 
-        doc.addImage(imgBase64, "JPEG", imgX, imgY, width, height);
-        y += height + 10;
-        resolve();
-      };
-    });
-  } else {
-    // No hay logo
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("LOGO", 105, y + 15, { align: "center" });
-    y += 40;
-  }
-} catch (error) {
-  console.error("Error cargando logo:", error);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("LOGO", 105, y + 15, { align: "center" });
-  y += 40;
-}
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(normalFontSize);
+        doc.text(
+          `Razón social: ${sucursalSeleccionada.business?.nombre_legal || "N/D"}`,
+          padding,
+          y
+        );
+        y += 3;
+        doc.text(
+          `Tel: ${sucursalSeleccionada.business?.telefono || "-"}`,
+          padding,
+          y
+        );
+        y += 3;
+        doc.text(
+          `Email: ${sucursalSeleccionada.business?.email || "-"}`,
+          padding,
+          y
+        );
+        y += 3;
+        doc.text(
+          `Provincia: ${sucursalSeleccionada.provincia || "-"}`,
+          padding,
+          y
+        );
+        y += 3;
+        doc.text(`Cantón: ${sucursalSeleccionada.canton || "-"}`, padding, y);
+        y += 3;
+        doc.text(`Sucursal: ${sucursalSeleccionada.nombre || "-"}`, padding, y);
+        y += 5;
 
+        doc.setLineWidth(0.3);
+        doc.line(padding, y, pageWidth - padding, y);
+        y += 3;
 
+        // Información de cliente
+        doc.setFont("helvetica", "bold");
+        doc.text("Factura para:", padding, y);
+        y += 3;
+        doc.setFont("helvetica", "normal");
+        doc.text(`Cliente: ${clienteSeleccionado.name || "-"}`, padding, y);
+        y += 3;
+        doc.text(
+          `Cédula: ${clienteSeleccionado.identity_number || "-"}`,
+          padding,
+          y
+        );
+        y += 3;
+        doc.text(`Cajero: ${user.name || user.username}`, padding, y);
+        y += 3;
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, padding, y);
+        y += 5;
 
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
-      doc.text(sucursalSeleccionada.business?.nombre_comercial || "N/D", padding, y);
-      y += 7;
+        // --- Tabla compacta productos ---
+        const headers = ["Código", "Producto", "Cant.", "Precio", "Desc."];
+        const colWidths = [12, 28, 8, 12, 10]; // más compacta
+        const tableFontSize = 6;
+        let x = padding;
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.text(`Razón social: ${sucursalSeleccionada.business?.nombre_legal || "N/D"}`, padding, y);
-      y += 5;
-      doc.text(`Tel: ${sucursalSeleccionada.business?.telefono || "-"}`, padding, y);
-      y += 5;
-      doc.text(`Email: ${sucursalSeleccionada.business?.email || "-"}`, padding, y);
-      y += 5;
-      doc.text(`Provincia: ${sucursalSeleccionada.provincia || "-"}`, padding, y);
-      y += 5;
-      doc.text(`Cantón: ${sucursalSeleccionada.canton || "-"}`, padding, y);
-      y += 5;
-      doc.text(`Sucursal: ${sucursalSeleccionada.nombre || "-"}`, padding, y);
-      y += 10;
-
-      doc.setLineWidth(0.5);
-      doc.line(padding, y, 200, y);
-      y += 5;
-
-      doc.setFont("helvetica", "bold");
-      doc.text("Factura para:", padding, y);
-      y += 6;
-      doc.setFont("helvetica", "normal");
-      doc.text(`Cliente: ${clienteSeleccionado.name || "-"}`, padding, y);
-      y += 5;
-      doc.text(`Cédula: ${clienteSeleccionado.identity_number || "-"}`, padding, y);
-      y += 5;
-      doc.text(`Cajero: ${user.name || user.username}`, padding, y);
-      y += 5;
-      doc.text(`Fecha: ${new Date().toLocaleString()}`, padding, y);
-      y += 10;
-
-      // Tabla productos
-      const headers = ["Código", "Producto", "Cant.", "Precio", "Desc.", "Subtotal"];
-      const colWidths = [30, 60, 20, 30, 25, 25];
-      let x = padding;
-
-      doc.setFont("helvetica", "bold");
-      doc.setFillColor(220, 220, 220);
-      doc.rect(x, y - 4, colWidths.reduce((a, b) => a + b, 0), 8, "F");
-      headers.forEach((h, i) => {
-        doc.text(h, x + 2, y);
-        x += colWidths[i];
-      });
-      y += 8;
-
-      doc.setFont("helvetica", "normal");
-      let subtotal = 0;
-      let totalDescuento = 0;
-
-      carrito.forEach((item, index) => {
-        x = padding;
-        const descuentoPct = Math.max(0, Math.min(item.descuento || 0, 100));
-        const subtotalItem = (item.producto.precio_venta || 0) * (item.cantidad || 0);
-        const descuentoItem = subtotalItem * (descuentoPct / 100);
-
-        subtotal += subtotalItem;
-        totalDescuento += descuentoItem;
-
-        if (index % 2 === 1) {
-          doc.setFillColor(245, 245, 245);
-          doc.rect(x, y - 4, colWidths.reduce((a, b) => a + b, 0), 6, "F");
-        }
-
-        const row = [
-          item.producto.codigo_producto || "-",
-          item.producto.nombre_producto || "-",
-          (item.cantidad || 0).toString(),
-          formatNumber(item.producto.precio_venta || 0),
-          `${descuentoPct}%`,
-          formatNumber(Math.round(subtotalItem - descuentoItem)),
-        ];
-
-        row.forEach((text, i) => {
-          doc.text(text, x + 2, y);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(tableFontSize);
+        doc.setFillColor(220, 220, 220);
+        doc.rect(
+          x,
+          y - 3,
+          colWidths.reduce((a, b) => a + b, 0),
+          6,
+          "F"
+        );
+        headers.forEach((h, i) => {
+          doc.text(h, x + 0.5, y);
           x += colWidths[i];
         });
+        y += 5;
 
-        y += 6;
-        doc.line(padding, y - 4, padding + colWidths.reduce((a, b) => a + b, 0), y - 4);
-      });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(tableFontSize);
 
-      const subtotalConDescuento = subtotal - totalDescuento;
-      const impuestos = +(subtotalConDescuento * 0.13).toFixed(2);
-      const totalAPagar = subtotalConDescuento + impuestos;
+        let subtotal = 0;
+        let totalDescuento = 0;
 
-      doc.setFont("helvetica", "bold");
-      const totalX = padding + colWidths.slice(0, 3).reduce((a, b) => a + b, 0);
-      doc.text(`Subtotal: ${formatNumber(subtotal)}`, totalX, y);
-      y += 6;
-      doc.text(`Total Descuento: ${formatNumber(Math.round(totalDescuento))}`, totalX, y);
-      y += 6;
-      doc.text(`Impuestos (13%): ${formatNumber(Math.round(impuestos))}`, totalX, y);
-      y += 6;
-      doc.text(`Total a pagar: ${formatNumber(Math.round(totalAPagar))}`, totalX, y);
-      y += 10;
+        carrito.forEach((item) => {
+          x = padding;
+          const descuentoPct = Math.max(0, Math.min(item.descuento || 0, 100));
+          const subtotalItem =
+            (item.producto.precio_venta || 0) * (item.cantidad || 0);
+          subtotal += subtotalItem;
+          totalDescuento += subtotalItem * (descuentoPct / 100);
 
-      doc.setFont("helvetica", "normal");
-      doc.text(`Método de pago: ${metodoPago}`, padding, y);
-      y += 5;
-      doc.text(`Monto entregado: ${formatNumber(montoEntregado || 0)}`, padding, y);
-      y += 5;
-      doc.text(`Vuelto: ${formatNumber(Math.max(0, (montoEntregado || 0) - totalAPagar))}`, padding, y);
-      y += 5;
-      doc.text(`Comprobante: ${comprobante || "-"}`, padding, y);
-      y += 10;
+          const row = [
+            item.producto.codigo_producto || "-",
+            item.producto.nombre_producto || "-",
+            (item.cantidad || 0).toString(),
+            formatNumber(item.producto.precio_venta || 0),
+            `${descuentoPct}%`,
+          ];
 
-      doc.setLineWidth(0.5);
-      doc.line(padding, y, 200, y);
-      y += 5;
+          row.forEach((text, i) => {
+            doc.text(text, x + 0.5, y);
+            x += colWidths[i];
+          });
 
-      doc.setFont("helvetica", "italic");
-      doc.setFontSize(8);
-      doc.text("Gracias por su compra", padding, y);
-      y += 5;
+          y += 4.5;
+          doc.line(
+            padding,
+            y - 2,
+            padding + colWidths.reduce((a, b) => a + b, 0),
+            y - 2
+          );
 
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
-      const leyenda = `2025: autorizado mediante resolución
+          if (y + 20 > doc.internal.pageSize.height)
+            doc.internal.pageSize.height += 50;
+        });
+
+        // Deja un espacio antes de los totales
+        y += 6; // agrega 6mm de separación respecto a la tabla
+
+        // --- Totales compactos ---
+        const subtotalConDescuento = subtotal - totalDescuento;
+        const impuestos = +(subtotalConDescuento * 0.13).toFixed(2);
+        const totalAPagar = subtotalConDescuento + impuestos;
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(normalFontSize);
+        doc.text(`Subtotal: ${formatNumber(subtotal)}`, padding, y);
+        y += 4;
+        doc.text(
+          `Total Descuento: ${formatNumber(Math.round(totalDescuento))}`,
+          padding,
+          y
+        );
+        y += 4;
+        doc.text(
+          `Impuestos (13%): ${formatNumber(Math.round(impuestos))}`,
+          padding,
+          y
+        );
+        y += 4;
+        doc.text(
+          `Total a pagar: ${formatNumber(Math.round(totalAPagar))}`,
+          padding,
+          y
+        );
+        y += 5;
+
+        doc.setFont("helvetica", "normal");
+        doc.text(`Método de pago: ${metodoPago}`, padding, y);
+        y += 3;
+        doc.text(
+          `Monto entregado: ${formatNumber(montoEntregado || 0)}`,
+          padding,
+          y
+        );
+        y += 3;
+        doc.text(
+          `Vuelto: ${formatNumber(Math.max(0, (montoEntregado || 0) - totalAPagar))}`,
+          padding,
+          y
+        );
+        y += 3;
+        doc.text(`Comprobante: ${comprobante || "-"}`, padding, y);
+        y += 5;
+
+        doc.setLineWidth(0.3);
+        doc.line(padding, y, pageWidth - padding, y);
+        y += 3;
+
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(smallFontSize);
+        doc.text("Gracias por su compra", padding, y);
+        y += 3;
+
+        const leyenda = `2025: autorizado mediante resolución
 No. DGT-R-033-2019 del 20/06/2019
 Versión del documento 4.3`;
-      doc.text(leyenda, 105, y, { align: "center", maxWidth: 180 });
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(normalFontSize);
+        doc.text(leyenda, pageWidth / 2, y, {
+          align: "center",
+          maxWidth: pageWidth - 2 * padding,
+        });
 
-      doc.save(`Factura_${clienteSeleccionado.name || "cliente"}_${numeroFactura}.pdf`);
-      setSuccessMessage("Factura generada correctamente");
-    } catch (err: any) {
-      setError(err.message || "Ocurrió un error al generar la factura");
-    } finally {
-      setLoading(false);
-    }
-  };
+        doc.save(
+          `Factura_${clienteSeleccionado.name || "cliente"}_${numeroFactura}.pdf`
+        );
+        setSuccessMessage("Factura generada correctamente");
+      } catch (err: any) {
+        setError(err.message || "Ocurrió un error al generar la factura");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  useImperativeHandle(ref, () => ({
-    generarFactura,
-  }));
+    useImperativeHandle(ref, () => ({ generarFactura }));
 
-  return (
-    <section className="flex flex-col gap-3">
-      {error && (
-        <div className="p-3 bg-rojo-ultra-claro text-rojo-claro rounded-lg text-center">
-          {error}
-        </div>
-      )}
-      {successMessage && (
-        <div className="p-3 bg-verde-ultra-claro text-verde-oscuro rounded-lg text-center">
-          {successMessage}
-        </div>
-      )}
-      <Button
-        text={loading ? "Generando..." : buttonText || "Imprimir factura"}
-        style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-8 py-3 rounded text-lg cursor-pointer"
-        onClick={generarFactura}
-        disabled={disabled}
-      />
-    </section>
-  );
-});
+    return (
+      <section className="flex flex-col gap-3">
+        {error && (
+          <div className="p-3 bg-rojo-ultra-claro text-rojo-claro rounded-lg text-center">
+            {error}
+          </div>
+        )}
+        {successMessage && (
+          <div className="p-3 bg-verde-ultra-claro text-verde-oscuro rounded-lg text-center">
+            {successMessage}
+          </div>
+        )}
+        <Button
+          text={loading ? "Generando..." : buttonText || "Imprimir factura"}
+          style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-8 py-3 rounded text-lg cursor-pointer"
+          onClick={generarFactura}
+          disabled={disabled}
+        />
+      </section>
+    );
+  }
+);
 
 export default GenerateInvoice;

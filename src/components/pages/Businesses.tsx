@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
 import Container from "../ui/Container";
-import SideBar from "../ui/SideBar";
+
 import Button from "../ui/Button";
 import TableInformation from "../ui/TableInformation";
 import { UseBusiness } from "../../hooks/Businesses/UseBusiness";
@@ -38,8 +38,8 @@ const headers = [
 ];
 
 export default function Businesses() {
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+ 
+
 
   const {
     fetchBusinesses,
@@ -291,7 +291,7 @@ export default function Businesses() {
       <Container
         page={
           <div className="flex">
-            <SideBar role={userRole} />
+           
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Negocios

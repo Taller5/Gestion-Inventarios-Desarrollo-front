@@ -23,20 +23,32 @@ const formatearTelefono = (numero: string | number) => {
   const limpio = numero.toString().replace(/\D/g, ""); // elimina todo menos dígitos
   return limpio.replace(/(\d{4})(\d{4})/, "$1 $2");
 };
+import { useState, useEffect } from "react";
 
 export default function TableInformation(props: TableInformationProps) {
-  return (
-    <main className="w-full pl-1 md:pl-4 pt-8">
-      <div className="  overflow-x-auto overflow-y-auto
-          shadow-md rounded-lg max-w-[95%] ml-0
-          max-h-[500px]   /*  altura máxima de la tabla */">
-        <table className="min-w-full divide-y divide-gray-200">
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Si el ancho es menor a 1024px (laptop pequeña), usamos cards
+  const useCards = windowWidth < 1024;
+
+return (
+  <main className="w-full md:pl-1 pt-8">
+    {!useCards ? (
+      // --- Tabla Desktop ---
+      <div className="overflow-x-hidden overflow-y-auto rounded-lg max-w-full max-h-[500px] pr-4">
+        <table className="min-w-full table-auto divide-y divide-gray-200 text-sm">
           <thead className="bg-gray-100">
             <tr>
               {props.headers.map((header, index) => (
                 <th
                   key={index}
-                  className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
+                  className="px-2 py-2 text-left font-semibold text-gray-700 uppercase tracking-wide"
                 >
                   {headerMap[header] ?? header}
                 </th>
@@ -50,17 +62,45 @@ export default function TableInformation(props: TableInformationProps) {
                 className="hover:bg-gray-50 transition-colors duration-200"
               >
                 {props.headers.map((header, colIndex) => (
-                  <td key={colIndex} className="px-3 py-3 text-sm text-gray-600">
-              {header === "phone"
-                ? formatearTelefono(row[header])
-                : row[header] ?? ""}
-            </td>
+                  <td key={colIndex} className="px-2 py-2 text-gray-600">
+                    {header === "phone"
+                      ? formatearTelefono(row[header])
+                      : row[header] ?? ""}
+                  </td>
                 ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-    </main>
-  );
+    ) : (
+      // --- Cards Mobile / Laptop pequeña ---
+      <div className="flex flex-col gap-2 px-2">
+        {props.tableContent?.map((row, rowIndex) => (
+          <div
+            key={rowIndex}
+            className="bg-white shadow rounded-lg p-4 flex flex-col"
+          >
+            {props.headers.map((header, colIndex) => (
+              <div
+                key={colIndex}
+                className="flex justify-between py-2 border-b last:border-b-0"
+              >
+                <span className="font-semibold text-gray-700">
+                  {headerMap[header] ?? header}
+                </span>
+                <span className="text-gray-600">
+                  {header === "phone"
+                    ? formatearTelefono(row[header])
+                    : row[header] ?? ""}
+                </span>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    )}
+  </main>
+);
+
 }

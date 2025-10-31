@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ProtectedRoute from "../services/ProtectedRoute";
-import SideBar from "../ui/SideBar";
+
 import Container from "../ui/Container";
 import type { GenerateInvoiceRef } from "../ui/SaleComponents/GenerateInvoice";
 import { FaCashRegister } from 'react-icons/fa';
@@ -21,6 +21,12 @@ export type Producto = {
   bodega?: string;
   bodega_id?: number;
 };
+interface CartItemType {
+  producto: Producto;
+  cantidad: number;
+  descuento: number;
+  infoPromo?: string | { id: number; descripcion: string; cantidadAplicada: number };
+}
 
 type Lote = {
   lote_id: number;
@@ -43,7 +49,7 @@ import CashRegisterModal from "../ui/SaleComponents/CashRegisterModal";
 
 export default function SalesPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userRole = user.role || "";
+  
   const API_URL = import.meta.env.VITE_API_URL;
   // Estados
   const [clientes, setClientes] = useState<Customer[]>([]);
@@ -90,6 +96,7 @@ export default function SalesPage() {
   const [bodegas, setBodegas] = useState<Warehouse[]>([]);
   // Definir los tipos completos
   interface Business {
+    negocio_id?: number;
     nombre_comercial: string;
     nombre_legal: string;
     telefono: string;
@@ -140,6 +147,7 @@ export default function SalesPage() {
           canton: s.canton || "-",
           telefono: s.telefono || "-",
           business: {
+            negocio_id: s.business.negocio_id || null,
             nombre_comercial: s.business.nombre_comercial || "-",
             nombre_legal: s.business.nombre_legal || "-",
             telefono: s.business.telefono || "-",
@@ -180,7 +188,7 @@ export default function SalesPage() {
 
     fetchSucursales();
   }, [API_URL]);
-  // Recuperar caja guardada al iniciar la página o cambiar de sucursal
+
 // Recuperar caja guardada al iniciar la página o cambiar de sucursal
 useEffect(() => {
   if (!sucursalSeleccionada) return;
@@ -477,6 +485,40 @@ useEffect(() => {
         return;
       }
 
+   // --- Aplicar promociones antes de armar factura ---
+await Promise.all(
+  carrito.map(async (item: CartItemType) => {
+    const tienePromoValida =
+      item.descuento > 0 &&
+      item.infoPromo !== undefined &&
+      (typeof item.infoPromo === "string" || typeof item.infoPromo === "object");
+
+    if (tienePromoValida) {
+      try {
+        const token = localStorage.getItem("token");
+        await fetch(`${API_URL}/api/v1/promotions/reduce-stock`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify({
+            product_id: item.producto.id,
+            quantity: item.cantidad,
+          }),
+        });
+      } catch (error) {
+        console.warn(
+          "No se pudo reducir la promoción para el producto:",
+          item.producto.codigo_producto,
+          error
+        );
+      }
+    }
+  })
+);
+
+
       // Preparar productos para la factura
       const productosFactura = carrito.map((item) => ({
         code: item.producto.codigo_producto,
@@ -631,133 +673,147 @@ useEffect(() => {
     }
   }, [facturaCreada, loadingFactura]);
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
-      <Container
-        page={
-          <div className="flex">
-            <SideBar role={userRole} />
-            <div className="w-full pl-10 pt-10 flex gap-6">
-              <div className="w-3/2 flex flex-col pl-10">
-                <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
+<ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
+  <Container
+    page={
+      <div className="w-full flex justify-center px-2 md:px-10 pt-10">
+        <div className="w-full max-w-[1200px] flex flex-col md:flex-row gap-4 md:gap-6">
+          
+          {/* Contenido principal */}
+          <div className="flex-1 flex flex-col">
+            <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
 
-                {/* Selector de clientes */}
-                <CustomerSelector
-                  queryCliente={queryCliente}
-                  setQueryCliente={setQueryCliente}
-                  clientesFiltrados={clientesFiltrados}
-                  clienteSeleccionado={clienteSeleccionado}
-                  setClienteSeleccionado={setClienteSeleccionado}
-                  sucursalSeleccionada={sucursalSeleccionada}
-                  modalSucursal={modalSucursal}
-                  setModalSucursal={setModalSucursal}
-                />
-                <div>
-                  <button
-                    className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 m-2 py-2 rounded-lg shadow-md transition-transform duration-150 
-                                      transform flex items-center justify-center cursor-pointer"
-                    onClick={() => setModalCaja(true)}
-                  >
-                   <FaCashRegister className="mr-2.5" size={20}/> Información de caja
-                  </button>
-                </div>
+            {/* Selector de clientes */}
+            <CustomerSelector
+              queryCliente={queryCliente}
+              setQueryCliente={setQueryCliente}
+              clientesFiltrados={clientesFiltrados}
+              clienteSeleccionado={clienteSeleccionado}
+              setClienteSeleccionado={setClienteSeleccionado}
+              sucursalSeleccionada={sucursalSeleccionada}
+              modalSucursal={modalSucursal}
+              setModalSucursal={setModalSucursal}
+            />
 
-                {/* Selector de productos con filtrado por sucursal */}
-                <ProductSelector
-                  productos={productos}
-                  carrito={carrito}
-                  queryProducto={queryProducto}
-                  setQueryProducto={setQueryProducto}
-                  productoSeleccionado={productoSeleccionado}
-                  setProductoSeleccionado={setProductoSeleccionado}
-                  setModalOpen={setModalOpen}
-                  sucursalSeleccionada={sucursalSeleccionada}
-                  bodegas={bodegas}
-                  cajaSeleccionada={cajaSeleccionada}
-                />
-
-                {/* Tabla de carrito */}
-                <CartTable
-                  carrito={carrito}
-                  editIdx={editIdx}
-                  editCantidad={editCantidad}
-                  setEditCantidad={setEditCantidad}
-                  editDescuento={editDescuento}
-                  setEditDescuento={setEditDescuento}
-                  iniciarEdicion={iniciarEdicion}
-                  guardarEdicion={guardarEdicion}
-                  eliminarDelCarrito={eliminarDelCarrito}
-                  setCarrito={setCarrito}
-                  clienteSeleccionado={clienteSeleccionado}
-                  setFacturaModal={setFacturaModal}
-                />
-              </div>
-
-              <div className="w-1/3"></div>
-              {/* Modal de agregar producto */}
-              {modalOpen && productoSeleccionado && (
-                <AddProductModal
-                  productoSeleccionado={productoSeleccionado}
-                  cantidadSeleccionada={cantidadSeleccionada}
-                  setCantidadSeleccionada={setCantidadSeleccionada}
-                  getAvailableStock={getAvailableStock}
-                  setModalOpen={setModalOpen}
-                  agregarAlCarrito={agregarAlCarritoConCantidad}
-                />
-              )}
-              {/* Modal de sucursal */}
-              <SucursalModal
-                sucursales={sucursales}
-                modalSucursal={modalSucursal}
-                setModalSucursal={setModalSucursal}
-                setSucursalSeleccionada={setSucursalSeleccionada}
-                API_URL={API_URL}
-              />
-              <CashRegisterModal
-                modalCaja={modalCaja}
-                setModalCaja={setModalCaja}
-                sucursalSeleccionada={sucursalSeleccionada}
-                API_URL={API_URL}
-                mostrarAlerta={mostrarAlerta}
-                onCerrarCaja={(caja) => setCajaSeleccionada(caja)} // asigna automáticamente la caja activa al cargar
-                obtenerCajaUsuario={obtenerCajaUsuario} // pasa la función que obtiene la caja del usuario
-              />
-
-              <FacturaModal
-                facturaModal={facturaModal}
-                setFacturaModal={setFacturaModal}
-                carrito={carrito}
-                clienteSeleccionado={clienteSeleccionado}
-                sucursalSeleccionada={sucursalSeleccionada}
-                user={user}
-                metodoPago={metodoPago}
-                setMetodoPago={setMetodoPago}
-                montoEntregado={montoEntregado}
-                setMontoEntregado={setMontoEntregado}
-                comprobante={comprobante}
-                setComprobante={setComprobante}
-                facturaCreada={facturaCreada}
-                invoiceRef={invoiceRef}
-                botonDisabled={botonDisabled}
-                finalizarVenta={finalizarVenta}
-                loadingSucursal={loadingSucursal}
-                errorSucursal={errorSucursal}
-              />
-              {/* Alert */}
-              {alert && (
-                <div
-                  className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
-                    alert.type === "success"
-                      ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                      : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-                  }`}
-                >
-                  {alert.message}
-                </div>
-              )}
+            <div className="my-2">
+              <button
+                className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 
+                           transform flex items-center justify-center cursor-pointer w-full sm:w-auto"
+                onClick={() => setModalCaja(true)}
+              >
+                <FaCashRegister className="mr-2.5" size={20}/> Información de caja
+              </button>
             </div>
+
+            {/* Selector de productos */}
+            <ProductSelector
+              productos={productos}
+              carrito={carrito}
+              queryProducto={queryProducto}
+              setQueryProducto={setQueryProducto}
+              productoSeleccionado={productoSeleccionado}
+              setProductoSeleccionado={setProductoSeleccionado}
+              setModalOpen={setModalOpen}
+              sucursalSeleccionada={sucursalSeleccionada}
+              bodegas={bodegas}
+              cajaSeleccionada={cajaSeleccionada}
+            />
+
+           {/* Tabla de carrito */}
+            {sucursalSeleccionada && (
+              <CartTable
+                carrito={carrito}
+                editIdx={editIdx}
+                editCantidad={editCantidad}
+                setEditCantidad={setEditCantidad}
+                editDescuento={editDescuento}
+                setEditDescuento={setEditDescuento}
+                iniciarEdicion={iniciarEdicion}
+                guardarEdicion={guardarEdicion}
+                eliminarDelCarrito={eliminarDelCarrito}
+                setCarrito={setCarrito}
+                clienteSeleccionado={clienteSeleccionado}
+                setFacturaModal={setFacturaModal}
+                businessId={sucursalSeleccionada.business.negocio_id}
+                branch_id={sucursalSeleccionada.sucursal_id}
+                clienteType={clienteSeleccionado?.name} // aquí solo el string
+              />
+            )}
+
+
           </div>
-        }
-      />
-    </ProtectedRoute>
+
+          
+
+          {/* Modales */}
+          {modalOpen && productoSeleccionado && (
+            <AddProductModal
+              productoSeleccionado={productoSeleccionado}
+              cantidadSeleccionada={cantidadSeleccionada}
+              setCantidadSeleccionada={setCantidadSeleccionada}
+              getAvailableStock={getAvailableStock}
+              setModalOpen={setModalOpen}
+              agregarAlCarrito={agregarAlCarritoConCantidad}
+            />
+          )}
+
+          <SucursalModal
+            sucursales={sucursales}
+            modalSucursal={modalSucursal}
+            setModalSucursal={setModalSucursal}
+            setSucursalSeleccionada={setSucursalSeleccionada}
+            API_URL={API_URL}
+          />
+
+          <CashRegisterModal
+            modalCaja={modalCaja}
+            setModalCaja={setModalCaja}
+            sucursalSeleccionada={sucursalSeleccionada}
+            API_URL={API_URL}
+            mostrarAlerta={mostrarAlerta}
+            onCerrarCaja={(caja) => setCajaSeleccionada(caja)}
+            obtenerCajaUsuario={obtenerCajaUsuario}
+          />
+
+          <FacturaModal
+            facturaModal={facturaModal}
+            setFacturaModal={setFacturaModal}
+            carrito={carrito}
+            clienteSeleccionado={clienteSeleccionado}
+            sucursalSeleccionada={sucursalSeleccionada}
+            user={user}
+            metodoPago={metodoPago}
+            setMetodoPago={setMetodoPago}
+            montoEntregado={montoEntregado}
+            setMontoEntregado={setMontoEntregado}
+            comprobante={comprobante}
+            setComprobante={setComprobante}
+            facturaCreada={facturaCreada}
+            invoiceRef={invoiceRef}
+            botonDisabled={botonDisabled}
+            finalizarVenta={finalizarVenta}
+            loadingSucursal={loadingSucursal}
+            errorSucursal={errorSucursal}
+          />
+
+          {/* Alert */}
+          {alert && (
+            <div
+              className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
+                alert.type === "success"
+                  ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                  : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+              }`}
+            >
+              {alert.message}
+            </div>
+          )}
+        </div>
+      </div>
+    }
+  />
+</ProtectedRoute>
+
+
   );
 }
