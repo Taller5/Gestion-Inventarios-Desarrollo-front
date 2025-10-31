@@ -17,6 +17,7 @@ const API_URL = import.meta.env.VITE_API_URL;
     nombre_comercial: string;
     negocio_id: number;
     nombre_legal: string;
+    logo: string;
     };
 
     type CashRegister = {
@@ -161,6 +162,7 @@ export default function DashboardInformation() {
                             <p className="mt-4">Caja: {getUserInformation()?.cashRegister.id}</p>
                             <p className="mt-4">Sucursal: {getUserInformation()?.branch.nombre}</p>
                             <p className="mt-4">Negocio: {getUserInformation()?.business.nombre_comercial}</p>
+                            <img src="" alt="" />
                         </div>
                     )}
                             
