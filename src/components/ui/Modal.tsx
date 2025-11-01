@@ -320,8 +320,9 @@ export default function Modal({
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        <h2 className="text-2xl font-bold mb-8 text-center w-full">
+        <h2 className="text-2xl font-bold mb-4 text-center w-full">
           {isEditMode ? "Editar usuario" : "Añadir colaborador"}
+          <hr className="mt-4 pb-3" />
         </h2>
         {alert && (
           <div

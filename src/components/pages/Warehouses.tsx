@@ -359,9 +359,10 @@ export default function Warehouses() {
                       </svg>
                     </button>
                     <div className="p-6">
-                      <h2 className="text-xl font-bold mb-6">
+                      <h2 className="text-xl font-bold mb-3">
                         {warehouseToEdit ? "Editar Bodega" : "Nueva Bodega"}
                       </h2>
+                      <hr className="pb-3" />
                       {error && (
                         <div className="mb-4 px-4 py-2 rounded text-center font-semibold bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border">
                           {error}

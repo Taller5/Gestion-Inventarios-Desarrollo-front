@@ -393,6 +393,7 @@ export default function Businesses() {
                       <h2 className="text-xl font-bold mb-6">
                         {businessToEdit ? "Editar Negocio" : "Nuevo Negocio"}
                       </h2>
+                      <hr className="pb-4" />
                       {/* Logo */}
                       <div className="mb-4 flex flex-col items-center gap-3">
                         <label className="block text-sm font-medium text-gray-700 ">

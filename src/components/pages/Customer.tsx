@@ -424,10 +424,10 @@ if (errorEmail) {
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                       </svg>
                     </button>
-                    <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-3 text-center">
                       {customerToEdit ? "Editar Cliente" : "Añadir Cliente"}
                     </h2>
-
+                    <hr className="pb-3" />
                     {alert && (
                       <div
                         className={`mb-4 px-4 py-2 rounded-lg text-center font-semibold ${
