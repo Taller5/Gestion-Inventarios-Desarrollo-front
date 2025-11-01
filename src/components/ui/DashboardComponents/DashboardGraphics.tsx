@@ -62,15 +62,30 @@ const InvoiceChart = ({ invoices }: { invoices: any[] }) => {
         title: "Facturas por día",
         xaxis: { title: "Fecha" },
         yaxis: { title: "Cantidad de facturas" },
+        // plot_bgcolor: "#000",
+        // paper_bgcolor: "#000",
+        font: { color: "black" },
+        margin: {
+            l: 40, // izquierda
+            r: 20, // derecha
+            t: 40, // arriba
+            b: 40  // abajo
+        },
+
       }}
       style={{
     width: "100%",
-    height: "400px",
-    border: "5px solid #ccc",
-    padding: "5px",
-    backgroundColor: "#f9f9f9",
-    borderRadius: "8px",
+    height: "300px",
+    border: "2px solid #E5E7EB",
+    overflow: "hidden",
+    boxSizing: "border-box",
+    borderRadius: "10px",
   }}
+
+//   border-radius: 50px;
+// background: #dbdbdb;
+// box-shadow:  20px 20px 60px #bababa,
+//              -20px -20px 60px #fcfcfc;
 
     />
   );

@@ -16,7 +16,7 @@ export default function Dashboard() {
              <div className="w-full pl-10 pt-10">
                 <h1 className="text-2xl font-bold h-5">Bienvenido a Gestior, {user.name}</h1>
                 
-                <div className="grid grid-cols-4 grid-rows-3 gap-4">
+                <div className="grid grid-cols-4 grid-rows-3 gap-5">
                     {/* cajas de botones */}
                     <div className="mt-10 max-h-[4rem]">Gestionar colaboradores</div>
                     <div className="mt-10 max-h-[4rem]">Gestionar negocios</div>
