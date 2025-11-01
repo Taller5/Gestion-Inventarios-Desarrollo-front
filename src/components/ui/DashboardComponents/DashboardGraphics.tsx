@@ -97,18 +97,32 @@ const InvoiceChart = ({ invoices }: { invoices: any[] }) => {
 };
     return (
   <div className="w-full">
-    {!loading && invoices.length > 0 && branch && (
+    <div>
+    {loading ? (
+      <h2 className="text-lg font-semibold mt-15">Cargando gráficos...</h2>
+    ) : (
       <div>
-        <h2 className="text-lg font-semibold">
-          Facturas por día – {branch.nombre}
-        </h2>
-        <InvoiceChart
-          invoices={invoices.filter(
-            (invoice) => invoice.branch_name === branch.nombre
-          )}
-        />
+        {invoices.length > 0 && branch ? (
+          <div>
+            <h2 className="text-lg font-semibold">
+              Facturas por día - {branch.nombre}
+            </h2>
+            <InvoiceChart
+              invoices={invoices.filter(
+                (invoice) => invoice.branch_name === branch.nombre
+              )}
+            />
+          </div>
+        ) : (
+          <h2 className="text-lg font-semibold mt-15">
+            Debe crear una
+            <a href="/cashRegisterPage" className="text-azul-hover hover:font-bold"> caja </a>
+            para ver las facturas de la sucursal
+          </h2>
+        )}
       </div>
     )}
+    </div>
   </div>
 );
 }
