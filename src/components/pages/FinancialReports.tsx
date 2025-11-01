@@ -167,7 +167,7 @@ export default function GrossProfitSaleReports() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="w-full md:w-auto max-w-[1200px] px-2 md:px-10 mx-auto flex flex-col">
+          <div className="w-full md:w-auto max-w-[1200px] px-2 md:px-10 mx-8 flex flex-col h-[65rem]">
             <h1 className="text-3xl font-bold mb-6 mt-6">Reporte de Ganancia Bruta</h1>
 
             {loading && <p>Cargando...</p>}
@@ -264,13 +264,15 @@ export default function GrossProfitSaleReports() {
 
             {/* TABLA */}
             {invoicesWithProfit.length > 0 && (
-              <TableInformation headers={invoiceHeaders} tableContent={invoicesWithProfit} />
+              <div className="max-h-[20rem] overflow-hidden">
+                <TableInformation headers={invoiceHeaders} tableContent={invoicesWithProfit} />
+              </div>
             )}
 
             {/* GRÁFICO DE LÍNEA */}
             {!loading && !error && profitByDate.length > 0 && (
-              <div className="mt-10 w-full" style={{ height: 300 }}>
-                <h2 className="text-lg font-semibold mb-2">Ganancia por Fecha</h2>
+              <div className="mt-15 w-full h-[300px]" >
+                <h2 className="text-lg font-semibold mb-5">Ganancia por Fecha</h2>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={profitByDate}>
                     <CartesianGrid strokeDasharray="3 3" />
