@@ -2,10 +2,15 @@ import ProtectedRoute from "../services/ProtectedRoute";
 import Container from "../ui/Container";
 import DashboardInformation from "../ui/DashboardComponents/DashboardInformation";
 import DashboardGraphics from "../ui/DashboardComponents/DashboardGraphics";
+import { useState } from "react";
+import type { Branch } from "../ui/DashboardComponents/DashboardInformation";
+
 
 export default function Dashboard() {
     localStorage.getItem("user");
     const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const [userBranch, setUserBranch] = useState<Branch | null>(null);
+
 
     // Cuando un admin hace login, debe ver el dashboard que le reporte ventas, ganancias, pérdidas de productos, por meses, gráficas...
 
@@ -23,11 +28,11 @@ export default function Dashboard() {
                     <div className="mt-10 max-h-[4rem]">Gestionar productos</div>
                     <div className="col-span-3 col-start-1 row-start-2 max-h-[4rem]">Ver reportes</div>
                     <div className="col-span-3 col-start-1 row-start-3 max-h-[4rem]">
-                        <DashboardGraphics/>
+                        <DashboardGraphics branch={userBranch}/>
                     </div>
                     {/* sideInfo */}
                     <div className="row-span-3 col-start-4 row-start-1">
-                        <DashboardInformation/>
+                        <DashboardInformation onSucursalLoaded={setUserBranch}/>
                     </div>
                 </div>
              </div>

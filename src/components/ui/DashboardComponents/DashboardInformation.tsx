@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 // Types
-    type Branch = {
+    export type Branch = {
     sucursal_id: number;
     negocio_id: number;
     nombre: string;
@@ -32,8 +32,13 @@ const API_URL = import.meta.env.VITE_API_URL;
     user: { id: number; name: string };
     available_amount: number;
     };
+
+    type Props = {
+        onSucursalLoaded: (branch: Branch) => void;
+    };
+
     
-export default function DashboardInformation() {
+export default function DashboardInformation( { onSucursalLoaded }: Props ) {
 
      const user = JSON.parse(localStorage.getItem("user") || "{}");
      const token = localStorage.getItem("token");
@@ -133,6 +138,8 @@ export default function DashboardInformation() {
             (b) => b.sucursal_id === userCashRegister.sucursal_id
         );
         if (!branch) return null;
+
+        onSucursalLoaded(branch);
 
         // Buscar el negocio asociado a la sucursal
         const business = businesses.find(

@@ -1,9 +1,15 @@
+import type { Branch } from "./DashboardInformation";
 import { useEffect, useState } from "react";
 import Plot from "react-plotly.js";
 
 
 const API_URL = import.meta.env.VITE_API_URL;
-export default function DashboardInformation() {
+
+type Props = {
+  branch: Branch | null;
+};
+
+export default function DashboardInformation( { branch }: Props ) {
     const [invoices, setInvoices] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -26,7 +32,6 @@ export default function DashboardInformation() {
     
         fetchInvoices();
       }, []);
-
     
 
     const groupInvoicesByDay = (invoices: any[]) => {
@@ -90,15 +95,20 @@ const InvoiceChart = ({ invoices }: { invoices: any[] }) => {
     />
   );
 };
-    return (   
-        <div className="w-full">
-            {!loading && invoices.length > 0 && 
-            <div>
-                <h2 className="text-lg font-semibold">Facturas por día</h2>
-                <InvoiceChart invoices={invoices} />
-            </div>
-}
-        </div>
-
-    );
+    return (
+  <div className="w-full">
+    {!loading && invoices.length > 0 && branch && (
+      <div>
+        <h2 className="text-lg font-semibold">
+          Facturas por día – {branch.nombre}
+        </h2>
+        <InvoiceChart
+          invoices={invoices.filter(
+            (invoice) => invoice.branch_name === branch.nombre
+          )}
+        />
+      </div>
+    )}
+  </div>
+);
 }
