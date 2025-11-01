@@ -164,7 +164,7 @@ export default function DashboardInformation( { onSucursalLoaded }: Props ) {
                 <p>Cargando...</p>
             ) : (
                 <div>
-                    {getUserInformation() && (
+                    {getUserInformation() ? (
                         <div>
                             <a href="/profile"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Nombre:  <span className="text-azul-hover">{getUserInformation()?.user.name}</span> </p></a>
                             <a href="/cashRegisterPage"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Caja: <span className="text-azul-hover">{getUserInformation()?.cashRegister.id}</span> </p></a>
@@ -172,12 +172,11 @@ export default function DashboardInformation( { onSucursalLoaded }: Props ) {
                             <a href="/businesses"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Negocio: <span className="text-azul-hover"> {getUserInformation()?.business.nombre_comercial}</span> </p></a>
                             <img src={getUserInformation()?.business.logo} alt="logo del negocio asociado al usuario" />
                         </div>
-                    )}    
-                </div>
-            )}
-            {!getUserInformation() && (
-                <div>
+                    ) : (
+                      <div>
                     <a href="/cashRegisterPage"><p className="mt-4 text-lg font-semibold">Debe crear una <span className="text-azul-hover hover:font-bold hover:scale-105">caja</span> para ver su información</p></a>
+                      </div>
+                    )}    
                 </div>
             )}
         </div>

@@ -76,6 +76,7 @@ const InvoiceChart = ({ invoices }: { invoices: any[] }) => {
             t: 40, // arriba
             b: 40  // abajo
         },
+        transition: "transform",
 
       }}
       style={{
@@ -102,7 +103,7 @@ const InvoiceChart = ({ invoices }: { invoices: any[] }) => {
       <h2 className="text-lg font-semibold mt-15">Cargando gráficos...</h2>
     ) : (
       <div>
-        {invoices === null ? (
+        {!invoices || invoices.length <= 0 ? (
           <h2 className="text-lg font-semibold mt-15">
             Debe crear una
             <a href="/cashRegisterPage" className="text-azul-hover hover:font-bold"> caja </a>
