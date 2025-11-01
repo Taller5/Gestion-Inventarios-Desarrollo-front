@@ -16,7 +16,7 @@ export default function Login() {
     setError(undefined);
     try {
       await LoginService.login({ email, password });
-      router.navigate({ to: '/inventary' });
+      router.navigate({ to: '/dashboard' });
     } catch (err: any) {
       setError(err.message);
     } finally {
