@@ -157,7 +157,7 @@ export default function DashboardInformation( { onSucursalLoaded }: Props ) {
     };
 
     return(
-        <div className="border-2 border-gray-200 p-2 rounded-lg h-full pl-5 max-w-[22rem]">
+        <div className="border-2 border-gris-ultra-claro p-2 rounded-lg h-full pl-5 max-w-[22rem]">
             <h2 className="text-2xl font-bold text-azul-medio">Información del usuario</h2>
             <hr className="text-gray-200"/>
             {loading ? (
@@ -166,10 +166,10 @@ export default function DashboardInformation( { onSucursalLoaded }: Props ) {
                 <div>
                     {getUserInformation() && (
                         <div>
-                            <p className="mt-4 text-lg font-semibold">Nombre:  <span className="text-azul-hover">{getUserInformation()?.user.name}</span> </p>
-                            <p className="mt-4 text-lg font-semibold">Caja: <span className="text-azul-hover">{getUserInformation()?.cashRegister.id}</span> </p>
-                            <p className="mt-4 text-lg font-semibold">Sucursal: <span className="text-azul-hover">{getUserInformation()?.branch.nombre}</span> </p>
-                            <p className="mt-4 text-lg font-semibold">Negocio: <span className="text-azul-hover"> {getUserInformation()?.business.nombre_comercial}</span> </p>
+                            <a href="/profile"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Nombre:  <span className="text-azul-hover">{getUserInformation()?.user.name}</span> </p></a>
+                            <a href="/cashRegisterPage"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Caja: <span className="text-azul-hover">{getUserInformation()?.cashRegister.id}</span> </p></a>
+                            <a href="/branches"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Sucursal: <span className="text-azul-hover">{getUserInformation()?.branch.nombre}</span> </p></a>
+                            <a href="/businesses"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Negocio: <span className="text-azul-hover"> {getUserInformation()?.business.nombre_comercial}</span> </p></a>
                             <img src={getUserInformation()?.business.logo} alt="logo del negocio asociado al usuario" />
                         </div>
                     )}
