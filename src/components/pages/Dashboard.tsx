@@ -4,6 +4,7 @@ import DashboardInformation from "../ui/DashboardComponents/DashboardInformation
 import DashboardGraphics from "../ui/DashboardComponents/DashboardGraphics";
 import { useState } from "react";
 import type { Branch } from "../ui/DashboardComponents/DashboardInformation";
+import { MdPerson } from "react-icons/md";
 
 
 export default function Dashboard() {
@@ -23,11 +24,34 @@ export default function Dashboard() {
                 
                 <div className="grid grid-cols-4 grid-rows-3 gap-5">
                     {/* cajas de botones */}
-                    <div className="mt-10 max-h-[4rem]">Gestionar colaboradores</div>
-                    <div className="mt-10 max-h-[4rem]">Gestionar negocios</div>
-                    <div className="mt-10 max-h-[4rem]">Gestionar productos</div>
-                    <div className="col-span-3 col-start-1 row-start-2 max-h-[4rem]">Ver reportes</div>
-                    <div className="col-span-3 col-start-1 row-start-3 max-h-[4rem]">
+                    <div className="mt-10 max-h-[4rem]">
+                        <a href="/employees" className="rounded-lg border flex flex-col p-4 justify-center max-h-[7rem] hover:scale-104 transition-transform hover:text-azul-medio">
+                            <div className="w-full justify-center items-center flex">
+                            <MdPerson size={40} className="text-azul-medio"/>
+                            </div>
+                            <h3 className="font-semibold text-center w-full text-[1.286rem]">Gestionar colaboradores</h3>
+                        </a>
+                    </div>
+
+                    <div className="mt-10 max-h-[4rem]">
+                        <a href="/employees" className="rounded-lg border flex flex-col p-4 justify-center max-h-[7rem] hover:scale-104 transition-transform hover:text-azul-medio">
+                            <div className="w-full justify-center items-center flex">
+                            <MdPerson size={40} className="text-azul-medio"/>
+                            </div>
+                            <h3 className="font-semibold text-center w-full text-[1.286rem]">Gestionar negocios</h3>
+                        </a>
+                    </div>
+
+                    <div className="mt-10 max-h-[4rem]">
+                        <a href="/employees" className="rounded-lg border flex flex-col p-4 justify-center max-h-[7rem] hover:scale-104 transition-transform hover:text-azul-medio">
+                            <div className="w-full justify-center items-center flex">
+                            <MdPerson size={40} className="text-azul-medio"/>
+                            </div>
+                            <h3 className="font-semibold text-center w-full text-[1.286rem]">Gestionar productos</h3>
+                        </a>
+                    </div>
+
+                    <div className="col-span-3 row-span-2 col-start-1 row-start-2">
                         <DashboardGraphics branch={userBranch}/>
                     </div>
                     {/* sideInfo */}

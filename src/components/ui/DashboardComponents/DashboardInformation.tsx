@@ -157,19 +157,20 @@ export default function DashboardInformation( { onSucursalLoaded }: Props ) {
     };
 
     return(
-        <div>
-            <h2 className="text-2xl font-bold">Información del usuario</h2>
+        <div className="border-2 border-gray-200 p-2 rounded-lg h-full pl-5 max-w-[22rem]">
+            <h2 className="text-2xl font-bold text-azul-medio">Información del usuario</h2>
+            <hr className="text-gray-200"/>
             {loading ? (
                 <p>Cargando...</p>
             ) : (
                 <div>
                     {getUserInformation() && (
                         <div>
-                            <p className="mt-4">Nombre: {getUserInformation()?.user.name}</p>
-                            <p className="mt-4">Caja: {getUserInformation()?.cashRegister.id}</p>
-                            <p className="mt-4">Sucursal: {getUserInformation()?.branch.nombre}</p>
-                            <p className="mt-4">Negocio: {getUserInformation()?.business.nombre_comercial}</p>
-                            <img src="" alt="" />
+                            <p className="mt-4 text-lg font-semibold">Nombre:  <span className="text-azul-hover">{getUserInformation()?.user.name}</span> </p>
+                            <p className="mt-4 text-lg font-semibold">Caja: <span className="text-azul-hover">{getUserInformation()?.cashRegister.id}</span> </p>
+                            <p className="mt-4 text-lg font-semibold">Sucursal: <span className="text-azul-hover">{getUserInformation()?.branch.nombre}</span> </p>
+                            <p className="mt-4 text-lg font-semibold">Negocio: <span className="text-azul-hover"> {getUserInformation()?.business.nombre_comercial}</span> </p>
+                            <img src={getUserInformation()?.business.logo} alt="logo del negocio asociado al usuario" />
                         </div>
                     )}
                             
