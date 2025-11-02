@@ -690,8 +690,13 @@ export default function Inventary() {
           : [...prev, savedCategory]
       );
 
-      setCategoryModalOpen(false);
+      //  Mostrar mensaje de éxito y limpiar campos
+      setAlertMessage("Categoría guardada exitosamente");
+      setCategoryForm({ nombre: "", descripcion: "" });
       setCategoryEditMode(false);
+
+      //  Ocultar el mensaje después de 3 segundos
+      setTimeout(() => setAlertMessage(null), 3000);
     } catch (err) {
       setAlertMessage("Ocurrió un error al guardar la categoría.");
       console.error(err);
@@ -699,6 +704,7 @@ export default function Inventary() {
       setCategoryLoadingForm(false);
     }
   };
+
   const deleteCategory = async (nombre: string) => {
     try {
       const res = await fetch(
@@ -897,478 +903,476 @@ export default function Inventary() {
     >
       <Container
         page={
-         
-         <div className="w-full flex justify-center px-2 md:px-10 pt-10">
-              <div className="w-full pl-2">
-                <h1 className="text-2xl font-bold mb-6 text-left">
-                  Gestionar Inventario
-                  <InfoIcon
-                    title="Inventario"
-                    description="En este módulo puedes gestionar los productos, lotes y categorías de tu inventario. Usa las acciones para agregar, editar o eliminar productos y lotes."
-                  />
-                </h1>
-                {/* Barra de búsqueda y botones principales */}
-                <div className="flex flex-col sm:flex-row justify-between gap-10 mb-4 w-full">
-                  {/* 🟦 Sección Izquierda: Filtros */}
+          <div className="w-full flex justify-center px-2 md:px-10 pt-10">
+            <div className="w-full pl-2">
+              <h1 className="text-2xl font-bold mb-6 text-left">
+                Gestionar Inventario
+                <InfoIcon
+                  title="Inventario"
+                  description="En este módulo puedes gestionar los productos, lotes y categorías de tu inventario. Usa las acciones para agregar, editar o eliminar productos y lotes."
+                />
+              </h1>
+              {/* Barra de búsqueda y botones principales */}
+              <div className="flex flex-col sm:flex-row justify-between gap-10 mb-4 w-full">
+                {/* 🟦 Sección Izquierda: Filtros */}
 
-                  <ProductFilters
-                    products={productos}
-                    warehouses={warehouses}
-                    businesses={businesses}
-                    selectedBusiness={selectedBusiness}
-                    setSelectedBusiness={setSelectedBusiness}
-                    categorySearchMain={categorySearchMain}
-                    setCategorySearchMain={setCategorySearchMain}
-                    searchedProducts={searchedProducts}
-                    setSearchedProducts={setSearchedProducts}
-                    productsFiltered={productsFiltered}
-                    setProductsFiltered={setProductsFiltered}
-                    setEditProductMode={setEditProductMode}
-                    setFormProducto={setFormProducto}
-                    setModalOpen={setModalOpen}
-                    alert={alert}
-                    setAlert={setAlert}
-                  />
-                </div>
+                <ProductFilters
+                  products={productos}
+                  warehouses={warehouses}
+                  businesses={businesses}
+                  selectedBusiness={selectedBusiness}
+                  setSelectedBusiness={setSelectedBusiness}
+                  categorySearchMain={categorySearchMain}
+                  setCategorySearchMain={setCategorySearchMain}
+                  searchedProducts={searchedProducts}
+                  setSearchedProducts={setSearchedProducts}
+                  productsFiltered={productsFiltered}
+                  setProductsFiltered={setProductsFiltered}
+                  setEditProductMode={setEditProductMode}
+                  setFormProducto={setFormProducto}
+                  setModalOpen={setModalOpen}
+                  alert={alert}
+                  setAlert={setAlert}
+                />
+              </div>
 
-                {/* Contenedor principal */}
-                <div className="overflow-x-hidden overflow-y-auto shadow-md rounded-lg max-w-full max-h-[500px] pr-4">
-                  {/* --- Tabla para escritorio --- */}
-                  <div className="hidden md:block rounded-lg">
-                    <table className="min-w-full divide-y divide-gray-200">
-                      <thead className="bg-gray-100">
+              {/* Contenedor principal */}
+              <div className="overflow-x-hidden overflow-y-auto shadow-md rounded-lg max-w-full max-h-[500px] pr-4">
+                {/* --- Tabla para escritorio --- */}
+                <div className="hidden md:block rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        {headers.map((header, idx) => (
+                          <th
+                            key={idx}
+                            className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
+                          >
+                            {header}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {loading ? (
                         <tr>
-                          {headers.map((header, idx) => (
-                            <th
-                              key={idx}
-                              className="px-3 py-3 text-left text-sm font-semibold text-gray-700 uppercase tracking-wide"
-                            >
-                              {header}
-                            </th>
-                          ))}
+                          <td
+                            colSpan={headers.length}
+                            className="text-center py-4"
+                          >
+                            Cargando...
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {loading ? (
-                          <tr>
-                            <td
-                              colSpan={headers.length}
-                              className="text-center py-4"
+                      ) : productsFiltered.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={headers.length}
+                            className="text-center py-4"
+                          >
+                            Sin resultados
+                          </td>
+                        </tr>
+                      ) : (
+                        productsFiltered.map((producto: any) => (
+                          <React.Fragment key={producto.codigo_producto}>
+                            <tr
+                              className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
+                              onClick={() =>
+                                setExpanded(
+                                  expanded === producto.codigo_producto
+                                    ? null
+                                    : producto.codigo_producto
+                                )
+                              }
                             >
-                              Cargando...
-                            </td>
-                          </tr>
-                        ) : productsFiltered.length === 0 ? (
-                          <tr>
-                            <td
-                              colSpan={headers.length}
-                              className="text-center py-4"
-                            >
-                              Sin resultados
-                            </td>
-                          </tr>
-                        ) : (
-                          productsFiltered.map((producto: any) => (
-                            <React.Fragment key={producto.codigo_producto}>
-                              <tr
-                                className="hover:bg-gray-50 transition-colors duration-200 cursor-pointer"
-                                onClick={() =>
-                                  setExpanded(
-                                    expanded === producto.codigo_producto
-                                      ? null
-                                      : producto.codigo_producto
-                                  )
-                                }
-                              >
-                                <td className="px-3 py-3 text-sm text-gray-600">
-                                  {producto.codigo_producto}
-                                </td>
-                                <td className="px-3 py-3 text-sm text-gray-600">
-                                  {producto.nombre_producto}
-                                </td>
-                                <td className="px-3 py-3 text-sm text-gray-600">
-                                  {producto.categoria}
-                                </td>
-                                <td className="px-3 py-3 text-sm text-gray-600">
-                                  {producto.descripcion}
-                                </td>
-                                <td className="px-3 py-3 text-sm text-gray-600">
-                                  {producto.stock}
-                                </td>
-                                <td className="px-3 py-3 text-sm text-gray-600">
-                                  {formatMoney(Number(producto.precio_venta))}
-                                </td>
-                                <td className="px-3 py-3 text-sm text-gray-600">
-                                  {producto.bodega_id?.codigo_producto ??
-                                    producto.bodega_id ??
-                                    ""}
-                                </td>
-                                <td className="flex flex-row py-3 px-3 text-sm gap-2">
-                                  {/* Agregar Lote */}
-                                  <Button
-                                    style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
-                                    onClick={() => {
-                                      const productoObj = producto as Producto;
-                                      const matching = providers.filter(
-                                        (prov) =>
-                                          Array.isArray(prov.products) &&
-                                          prov.products.some(
-                                            (p) => p.id === productoObj.id
-                                          )
-                                      );
-                                      if (matching.length === 0) {
-                                        setAlert({
-                                          type: "error",
-                                          message:
-                                            "No hay proveedores para este producto. Redirigiendo a Proveedores...",
-                                        });
-                                        if (navigateTimeoutRef.current) {
-                                          window.clearTimeout(
-                                            navigateTimeoutRef.current as unknown as number
-                                          );
-                                        }
-                                        navigateTimeoutRef.current =
-                                          window.setTimeout(() => {
-                                            navigate({ to: "/provider" });
-                                          }, 2000);
-                                        return;
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.codigo_producto}
+                              </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.nombre_producto}
+                              </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.categoria}
+                              </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.descripcion}
+                              </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.stock}
+                              </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {formatMoney(Number(producto.precio_venta))}
+                              </td>
+                              <td className="px-3 py-3 text-sm text-gray-600">
+                                {producto.bodega_id?.codigo_producto ??
+                                  producto.bodega_id ??
+                                  ""}
+                              </td>
+                              <td className="flex flex-row py-3 px-3 text-sm gap-2">
+                                {/* Agregar Lote */}
+                                <Button
+                                  style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  onClick={() => {
+                                    const productoObj = producto as Producto;
+                                    const matching = providers.filter(
+                                      (prov) =>
+                                        Array.isArray(prov.products) &&
+                                        prov.products.some(
+                                          (p) => p.id === productoObj.id
+                                        )
+                                    );
+                                    if (matching.length === 0) {
+                                      setAlert({
+                                        type: "error",
+                                        message:
+                                          "No hay proveedores para este producto. Redirigiendo a Proveedores...",
+                                      });
+                                      if (navigateTimeoutRef.current) {
+                                        window.clearTimeout(
+                                          navigateTimeoutRef.current as unknown as number
+                                        );
                                       }
-                                      setEditMode(true);
-                                      setFormLote({
-                                        codigo_producto:
-                                          producto.codigo_producto,
-                                        nombre_producto:
-                                          producto.nombre_producto,
-                                        numero_lote: "",
-                                        cantidad: 0,
-                                        proveedor: "",
-                                        fecha_entrada: "",
-                                        fecha_vencimiento: "",
-                                        fecha_salida_lote: "",
-                                        descripcion: "",
-                                        lote_id: undefined,
-                                      });
-                                      setModalOpen("add-lote");
-                                    }}
-                                  >
-                                    <IoAddCircle /> Agregar lote
-                                  </Button>
-
-                                  {/* Editar Producto */}
-                                  <Button
-                                    style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
-                                    onClick={() => {
-                                      setEditProductMode(true);
-                                      setFormProducto({
-                                        id: producto.id,
-                                        codigo_producto:
-                                          producto.codigo_producto,
-                                        nombre_producto:
-                                          producto.nombre_producto,
-                                        categoria: producto.categoria,
-                                        descripcion: producto.descripcion || "",
-                                        stock: producto.stock,
-                                        precio_compra: producto.precio_compra,
-                                        precio_venta: producto.precio_venta,
-                                        bodega_id: producto.bodega_id?.bodega_id
-                                          ? producto.bodega_id.bodega_id
-                                          : producto.bodega_id,
-                                        codigo_cabys:
-                                          producto.codigo_cabys || "",
-                                        impuesto: producto.impuesto ?? 0,
-                                        unit_id: producto.unit_id || "",
-                                      });
-                                      setModalOpen("add-product");
-                                    }}
-                                  >
-                                    <RiEdit2Fill /> Editar
-                                  </Button>
-
-                                  {/* Eliminar Producto */}
-                                  <Button
-                                    style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
-                                    onClick={() =>
-                                      setProductoAEliminar(producto)
+                                      navigateTimeoutRef.current =
+                                        window.setTimeout(() => {
+                                          navigate({ to: "/provider" });
+                                        }, 2000);
+                                      return;
                                     }
-                                  >
-                                    <FaTrash /> Eliminar
-                                  </Button>
+                                    setEditMode(true);
+                                    setFormLote({
+                                      codigo_producto: producto.codigo_producto,
+                                      nombre_producto: producto.nombre_producto,
+                                      numero_lote: "",
+                                      cantidad: 0,
+                                      proveedor: "",
+                                      fecha_entrada: "",
+                                      fecha_vencimiento: "",
+                                      fecha_salida_lote: "",
+                                      descripcion: "",
+                                      lote_id: undefined,
+                                    });
+                                    setModalOpen("add-lote");
+                                  }}
+                                >
+                                  <IoAddCircle /> Agregar lote
+                                </Button>
 
-                                  {/* Modal eliminar producto */}
-                                  {productoAEliminar &&
-                                    productoAEliminar.codigo_producto ===
-                                      producto.codigo_producto && (
-                                      <SimpleModal
-                                        open={true}
-                                        onClose={() =>
-                                          setProductoAEliminar(null)
-                                        }
-                                      >
-                                        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                                          Eliminar producto
-                                        </h2>
-                                        <p className="mb-6 text-center">
-                                          ¿Seguro que deseas eliminar el
-                                          producto{" "}
-                                          <b>
-                                            {productoAEliminar.nombre_producto}
-                                          </b>
-                                          ?
-                                        </p>
-                                        <div className="flex gap-4 justify-center">
-                                          <Button
-                                            text="Eliminar"
-                                            style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
-                                            onClick={async () => {
-                                              try {
-                                                const res = await fetch(
-                                                  `${API_URL}/api/v1/products/${productoAEliminar.id}`,
-                                                  { method: "DELETE" }
+                                {/* Editar Producto */}
+                                <Button
+                                  style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
+                                  onClick={() => {
+                                    setEditProductMode(true);
+                                    setFormProducto({
+                                      id: producto.id,
+                                      codigo_producto: producto.codigo_producto,
+                                      nombre_producto: producto.nombre_producto,
+                                      categoria: producto.categoria,
+                                      descripcion: producto.descripcion || "",
+                                      stock: producto.stock,
+                                      precio_compra: producto.precio_compra,
+                                      precio_venta: producto.precio_venta,
+                                      bodega_id: producto.bodega_id?.bodega_id
+                                        ? producto.bodega_id.bodega_id
+                                        : producto.bodega_id,
+                                      codigo_cabys: producto.codigo_cabys || "",
+                                      impuesto: producto.impuesto ?? 0,
+                                      unit_id: producto.unit_id || "",
+                                    });
+                                    setModalOpen("add-product");
+                                  }}
+                                >
+                                  <RiEdit2Fill /> Editar
+                                </Button>
+
+                                {/* Eliminar Producto */}
+                                <Button
+                                  style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  onClick={() => setProductoAEliminar(producto)}
+                                >
+                                  <FaTrash /> Eliminar
+                                </Button>
+
+                                {/* Modal eliminar producto */}
+                                {productoAEliminar &&
+                                  productoAEliminar.codigo_producto ===
+                                    producto.codigo_producto && (
+                                    <SimpleModal
+                                      open={true}
+                                      onClose={() => setProductoAEliminar(null)}
+                                    >
+                                      <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                                        Eliminar producto
+                                      </h2>
+                                      <p className="mb-6 text-center">
+                                        ¿Seguro que deseas eliminar el producto{" "}
+                                        <b>
+                                          {productoAEliminar.nombre_producto}
+                                        </b>
+                                        ?
+                                      </p>
+                                      <div className="flex gap-4 justify-center">
+                                        <Button
+                                          text="Eliminar"
+                                          style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
+                                          onClick={async () => {
+                                            try {
+                                              const res = await fetch(
+                                                `${API_URL}/api/v1/products/${productoAEliminar.id}`,
+                                                { method: "DELETE" }
+                                              );
+                                              if (res.ok) {
+                                                setProductos((prev) =>
+                                                  prev.filter(
+                                                    (p) =>
+                                                      p.codigo_producto !==
+                                                      productoAEliminar.codigo_producto
+                                                  )
                                                 );
-                                                if (res.ok) {
-                                                  setProductos((prev) =>
-                                                    prev.filter(
-                                                      (p) =>
-                                                        p.codigo_producto !==
-                                                        productoAEliminar.codigo_producto
-                                                    )
-                                                  );
-                                                  setAlert({
-                                                    type: "success",
-                                                    message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`,
-                                                  });
-                                                } else {
-                                                  setAlert({
-                                                    type: "error",
-                                                    message:
-                                                      "Error al eliminar el producto",
-                                                  });
-                                                }
-                                              } catch (err) {
-                                                console.error(
-                                                  "Error eliminando producto",
-                                                  err
-                                                );
+                                                setAlert({
+                                                  type: "success",
+                                                  message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`,
+                                                });
+                                              } else {
                                                 setAlert({
                                                   type: "error",
                                                   message:
                                                     "Error al eliminar el producto",
                                                 });
                                               }
-                                              setProductoAEliminar(null);
-                                            }}
-                                          />
-                                          <Button
-                                            text="Cancelar"
-                                            style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                                            onClick={() =>
-                                              setProductoAEliminar(null)
+                                            } catch (err) {
+                                              console.error(
+                                                "Error eliminando producto",
+                                                err
+                                              );
+                                              setAlert({
+                                                type: "error",
+                                                message:
+                                                  "Error al eliminar el producto",
+                                              });
                                             }
-                                          />
+                                            setProductoAEliminar(null);
+                                          }}
+                                        />
+                                        <Button
+                                          text="Cancelar"
+                                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                          onClick={() =>
+                                            setProductoAEliminar(null)
+                                          }
+                                        />
+                                      </div>
+                                    </SimpleModal>
+                                  )}
+                              </td>
+                            </tr>
+
+                            {/* --- Lotes colapsables --- */}
+                            {expanded === producto.codigo_producto && (
+                              <tr className="bg-gray-100">
+                                <td
+                                  colSpan={headers.length}
+                                  className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wide"
+                                >
+                                  <div className="flex flex-col gap-2">
+                                    {producto.lotes?.map((lote: Lote) => (
+                                      <div
+                                        key={lote.lote_id}
+                                        className="mb p-2 flex flex-row items-center gap-5"
+                                      >
+                                        <span>
+                                          <b>Número de lote:</b>{" "}
+                                          {lote.numero_lote}
+                                        </span>
+                                        <span>
+                                          <b>Fecha de vencimiento:</b>{" "}
+                                          {lote.fecha_vencimiento}
+                                        </span>
+                                        <span>
+                                          <b>Cantidad:</b> {lote.cantidad}
+                                        </span>
+                                        <div className="ml-auto flex gap-2">
+                                          <Button
+                                            style="text-sm cursor-pointer bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded"
+                                            onClick={() => {
+                                              setEditMode(false);
+                                              setFormLote(lote);
+                                              setModalOpen(lote);
+                                            }}
+                                          >
+                                            <CgDetailsMore /> Detalles
+                                          </Button>
+                                          <Button
+                                            style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
+                                            onClick={() => {
+                                              setEditMode(true);
+                                              setFormLote(lote);
+                                              setModalOpen(lote);
+                                            }}
+                                          >
+                                            <RiEdit2Fill /> Editar
+                                          </Button>
+                                          <Button
+                                            style="text-sm cursor-pointer bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded"
+                                            onClick={() => {
+                                              setLoteAEliminar(lote);
+                                              setSimpleModal({
+                                                open: true,
+                                                title: "Confirmación",
+                                                message:
+                                                  "¿Seguro que deseas eliminar este lote?",
+                                              });
+                                            }}
+                                          >
+                                            <FaTrash /> Eliminar
+                                          </Button>
                                         </div>
-                                      </SimpleModal>
-                                    )}
+                                      </div>
+                                    ))}
+                                  </div>
                                 </td>
                               </tr>
+                            )}
+                          </React.Fragment>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
-                              {/* --- Lotes colapsables --- */}
-                              {expanded === producto.codigo_producto && (
-                                <tr className="bg-gray-100">
-                                  <td
-                                    colSpan={headers.length}
-                                    className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wide"
-                                  >
-                                    <div className="flex flex-col gap-2">
-                                      {producto.lotes?.map((lote: Lote) => (
-                                        <div
-                                          key={lote.lote_id}
-                                          className="mb p-2 flex flex-row items-center gap-5"
-                                        >
-                                          <span>
-                                            <b>Número de lote:</b>{" "}
-                                            {lote.numero_lote}
-                                          </span>
-                                          <span>
-                                            <b>Fecha de vencimiento:</b>{" "}
-                                            {lote.fecha_vencimiento}
-                                          </span>
-                                          <span>
-                                            <b>Cantidad:</b> {lote.cantidad}
-                                          </span>
-                                          <div className="ml-auto flex gap-2">
-                                            <Button
-                                              style="text-sm cursor-pointer bg-verde-claro hover:bg-verde-oscuro text-white font-bold py-1 px-2 rounded"
-                                              onClick={() => {
-                                                setEditMode(false);
-                                                setFormLote(lote);
-                                                setModalOpen(lote);
-                                              }}
-                                            >
-                                              <CgDetailsMore /> Detalles
-                                            </Button>
-                                            <Button
-                                              style="text-sm cursor-pointer bg-azul-medio hover:bg-azul-hover text-white font-bold py-1 px-2 rounded"
-                                              onClick={() => {
-                                                setEditMode(true);
-                                                setFormLote(lote);
-                                                setModalOpen(lote);
-                                              }}
-                                            >
-                                              <RiEdit2Fill /> Editar
-                                            </Button>
-                                            <Button
-                                              style="text-sm cursor-pointer bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded"
-                                              onClick={() => {
-                                                setLoteAEliminar(lote);
-                                                setSimpleModal({
-                                                  open: true,
-                                                  title: "Confirmación",
-                                                  message:
-                                                    "¿Seguro que deseas eliminar este lote?",
-                                                });
-                                              }}
-                                            >
-                                              <FaTrash /> Eliminar
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </td>
-                                </tr>
-                              )}
-                            </React.Fragment>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Tarjetas móviles */}
-                    <div className="md:hidden flex flex-col gap-4">
-                      {loading ? (
-                        <p className="text-center py-4">Cargando...</p>
-                      ) : productsFiltered.length === 0 ? (
-                        <p className="text-center py-4">Sin resultados</p>
-                      ) : (
-                        productsFiltered.map((producto: any) => (
-                          <div
-                            key={producto.codigo_producto}
-                            className="bg-white shadow-md rounded-lg p-4 flex flex-col gap-3"
-                          >
-                            {/* Header de la tarjeta */}
-                            <div className="flex justify-between items-start">
-                {/* Header de la tarjeta con líneas grises */}
-<div className="flex flex-col gap-1">
-  <div className="border-b border-gray-300 pb-1">
-    <b>Código:</b> {producto.codigo_producto}
-  </div>
-  <div className="border-b border-gray-300 pb-1">
-    <b>Nombre:</b> {producto.nombre_producto}
-  </div>
-  <div className="border-b border-gray-300 pb-1">
-    <b>Categoría:</b> {producto.categoria}
-  </div>
-  <div className="border-b border-gray-300 pb-1">
-    <b>Descripción:</b> {producto.descripcion}
-  </div>
-  <div className="border-b border-gray-300 pb-1">
-    <b>Stock:</b> {producto.stock}
-  </div>
-  <div className="border-b border-gray-300 pb-1">
-    <b>Precio:</b> {formatMoney(Number(producto.precio_venta))}
-  </div>
-  <div className="border-b border-gray-300 pb-1">
-    <b>Bodega:</b> {producto.bodega_id?.codigo_producto ?? producto.bodega_id ?? ""}
-  </div>
-</div>
-{/* Botones compactos (abajo de la tarjeta, horizontales y más separados) */}
-<div className="flex flex-wrap justify-center gap-3" >
-  <div className="w-full text-center text-azul-oscuro font-semibold mb-3">Acciones</div>
-
-  <Button
-    style="bg-verde-claro hover:bg-verde-oscuro text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
-    onClick={() => {
-      const productoObj = producto as Producto;
-      const matching = providers.filter(
-        (prov) =>
-          Array.isArray(prov.products) &&
-          prov.products.some((p) => p.id === productoObj.id)
-      );
-      if (matching.length === 0) {
-        setAlert({
-          type: 'error',
-          message: 'No hay proveedores para este producto. Redirigiendo a Proveedores...',
-        });
-        if (navigateTimeoutRef.current) {
-          window.clearTimeout(navigateTimeoutRef.current as unknown as number);
-        }
-        navigateTimeoutRef.current = window.setTimeout(() => {
-          navigate({ to: '/provider' });
-        }, 2000);
-        return;
-      }
-      setEditMode(true);
-      setFormLote({
-        codigo_producto: producto.codigo_producto,
-        nombre_producto: producto.nombre_producto,
-        numero_lote: '',
-        cantidad: 0,
-        proveedor: '',
-        fecha_entrada: '',
-        fecha_vencimiento: '',
-        fecha_salida_lote: '',
-        descripcion: '',
-        lote_id: undefined,
-      });
-      setModalOpen('add-lote');
-    }}
-  >
-    <IoAddCircle /> Agregar
-  </Button>
-
-  <Button
-    style="bg-azul-medio hover:bg-azul-hover text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
-    onClick={() => {
-      setEditProductMode(true);
-      setFormProducto({
-        id: producto.id,
-        codigo_producto: producto.codigo_producto,
-        nombre_producto: producto.nombre_producto,
-        categoria: producto.categoria,
-        descripcion: producto.descripcion || '',
-        stock: producto.stock,
-        precio_compra: producto.precio_compra,
-        precio_venta: producto.precio_venta,
-        bodega_id: producto.bodega_id?.bodega_id
-          ? producto.bodega_id.bodega_id
-          : producto.bodega_id,
-        codigo_cabys: producto.codigo_cabys || '',
-        impuesto: producto.impuesto ?? 0,
-        unit_id: producto.unit_id || '',
-      });
-      setModalOpen('add-product');
-    }}
-  >
-    <RiEdit2Fill /> Editar
-  </Button>
-
-  <Button
-    style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
-    onClick={() => setProductoAEliminar(producto)}
-  >
-    <FaTrash /> Eliminar
-  </Button>
-</div>
-
-
-
+                {/* Tarjetas móviles */}
+                <div className="md:hidden flex flex-col gap-4">
+                  {loading ? (
+                    <p className="text-center py-4">Cargando...</p>
+                  ) : productsFiltered.length === 0 ? (
+                    <p className="text-center py-4">Sin resultados</p>
+                  ) : (
+                    productsFiltered.map((producto: any) => (
+                      <div
+                        key={producto.codigo_producto}
+                        className="bg-white shadow-md rounded-lg p-4 flex flex-col gap-3"
+                      >
+                        {/* Header de la tarjeta */}
+                        <div className="flex justify-between items-start">
+                          {/* Header de la tarjeta con líneas grises */}
+                          <div className="flex flex-col gap-1">
+                            <div className="border-b border-gray-300 pb-1">
+                              <b>Código:</b> {producto.codigo_producto}
+                            </div>
+                            <div className="border-b border-gray-300 pb-1">
+                              <b>Nombre:</b> {producto.nombre_producto}
+                            </div>
+                            <div className="border-b border-gray-300 pb-1">
+                              <b>Categoría:</b> {producto.categoria}
+                            </div>
+                            <div className="border-b border-gray-300 pb-1">
+                              <b>Descripción:</b> {producto.descripcion}
+                            </div>
+                            <div className="border-b border-gray-300 pb-1">
+                              <b>Stock:</b> {producto.stock}
+                            </div>
+                            <div className="border-b border-gray-300 pb-1">
+                              <b>Precio:</b>{" "}
+                              {formatMoney(Number(producto.precio_venta))}
+                            </div>
+                            <div className="border-b border-gray-300 pb-1">
+                              <b>Bodega:</b>{" "}
+                              {producto.bodega_id?.codigo_producto ??
+                                producto.bodega_id ??
+                                ""}
+                            </div>
                           </div>
+                          {/* Botones compactos (abajo de la tarjeta, horizontales y más separados) */}
+                          <div className="flex flex-wrap justify-center gap-3">
+                            <div className="w-full text-center text-azul-oscuro font-semibold mb-3">
+                              Acciones
+                            </div>
 
-                          {/* Mostrar/ocultar lotes */}
-                          {producto.lotes?.length > 0 && (
-                            <div>
-                           {/* Mostrar/ocultar lotes */}
+                            <Button
+                              style="bg-verde-claro hover:bg-verde-oscuro text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
+                              onClick={() => {
+                                const productoObj = producto as Producto;
+                                const matching = providers.filter(
+                                  (prov) =>
+                                    Array.isArray(prov.products) &&
+                                    prov.products.some(
+                                      (p) => p.id === productoObj.id
+                                    )
+                                );
+                                if (matching.length === 0) {
+                                  setAlert({
+                                    type: "error",
+                                    message:
+                                      "No hay proveedores para este producto. Redirigiendo a Proveedores...",
+                                  });
+                                  if (navigateTimeoutRef.current) {
+                                    window.clearTimeout(
+                                      navigateTimeoutRef.current as unknown as number
+                                    );
+                                  }
+                                  navigateTimeoutRef.current =
+                                    window.setTimeout(() => {
+                                      navigate({ to: "/provider" });
+                                    }, 2000);
+                                  return;
+                                }
+                                setEditMode(true);
+                                setFormLote({
+                                  codigo_producto: producto.codigo_producto,
+                                  nombre_producto: producto.nombre_producto,
+                                  numero_lote: "",
+                                  cantidad: 0,
+                                  proveedor: "",
+                                  fecha_entrada: "",
+                                  fecha_vencimiento: "",
+                                  fecha_salida_lote: "",
+                                  descripcion: "",
+                                  lote_id: undefined,
+                                });
+                                setModalOpen("add-lote");
+                              }}
+                            >
+                              <IoAddCircle /> Agregar
+                            </Button>
+
+                            <Button
+                              style="bg-azul-medio hover:bg-azul-hover text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
+                              onClick={() => {
+                                setEditProductMode(true);
+                                setFormProducto({
+                                  id: producto.id,
+                                  codigo_producto: producto.codigo_producto,
+                                  nombre_producto: producto.nombre_producto,
+                                  categoria: producto.categoria,
+                                  descripcion: producto.descripcion || "",
+                                  stock: producto.stock,
+                                  precio_compra: producto.precio_compra,
+                                  precio_venta: producto.precio_venta,
+                                  bodega_id: producto.bodega_id?.bodega_id
+                                    ? producto.bodega_id.bodega_id
+                                    : producto.bodega_id,
+                                  codigo_cabys: producto.codigo_cabys || "",
+                                  impuesto: producto.impuesto ?? 0,
+                                  unit_id: producto.unit_id || "",
+                                });
+                                setModalOpen("add-product");
+                              }}
+                            >
+                              <RiEdit2Fill /> Editar
+                            </Button>
+
+                            <Button
+                              style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
+                              onClick={() => setProductoAEliminar(producto)}
+                            >
+                              <FaTrash /> Eliminar
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Mostrar/ocultar lotes */}
+                        {producto.lotes?.length > 0 && (
+                          <div>
+                            {/* Mostrar/ocultar lotes */}
                             {producto.lotes?.length > 0 && (
                               <div className="mt-2">
                                 <button
@@ -1381,195 +1385,515 @@ export default function Inventary() {
                                     )
                                   }
                                 >
-                                  {expanded === producto.codigo_producto ? "Ocultar lotes" : "Ver lotes"}
+                                  {expanded === producto.codigo_producto
+                                    ? "Ocultar lotes"
+                                    : "Ver lotes"}
                                 </button>
                               </div>
                             )}
 
+                            {expanded === producto.codigo_producto && (
+                              <div className="flex flex-col gap-2 bg-gray-100 p-2 rounded">
+                                {producto.lotes.map((lote: Lote) => (
+                                  <div
+                                    key={lote.lote_id}
+                                    className="flex flex-col gap-1 border-b border-gray-300 pb-2"
+                                  >
+                                    <span>
+                                      <b>Número de lote:</b> {lote.numero_lote}
+                                    </span>
+                                    <span>
+                                      <b>Fecha vencimiento:</b>{" "}
+                                      {lote.fecha_vencimiento}
+                                    </span>
+                                    <span>
+                                      <b>Cantidad:</b> {lote.cantidad}
+                                    </span>
+                                    <div className="flex gap-2 mt-1">
+                                      <Button
+                                        style="bg-verde-claro hover:bg-verde-oscuro text-white py-1 px-2 rounded text-sm"
+                                        onClick={() => {
+                                          setEditMode(false);
+                                          setFormLote(lote);
+                                          setModalOpen(lote);
+                                        }}
+                                      >
+                                        <CgDetailsMore /> Detalles
+                                      </Button>
 
-                              {expanded === producto.codigo_producto && (
-                                <div className="flex flex-col gap-2 bg-gray-100 p-2 rounded">
-                                  {producto.lotes.map((lote: Lote) => (
-                                    <div
-                                      key={lote.lote_id}
-                                      className="flex flex-col gap-1 border-b border-gray-300 pb-2"
-                                    >
-                                      <span>
-                                        <b>Número de lote:</b>{" "}
-                                        {lote.numero_lote}
-                                      </span>
-                                      <span>
-                                        <b>Fecha vencimiento:</b>{" "}
-                                        {lote.fecha_vencimiento}
-                                      </span>
-                                      <span>
-                                        <b>Cantidad:</b> {lote.cantidad}
-                                      </span>
-                                      <div className="flex gap-2 mt-1">
-                                        <Button
-                                          style="bg-verde-claro hover:bg-verde-oscuro text-white py-1 px-2 rounded text-sm"
-                                          onClick={() => {
-                                            setEditMode(false);
-                                            setFormLote(lote);
-                                            setModalOpen(lote);
-                                          }}
-                                        >
-                                          <CgDetailsMore /> Detalles
-                                        </Button>
+                                      <Button
+                                        style="bg-azul-medio hover:bg-azul-hover text-white py-1 px-2 rounded text-sm"
+                                        onClick={() => {
+                                          setEditMode(true);
+                                          setFormLote(lote);
+                                          setModalOpen(lote);
+                                        }}
+                                      >
+                                        <RiEdit2Fill /> Editar
+                                      </Button>
 
-                                        <Button
-                                          style="bg-azul-medio hover:bg-azul-hover text-white py-1 px-2 rounded text-sm"
-                                          onClick={() => {
-                                            setEditMode(true);
-                                            setFormLote(lote);
-                                            setModalOpen(lote);
-                                          }}
-                                        >
-                                          <RiEdit2Fill /> Editar
-                                        </Button>
-
-                                        <Button
-                                          style="bg-rojo-claro hover:bg-rojo-oscuro text-white py-1 px-2 rounded text-sm"
-                                          onClick={() => {
-                                            setLoteAEliminar(lote);
-                                            setSimpleModal({
-                                              open: true,
-                                              title: "Confirmación",
-                                              message:
-                                                "¿Seguro que deseas eliminar este lote?",
-                                            });
-                                          }}
-                                        >
-                                          <FaTrash /> Eliminar
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Modal de eliminar producto */}
-                          {productoAEliminar &&
-                            productoAEliminar.codigo_producto ===
-                              producto.codigo_producto && (
-                              <SimpleModal
-                                open={true}
-                                onClose={() => setProductoAEliminar(null)}
-                              >
-                                <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                                  Eliminar producto
-                                </h2>
-                                <p className="mb-6 text-center">
-                                  ¿Seguro que deseas eliminar el producto{" "}
-                                  <b>{productoAEliminar.nombre_producto}</b>?
-                                </p>
-                                <div className="flex gap-4 justify-center">
-                                  <Button
-                                    text="Eliminar"
-                                    style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
-                                    onClick={async () => {
-                                      try {
-                                        const res = await fetch(
-                                          `${API_URL}/api/v1/products/${productoAEliminar.id}`,
-                                          { method: "DELETE" }
-                                        );
-                                        if (res.ok) {
-                                          setProductos((prev) =>
-                                            prev.filter(
-                                              (p) =>
-                                                p.codigo_producto !==
-                                                productoAEliminar.codigo_producto
-                                            )
-                                          );
-                                          setAlert({
-                                            type: "success",
-                                            message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`,
-                                          });
-                                        } else {
-                                          setAlert({
-                                            type: "error",
+                                      <Button
+                                        style="bg-rojo-claro hover:bg-rojo-oscuro text-white py-1 px-2 rounded text-sm"
+                                        onClick={() => {
+                                          setLoteAEliminar(lote);
+                                          setSimpleModal({
+                                            open: true,
+                                            title: "Confirmación",
                                             message:
-                                              "Error al eliminar el producto",
+                                              "¿Seguro que deseas eliminar este lote?",
                                           });
-                                        }
-                                      } catch (err) {
-                                        console.error(
-                                          "Error eliminando producto",
-                                          err
+                                        }}
+                                      >
+                                        <FaTrash /> Eliminar
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Modal de eliminar producto */}
+                        {productoAEliminar &&
+                          productoAEliminar.codigo_producto ===
+                            producto.codigo_producto && (
+                            <SimpleModal
+                              open={true}
+                              onClose={() => setProductoAEliminar(null)}
+                            >
+                              <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                                Eliminar producto
+                              </h2>
+                              <p className="mb-6 text-center">
+                                ¿Seguro que deseas eliminar el producto{" "}
+                                <b>{productoAEliminar.nombre_producto}</b>?
+                              </p>
+                              <div className="flex gap-4 justify-center">
+                                <Button
+                                  text="Eliminar"
+                                  style="px-6 py-2 bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold rounded-lg cursor-pointer"
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch(
+                                        `${API_URL}/api/v1/products/${productoAEliminar.id}`,
+                                        { method: "DELETE" }
+                                      );
+                                      if (res.ok) {
+                                        setProductos((prev) =>
+                                          prev.filter(
+                                            (p) =>
+                                              p.codigo_producto !==
+                                              productoAEliminar.codigo_producto
+                                          )
                                         );
+                                        setAlert({
+                                          type: "success",
+                                          message: `Producto "${productoAEliminar.nombre_producto}" eliminado correctamente`,
+                                        });
+                                      } else {
                                         setAlert({
                                           type: "error",
                                           message:
                                             "Error al eliminar el producto",
                                         });
                                       }
-                                      setProductoAEliminar(null);
-                                    }}
-                                  />
-                                  <Button
-                                    text="Cancelar"
-                                    style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                                    onClick={() => setProductoAEliminar(null)}
-                                  />
-                                </div>
-                              </SimpleModal>
-                            )}
-                        </div>
-                      ))
-                    )}
-                  </div>
+                                    } catch (err) {
+                                      console.error(
+                                        "Error eliminando producto",
+                                        err
+                                      );
+                                      setAlert({
+                                        type: "error",
+                                        message:
+                                          "Error al eliminar el producto",
+                                      });
+                                    }
+                                    setProductoAEliminar(null);
+                                  }}
+                                />
+                                <Button
+                                  text="Cancelar"
+                                  style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                                  onClick={() => setProductoAEliminar(null)}
+                                />
+                              </div>
+                            </SimpleModal>
+                          )}
+                      </div>
+                    ))
+                  )}
                 </div>
+              </div>
 
-                <CategoryModals
-                  categoryModalOpen={categoryModalOpen}
-                  setCategoryModalOpen={setCategoryModalOpen}
-                  categoryEditMode={categoryEditMode}
-                  setCategoryEditMode={setCategoryEditMode}
-                  categoryForm={categoryForm}
-                  setCategoryForm={setCategoryForm}
-                  categorySearchModal={categorySearchModal}
-                  setCategorySearchModal={setCategorySearchModal}
-                  categories={categories}
-                  openEditCategory={openEditCategory}
-                  categoryLoadingForm={categoryLoadingForm}
-                  saveCategory={saveCategory}
-                  categoryToDelete={categoryToDelete}
-                  setCategoryToDelete={setCategoryToDelete}
-                  alertMessage={alertMessage}
-                  setAlertMessage={setAlertMessage}
-                  setCategoryOriginalNombre={setCategoryOriginalNombre}
-                  deleteCategory={deleteCategory}
-                />
-                {/* Modal para agregar/editar producto (extraído a ProductsModal) */}
-                <ProductsModal
-                  open={modalOpen === "add-product"}
+              <CategoryModals
+                categoryModalOpen={categoryModalOpen}
+                setCategoryModalOpen={setCategoryModalOpen}
+                categoryEditMode={categoryEditMode}
+                setCategoryEditMode={setCategoryEditMode}
+                categoryForm={categoryForm}
+                setCategoryForm={setCategoryForm}
+                categorySearchModal={categorySearchModal}
+                setCategorySearchModal={setCategorySearchModal}
+                categories={categories}
+                openEditCategory={openEditCategory}
+                categoryLoadingForm={categoryLoadingForm}
+                saveCategory={saveCategory}
+                categoryToDelete={categoryToDelete}
+                setCategoryToDelete={setCategoryToDelete}
+                alertMessage={alertMessage}
+                setAlertMessage={setAlertMessage}
+                setCategoryOriginalNombre={setCategoryOriginalNombre}
+                deleteCategory={deleteCategory}
+              />
+              {/* Modal para agregar/editar producto (extraído a ProductsModal) */}
+              <ProductsModal
+                open={modalOpen === "add-product"}
+                onClose={() => {
+                  setModalOpen(false);
+                  setEditProductMode(false);
+                }}
+                formProducto={formProducto}
+                setFormProducto={setFormProducto}
+                editProductMode={editProductMode}
+                setEditProductMode={setEditProductMode}
+                loadingForm={loadingForm}
+                setLoadingForm={setLoadingForm}
+                productos={productos}
+                setProductos={setProductos}
+                setLotes={setLotes}
+                categories={categories}
+                units={units}
+                cabysItems={cabysItems}
+                cabysLoading={cabysLoading}
+                onOpenCabys={() => setCabysModalOpen(true)}
+                suggestedPrice={suggestedPrice}
+                warehouses={warehouses}
+                setAlert={setAlert}
+              />
+
+              {/* Modal para agregar lote */}
+              {modalOpen === "add-lote" && (
+                <SimpleModal
+                  open={true}
                   onClose={() => {
                     setModalOpen(false);
-                    setEditProductMode(false);
+                    setEditMode(false);
+                    setLoteDateError(null);
                   }}
-                  formProducto={formProducto}
-                  setFormProducto={setFormProducto}
-                  editProductMode={editProductMode}
-                  setEditProductMode={setEditProductMode}
-                  loadingForm={loadingForm}
-                  setLoadingForm={setLoadingForm}
-                  productos={productos}
-                  setProductos={setProductos}
-                  setLotes={setLotes}
-                  categories={categories}
-                  units={units}
-                  cabysItems={cabysItems}
-                  cabysLoading={cabysLoading}
-                  onOpenCabys={() => setCabysModalOpen(true)}
-                  suggestedPrice={suggestedPrice}
-                  warehouses={warehouses}
-                  setAlert={setAlert}
-                />
+                >
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      if (loteDateError) return; // bloquear submit si hay error de fechas
+                      setLoadingForm(true);
 
-                {/* Modal para agregar lote */}
-                {modalOpen === "add-lote" && (
+                      try {
+                        const res = await fetch(`${API_URL}/api/v1/batch`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            codigo_producto: formLote.codigo_producto,
+                            numero_lote: formLote.numero_lote,
+                            cantidad: Number(formLote.cantidad),
+                            proveedor: formLote.proveedor,
+                            fecha_entrada: formLote.fecha_entrada,
+                            fecha_vencimiento: formLote.fecha_vencimiento,
+                            fecha_salida_lote: formLote.fecha_salida_lote,
+                            descripcion: formLote.descripcion,
+                            nombre: formLote.nombre_producto,
+                          }),
+                        });
+
+                        if (!res.ok)
+                          throw new Error("Error al guardar el lote");
+
+                        const nuevoLote = await res.json();
+
+                        // Actualizar lista de lotes local
+                        setLotes((prev) => [...prev, nuevoLote]);
+
+                        // Actualizar lista de productos
+                        const productosActualizados = await fetch(
+                          `${API_URL}/api/v1/products`
+                        ).then((r) => r.json());
+                        setProductos(productosActualizados);
+                      } catch (error) {
+                        console.error("Error al agregar lote:", error);
+                      } finally {
+                        setLoadingForm(false);
+                        setModalOpen(false);
+                        setEditMode(false);
+                      }
+                    }}
+                    className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
+                  >
+                    <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                      Agregar Lote
+                    </h2>
+                    {loteDateError && (
+                      <div className="mb-4 px-4 py-2 rounded bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro text-sm font-semibold text-center">
+                        {loteDateError}
+                      </div>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-4">
+                        <label className="font-semibold">
+                          Número de lote
+                          <input
+                            name="numero_lote"
+                            type="text"
+                            inputMode="numeric" // muestra teclado numérico en móviles
+                            maxLength={10} // máximo de 10 dígitos
+                            value={formLote.numero_lote}
+                            onChange={(e) => {
+                              //  Elimina todo lo que no sea número
+                              const soloNumeros = e.target.value.replace(
+                                /\D/g,
+                                ""
+                              );
+                              setFormLote((f) => ({
+                                ...f,
+                                numero_lote: soloNumeros,
+                              }));
+                            }}
+                            placeholder="Número de lote"
+                            className="w-full border rounded-lg px-3 py-2"
+                            required
+                          />
+                        </label>
+
+                        <label className="font-semibold">
+                          Código de lote
+                          <input
+                            name="codigo"
+                            value={formLote.codigo_producto}
+                            disabled
+                            readOnly
+                            className="w-full border rounded-lg px-3 py-2 bg-gray-300"
+                          />
+                        </label>
+                        <label className="font-semibold">
+                          Nombre
+                          <input
+                            name="nombre"
+                            value={
+                              formLote.nombre || formLote.nombre_producto || ""
+                            }
+                            disabled
+                            readOnly
+                            className="w-full border rounded-lg px-3 py-2 bg-gray-300"
+                          />
+                        </label>
+                        <label className="font-semibold">
+                          Cantidad
+                          <input
+                            name="cantidad"
+                            type="number"
+                            value={formLote.cantidad}
+                            onChange={(e) =>
+                              setFormLote((f) => ({
+                                ...f,
+                                cantidad: Number(e.target.value),
+                              }))
+                            }
+                            placeholder="Cantidad"
+                            className="w-full border rounded-lg px-3 py-2"
+                            required
+                          />
+                        </label>
+                        <label className="font-semibold">
+                          Fecha de entrada de bodega
+                          <input
+                            name="fecha_entrada"
+                            type="date"
+                            value={formLote.fecha_entrada}
+                            max={new Date().toISOString().split("T")[0]} //  No permite fechas futuras
+                            onChange={(e) =>
+                              setFormLote((f) => {
+                                const nuevaEntrada = e.target.value;
+
+                                // Validar que la fecha de entrada no sea futura
+                                const hoy = new Date()
+                                  .toISOString()
+                                  .split("T")[0];
+                                if (nuevaEntrada > hoy) {
+                                  setLoteDateError(
+                                    "La fecha de entrada no puede ser mayor al día actual"
+                                  );
+                                  return f; // no actualiza el estado
+                                }
+
+                                // Si al cambiar entrada las otras fechas ahora son válidas, limpiar error
+                                const salidaOk =
+                                  !f.fecha_salida_lote ||
+                                  f.fecha_salida_lote >= nuevaEntrada;
+                                const vencOk =
+                                  !f.fecha_vencimiento ||
+                                  f.fecha_vencimiento >= nuevaEntrada;
+                                if (salidaOk && vencOk) setLoteDateError(null);
+
+                                return {
+                                  ...f,
+                                  fecha_entrada: nuevaEntrada,
+                                };
+                              })
+                            }
+                            placeholder="Fecha de entrada"
+                            className="w-full border rounded-lg px-3 py-2"
+                            required
+                          />
+                        </label>
+
+                        <label className="font-semibold">
+                          Fecha de salida de bodega
+                          <input
+                            name="fecha_salida_lote"
+                            type="date"
+                            value={formLote.fecha_salida_lote || ""}
+                            min={formLote.fecha_entrada || ""} // 🔹 No permite salir antes de la entrada
+                            onChange={(e) => {
+                              const nuevaFechaSalida = e.target.value;
+
+                              // Si el usuario limpia el campo
+                              if (!nuevaFechaSalida) {
+                                setLoteDateError(null);
+                                setFormLote((f) => ({
+                                  ...f,
+                                  fecha_salida_lote: "",
+                                }));
+                                return;
+                              }
+
+                              // Validar que la salida no sea menor que la entrada
+                              if (
+                                formLote.fecha_entrada &&
+                                nuevaFechaSalida < formLote.fecha_entrada
+                              ) {
+                                setLoteDateError(
+                                  "La fecha de salida no puede ser menor que la de entrada"
+                                );
+                                return;
+                              }
+
+                              setLoteDateError(null);
+                              setFormLote((f) => ({
+                                ...f,
+                                fecha_salida_lote: nuevaFechaSalida,
+                              }));
+                            }}
+                            placeholder="Fecha de salida"
+                            className="w-full border rounded-lg px-3 py-2"
+                          />
+                        </label>
+                      </div>
+                      <div className="flex flex-col gap-4">
+                        <label className="font-semibold">
+                          Proveedor
+                          <select
+                            name="proveedor"
+                            value={formLote.proveedor}
+                            onChange={(e) =>
+                              setFormLote((f) => ({
+                                ...f,
+                                proveedor: e.target.value,
+                              }))
+                            }
+                            className="w-full border rounded-lg px-3 py-2"
+                            required
+                          >
+                            <option value="">Seleccione un proveedor</option>
+                            {filteredProviders.length === 0 ? (
+                              <option value="" disabled>
+                                No hay proveedores para este producto
+                              </option>
+                            ) : (
+                              filteredProviders.map((prov) => (
+                                <option key={prov.id} value={prov.name}>
+                                  {prov.name}
+                                </option>
+                              ))
+                            )}
+                          </select>
+                        </label>
+                        <label className="font-semibold">
+                          Fecha de vencimiento
+                          <input
+                            name="fecha_vencimiento"
+                            type="date"
+                            value={formLote.fecha_vencimiento}
+                            onChange={(e) => {
+                              const nueva = e.target.value;
+                              if (
+                                formLote.fecha_entrada &&
+                                nueva &&
+                                nueva < formLote.fecha_entrada
+                              ) {
+                                setLoteDateError(
+                                  "La fecha de vencimiento no puede ser menor que la fecha de entrada"
+                                );
+                                return;
+                              }
+                              setLoteDateError(null);
+                              setFormLote((f) => ({
+                                ...f,
+                                fecha_vencimiento: nueva,
+                              }));
+                            }}
+                            placeholder="Fecha de vencimiento"
+                            className="w-full border rounded-lg px-3 py-2"
+                          />
+                        </label>
+                        <label className="font-semibold">
+                          Descripción
+                          <textarea
+                            name="descripcion"
+                            value={formLote.descripcion}
+                            onChange={(e) =>
+                              setFormLote((f) => ({
+                                ...f,
+                                descripcion: e.target.value,
+                              }))
+                            }
+                            placeholder="Descripción"
+                            className="w-full border rounded-lg px-3 py-2 min-h-[40px]"
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex gap-4 justify-end mt-6">
+                      <Button
+                        text={loadingForm ? "Guardando..." : "Guardar"}
+                        style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                        type="submit"
+                        disabled={
+                          loadingForm ||
+                          !formLote.codigo_producto ||
+                          !formLote.nombre_producto ||
+                          !formLote.numero_lote ||
+                          !formLote.cantidad ||
+                          !formLote.proveedor ||
+                          !formLote.fecha_entrada
+                        }
+                      />
+                      <Button
+                        text="Cancelar"
+                        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                        type="button"
+                        onClick={() => {
+                          setModalOpen(false);
+                          setEditMode(false);
+                        }}
+                      />
+                    </div>
+                  </form>
+                </SimpleModal>
+              )}
+
+              {/* Modal para ver detalles o editar un lote */}
+              {modalOpen &&
+                typeof modalOpen === "object" &&
+                modalOpen !== null && (
                   <SimpleModal
                     open={true}
                     onClose={() => {
@@ -1581,12 +1905,13 @@ export default function Inventary() {
                     <form
                       onSubmit={async (e) => {
                         e.preventDefault();
-                        if (loteDateError) return; // bloquear submit si hay error de fechas
+                        if (loteDateError) return;
                         setLoadingForm(true);
-
-                        try {
-                          const res = await fetch(`${API_URL}/api/v1/batch`, {
-                            method: "POST",
+                        const lote = formLote;
+                        const res = await fetch(
+                          `${API_URL}/api/v1/batch/${lote.lote_id}`,
+                          {
+                            method: "PUT",
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                               codigo_producto: formLote.codigo_producto,
@@ -1599,33 +1924,58 @@ export default function Inventary() {
                               descripcion: formLote.descripcion,
                               nombre: formLote.nombre_producto,
                             }),
-                          });
-
-                          if (!res.ok)
-                            throw new Error("Error al guardar el lote");
-
-                          const nuevoLote = await res.json();
-
-                          // Actualizar lista de lotes local
-                          setLotes((prev) => [...prev, nuevoLote]);
-
-                          // **Actualizar lista de productos desde backend**
-                          const productosActualizados = await fetch(
-                            `${API_URL}/api/v1/products`
-                          ).then((r) => r.json());
-                          setProductos(productosActualizados);
-                        } catch (error) {
-                          console.error("Error al agregar lote:", error);
-                        } finally {
-                          setLoadingForm(false);
-                          setModalOpen(false);
-                          setEditMode(false);
+                          }
+                        );
+                        if (res.ok) {
+                          const loteActualizado = await res.json();
+                          setLotes((prev) =>
+                            prev.map((l) =>
+                              l.lote_id === loteActualizado.lote_id
+                                ? loteActualizado
+                                : l
+                            )
+                          );
+                          // Recalcular stock de productos
+                          setProductos((prevProductos) =>
+                            prevProductos.map((prod) => {
+                              if (
+                                prod.codigo_producto ===
+                                loteActualizado.codigo_producto
+                              ) {
+                                const nuevosLotes = Array.isArray(
+                                  (prod as unknown as { lotes: Lote[] }).lotes
+                                )
+                                  ? (
+                                      prod as unknown as { lotes: Lote[] }
+                                    ).lotes.map((l: Lote) =>
+                                      l.lote_id === loteActualizado.lote_id
+                                        ? loteActualizado
+                                        : l
+                                    )
+                                  : [];
+                                const nuevoStock = nuevosLotes.reduce(
+                                  (acc: number, l: Lote) =>
+                                    acc + (l.cantidad || 0),
+                                  0
+                                );
+                                return {
+                                  ...prod,
+                                  lotes: nuevosLotes,
+                                  stock: nuevoStock,
+                                };
+                              }
+                              return prod;
+                            })
+                          );
                         }
+                        setLoadingForm(false);
+                        setModalOpen(false);
+                        setEditMode(false);
                       }}
                       className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
                     >
                       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                        Agregar Lote
+                        {editMode ? "Editar Lote" : "Detalles del Lote"}
                       </h2>
                       {loteDateError && (
                         <div className="mb-4 px-4 py-2 rounded bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro text-sm font-semibold text-center">
@@ -1633,18 +1983,27 @@ export default function Inventary() {
                         </div>
                       )}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Columna 1 */}
                         <div className="flex flex-col gap-4">
                           <label className="font-semibold">
                             Número de lote
                             <input
                               name="numero_lote"
+                              type="text"
+                              inputMode="numeric" // muestra teclado numérico en móviles
+                              maxLength={10} // máximo de 10 dígitos
                               value={formLote.numero_lote}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                //  Elimina todo lo que no sea número
+                                const soloNumeros = e.target.value.replace(
+                                  /\D/g,
+                                  ""
+                                );
                                 setFormLote((f) => ({
                                   ...f,
-                                  numero_lote: e.target.value,
-                                }))
-                              }
+                                  numero_lote: soloNumeros,
+                                }));
+                              }}
                               placeholder="Número de lote"
                               className="w-full border rounded-lg px-3 py-2"
                               required
@@ -1664,31 +2023,10 @@ export default function Inventary() {
                             Nombre
                             <input
                               name="nombre"
-                              value={
-                                formLote.nombre ||
-                                formLote.nombre_producto ||
-                                ""
-                              }
+                              value={formLote.nombre}
                               disabled
                               readOnly
                               className="w-full border rounded-lg px-3 py-2 bg-gray-300"
-                            />
-                          </label>
-                          <label className="font-semibold">
-                            Cantidad
-                            <input
-                              name="cantidad"
-                              type="number"
-                              value={formLote.cantidad}
-                              onChange={(e) =>
-                                setFormLote((f) => ({
-                                  ...f,
-                                  cantidad: Number(e.target.value),
-                                }))
-                              }
-                              placeholder="Cantidad"
-                              className="w-full border rounded-lg px-3 py-2"
-                              required
                             />
                           </label>
                           <label className="font-semibold">
@@ -1698,38 +2036,36 @@ export default function Inventary() {
                               type="date"
                               value={formLote.fecha_entrada}
                               onChange={(e) =>
-                                setFormLote((f) => {
-                                  const nuevaEntrada = e.target.value;
-                                  // Si al cambiar entrada las otras fechas ahora son válidas, limpiar error
-                                  const salidaOk =
-                                    !f.fecha_salida_lote ||
-                                    f.fecha_salida_lote >= nuevaEntrada;
-                                  const vencOk =
-                                    !f.fecha_vencimiento ||
-                                    f.fecha_vencimiento >= nuevaEntrada;
-                                  if (salidaOk && vencOk)
-                                    setLoteDateError(null);
-                                  return {
-                                    ...f,
-                                    fecha_entrada: nuevaEntrada,
-                                  };
-                                })
+                                setFormLote((f) => ({
+                                  ...f,
+                                  fecha_entrada: e.target.value,
+                                  // 🔹 Si la salida es menor que la nueva entrada, la limpia
+                                  fecha_salida_lote:
+                                    f.fecha_salida_lote &&
+                                    e.target.value > f.fecha_salida_lote
+                                      ? ""
+                                      : f.fecha_salida_lote,
+                                  // Si las fechas asociadas vuelven a ser válidas, limpiar error
+                                }))
                               }
                               placeholder="Fecha de entrada"
                               className="w-full border rounded-lg px-3 py-2"
                               required
+                              readOnly={!editMode}
+                              disabled={!editMode}
                             />
                           </label>
+
                           <label className="font-semibold">
                             Fecha de salida de bodega
                             <input
                               name="fecha_salida_lote"
                               type="date"
+                              min={formLote.fecha_entrada || undefined}
                               value={formLote.fecha_salida_lote || ""}
                               onChange={(e) => {
-                                const nuevaFechaSalida = e.target.value;
-                                // si el usuario limpia con el control nativo
-                                if (!nuevaFechaSalida) {
+                                const salida = e.target.value;
+                                if (!salida) {
                                   setLoteDateError(null);
                                   setFormLote((f) => ({
                                     ...f,
@@ -1739,52 +2075,67 @@ export default function Inventary() {
                                 }
                                 if (
                                   formLote.fecha_entrada &&
-                                  nuevaFechaSalida < formLote.fecha_entrada
+                                  salida < formLote.fecha_entrada
                                 ) {
                                   setLoteDateError(
-                                    "La fecha de salida no puede ser menor que la de entrada"
+                                    "La fecha de salida no puede ser menor que la fecha de entrada"
                                   );
                                   return;
                                 }
                                 setLoteDateError(null);
                                 setFormLote((f) => ({
                                   ...f,
-                                  fecha_salida_lote: nuevaFechaSalida,
+                                  fecha_salida_lote: salida,
                                 }));
                               }}
                               placeholder="Fecha de salida"
                               className="w-full border rounded-lg px-3 py-2"
+                              readOnly={!editMode}
+                              disabled={!editMode}
                             />
                           </label>
                         </div>
+                        {/* Columna 2 */}
                         <div className="flex flex-col gap-4">
                           <label className="font-semibold">
                             Proveedor
-                            <select
-                              name="proveedor"
-                              value={formLote.proveedor}
-                              onChange={(e) =>
-                                setFormLote((f) => ({
-                                  ...f,
-                                  proveedor: e.target.value,
-                                }))
-                              }
-                              className="w-full border rounded-lg px-3 py-2"
-                              required
-                            >
-                              <option value="">Seleccione un proveedor</option>
-                              {filteredProviders.length === 0 ? (
-                                <option value="" disabled>
-                                  No hay proveedores para este producto
+                            {editMode ? (
+                              <select
+                                name="proveedor"
+                                value={formLote.proveedor}
+                                onChange={(e) =>
+                                  setFormLote((f) => ({
+                                    ...f,
+                                    proveedor: e.target.value,
+                                  }))
+                                }
+                                className="w-full border rounded-lg px-3 py-2"
+                                required
+                              >
+                                <option value="">
+                                  Seleccione un proveedor
                                 </option>
-                              ) : (
-                                filteredProviders.map((prov) => (
-                                  <option key={prov.id} value={prov.name}>
-                                    {prov.name}
+                                {filteredProviders.length === 0 ? (
+                                  <option value="" disabled>
+                                    No hay proveedores para este producto
                                   </option>
-                                ))
-                              )}
-                            </select>
+                                ) : (
+                                  filteredProviders.map((prov) => (
+                                    <option key={prov.id} value={prov.name}>
+                                      {prov.name}
+                                    </option>
+                                  ))
+                                )}
+                              </select>
+                            ) : (
+                              <input
+                                name="proveedor"
+                                value={formLote.proveedor}
+                                readOnly
+                                className="w-full border rounded-lg px-3 py-2"
+                                disabled
+                              />
+                            )}
                           </label>
                           <label className="font-semibold">
                             Fecha de vencimiento
@@ -1793,6 +2144,7 @@ export default function Inventary() {
                               type="date"
                               value={formLote.fecha_vencimiento}
                               onChange={(e) => {
+                                if (!editMode) return;
                                 const nueva = e.target.value;
                                 if (
                                   formLote.fecha_entrada &&
@@ -1812,6 +2164,8 @@ export default function Inventary() {
                               }}
                               placeholder="Fecha de vencimiento"
                               className="w-full border rounded-lg px-3 py-2"
+                              readOnly={!editMode}
+                              disabled={!editMode}
                             />
                           </label>
                           <label className="font-semibold">
@@ -1827,29 +2181,27 @@ export default function Inventary() {
                               }
                               placeholder="Descripción"
                               className="w-full border rounded-lg px-3 py-2 min-h-[40px]"
+                              readOnly={!editMode}
+                              disabled={!editMode}
                             />
                           </label>
                         </div>
                       </div>
                       <div className="flex gap-4 justify-end mt-6">
-                        <Button
-                          text={loadingForm ? "Guardando..." : "Guardar"}
-                          style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                          type="submit"
-                          disabled={
-                            loadingForm ||
-                            !formLote.codigo_producto ||
-                            !formLote.nombre_producto ||
-                            !formLote.numero_lote ||
-                            !formLote.cantidad ||
-                            !formLote.proveedor ||
-                            !formLote.fecha_entrada
-                          }
-                        />
+                        {(editMode || loadingForm) && (
+                          <Button
+                            text={
+                              loadingForm ? "Guardando..." : "Guardar cambios"
+                            }
+                            style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
+                            type="submit"
+                            disabled={loadingForm}
+                          />
+                        )}
                         <Button
                           text="Cancelar"
-                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           type="button"
+                          style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                           onClick={() => {
                             setModalOpen(false);
                             setEditMode(false);
@@ -1859,612 +2211,290 @@ export default function Inventary() {
                     </form>
                   </SimpleModal>
                 )}
+              {cabysModalOpen && (
+                <SimpleModal
+                  open={true}
+                  onClose={() => {
+                    setCabysModalOpen(false);
+                    // reset legacy search (no-op) anterior
+                    setSelectedCat1("");
+                    // Secondary category states removed
+                  }}
+                  className="w-full max-w-7xl"
+                  isWide
+                >
+                  <div className="flex flex-col gap-4 relative bg-white rounded-2xl w-[100%] mx-auto overflow-y-auto ">
+                    <h2 className="text-2xl font-bold text-gray-800 mb-3 text-center">
+                      Catálogo CABYS
+                    </h2>
+                    <hr className="pb-4" />
+                    {/* Categoría principal arriba */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+                      <label className=" flex flex-col md:col-span-1">
+                        <span className="text-sm mb-1 font-semibold text-gray-700">
+                          Categoría principal
+                        </span>
+                        <select
+                          value={selectedCat1}
+                          onChange={(e) => setSelectedCat1(e.target.value)}
+                          className="border rounded-lg px-2 py-2 text-sm"
+                        >
+                          <option value="">Todas</option>
+                          {cat1Options.map((c) => {
+                            const descTrim = (c.description || "").trim();
+                            const startsWithCode = descTrim
+                              .toLowerCase()
+                              .startsWith(c.code.toLowerCase());
+                            const label = startsWithCode
+                              ? descTrim
+                              : `${c.code} - ${descTrim}`;
+                            return (
+                              <option key={c.code} value={c.code}>
+                                {label}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </label>
+                    </div>
 
-                {/* Modal para ver detalles o editar un lote */}
-                {modalOpen &&
-                  typeof modalOpen === "object" &&
-                  modalOpen !== null && (
-                    <SimpleModal
-                      open={true}
-                      onClose={() => {
-                        setModalOpen(false);
-                        setEditMode(false);
-                        setLoteDateError(null);
-                      }}
-                    >
-                      <form
-                        onSubmit={async (e) => {
-                          e.preventDefault();
-                          if (loteDateError) return;
-                          setLoadingForm(true);
-                          const lote = formLote;
-                          const res = await fetch(
-                            `${API_URL}/api/v1/batch/${lote.lote_id}`,
-                            {
-                              method: "PUT",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({
-                                codigo_producto: formLote.codigo_producto,
-                                numero_lote: formLote.numero_lote,
-                                cantidad: Number(formLote.cantidad),
-                                proveedor: formLote.proveedor,
-                                fecha_entrada: formLote.fecha_entrada,
-                                fecha_vencimiento: formLote.fecha_vencimiento,
-                                fecha_salida_lote: formLote.fecha_salida_lote,
-                                descripcion: formLote.descripcion,
-                                nombre: formLote.nombre_producto,
-                              }),
-                            }
-                          );
-                          if (res.ok) {
-                            const loteActualizado = await res.json();
-                            setLotes((prev) =>
-                              prev.map((l) =>
-                                l.lote_id === loteActualizado.lote_id
-                                  ? loteActualizado
-                                  : l
-                              )
-                            );
-                            // Recalcular stock de productos
-                            setProductos((prevProductos) =>
-                              prevProductos.map((prod) => {
-                                if (
-                                  prod.codigo_producto ===
-                                  loteActualizado.codigo_producto
-                                ) {
-                                  const nuevosLotes = Array.isArray(
-                                    (prod as unknown as { lotes: Lote[] }).lotes
-                                  )
-                                    ? (
-                                        prod as unknown as { lotes: Lote[] }
-                                      ).lotes.map((l: Lote) =>
-                                        l.lote_id === loteActualizado.lote_id
-                                          ? loteActualizado
-                                          : l
-                                      )
-                                    : [];
-                                  const nuevoStock = nuevosLotes.reduce(
-                                    (acc: number, l: Lote) =>
-                                      acc + (l.cantidad || 0),
-                                    0
-                                  );
-                                  return {
-                                    ...prod,
-                                    lotes: nuevosLotes,
-                                    stock: nuevoStock,
-                                  };
-                                }
-                                return prod;
-                              })
-                            );
+                    {/* Búsqueda */}
+                    <div className="flex flex-col md:flex-row gap-3 md:items-end">
+                      <div className="flex-1 flex flex-col">
+                        <span className="text-gray-500 text-sm my-1">
+                          Búsqueda (código o descripción)
+                        </span>
+                        <SearchBar<CabysItem>
+                          key={searchBarResetKey}
+                          // dataset driven por servidor (si hubo búsqueda) o por items cargados
+                          data={(cabysSearchResults ?? cabysItems).map(
+                            (it) => ({ ...it })
+                          )}
+                          displayField="code"
+                          searchFields={["code", "description", "_combo"]}
+                          placeholder="Ej: 0101 o arroz"
+                          numericPrefixStartsWith
+                          resultFormatter={(it) =>
+                            `${it.code} - ${it.description}`
                           }
-                          setLoadingForm(false);
-                          setModalOpen(false);
-                          setEditMode(false);
-                        }}
-                        className="relative bg-white rounded-2xl w-full max-w-lg p-8 overflow-y-auto"
-                      >
-                        <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-                          {editMode ? "Editar Lote" : "Detalles del Lote"}
-                        </h2>
-                        {loteDateError && (
-                          <div className="mb-4 px-4 py-2 rounded bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro text-sm font-semibold text-center">
-                            {loteDateError}
-                          </div>
-                        )}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Columna 1 */}
-                          <div className="flex flex-col gap-4">
-                            <label className="font-semibold">
-                              Número de lote
-                              <input
-                                name="numero_lote"
-                                value={formLote.numero_lote}
-                                onChange={(e) =>
-                                  setFormLote((f) => ({
-                                    ...f,
-                                    numero_lote: e.target.value,
-                                  }))
-                                }
-                                placeholder="Número de lote"
-                                className="w-full border rounded-lg px-3 py-2"
-                                required
-                                readOnly={!editMode}
-                                disabled={!editMode}
-                              />
-                            </label>
-                            <label className="font-semibold">
-                              Código de lote
-                              <input
-                                name="codigo"
-                                value={formLote.codigo_producto}
-                                disabled
-                                readOnly
-                                className="w-full border rounded-lg px-3 py-2 bg-gray-300"
-                              />
-                            </label>
-                            <label className="font-semibold">
-                              Nombre
-                              <input
-                                name="nombre"
-                                value={formLote.nombre}
-                                disabled
-                                readOnly
-                                className="w-full border rounded-lg px-3 py-2 bg-gray-300"
-                              />
-                            </label>
-                            <label className="font-semibold">
-                              Fecha de entrada de bodega
-                              <input
-                                name="fecha_entrada"
-                                type="date"
-                                value={formLote.fecha_entrada}
-                                onChange={(e) =>
-                                  setFormLote((f) => ({
-                                    ...f,
-                                    fecha_entrada: e.target.value,
-                                    // 🔹 Si la salida es menor que la nueva entrada, la limpia
-                                    fecha_salida_lote:
-                                      f.fecha_salida_lote &&
-                                      e.target.value > f.fecha_salida_lote
-                                        ? ""
-                                        : f.fecha_salida_lote,
-                                    // Si las fechas asociadas vuelven a ser válidas, limpiar error
-                                  }))
-                                }
-                                placeholder="Fecha de entrada"
-                                className="w-full border rounded-lg px-3 py-2"
-                                required
-                                readOnly={!editMode}
-                                disabled={!editMode}
-                              />
-                            </label>
-
-                            <label className="font-semibold">
-                              Fecha de salida de bodega
-                              <input
-                                name="fecha_salida_lote"
-                                type="date"
-                                min={formLote.fecha_entrada || undefined}
-                                value={formLote.fecha_salida_lote || ""}
-                                onChange={(e) => {
-                                  const salida = e.target.value;
-                                  if (!salida) {
-                                    setLoteDateError(null);
-                                    setFormLote((f) => ({
-                                      ...f,
-                                      fecha_salida_lote: "",
-                                    }));
-                                    return;
-                                  }
-                                  if (
-                                    formLote.fecha_entrada &&
-                                    salida < formLote.fecha_entrada
-                                  ) {
-                                    setLoteDateError(
-                                      "La fecha de salida no puede ser menor que la fecha de entrada"
-                                    );
-                                    return;
-                                  }
-                                  setLoteDateError(null);
-                                  setFormLote((f) => ({
-                                    ...f,
-                                    fecha_salida_lote: salida,
-                                  }));
-                                }}
-                                placeholder="Fecha de salida"
-                                className="w-full border rounded-lg px-3 py-2"
-                                readOnly={!editMode}
-                                disabled={!editMode}
-                              />
-                            </label>
-                          </div>
-                          {/* Columna 2 */}
-                          <div className="flex flex-col gap-4">
-                            <label className="font-semibold">
-                              Proveedor
-                              {editMode ? (
-                                <select
-                                  name="proveedor"
-                                  value={formLote.proveedor}
-                                  onChange={(e) =>
-                                    setFormLote((f) => ({
-                                      ...f,
-                                      proveedor: e.target.value,
-                                    }))
-                                  }
-                                  className="w-full border rounded-lg px-3 py-2"
-                                  required
-                                >
-                                  <option value="">
-                                    Seleccione un proveedor
-                                  </option>
-                                  {filteredProviders.length === 0 ? (
-                                    <option value="" disabled>
-                                      No hay proveedores para este producto
-                                    </option>
-                                  ) : (
-                                    filteredProviders.map((prov) => (
-                                      <option key={prov.id} value={prov.name}>
-                                        {prov.name}
-                                      </option>
-                                    ))
-                                  )}
-                                </select>
-                              ) : (
-                                <input
-                                  name="proveedor"
-                                  value={formLote.proveedor}
-                                  readOnly
-                                  className="w-full border rounded-lg px-3 py-2"
-                                  disabled
-                                />
-                              )}
-                            </label>
-                            <label className="font-semibold">
-                              Fecha de vencimiento
-                              <input
-                                name="fecha_vencimiento"
-                                type="date"
-                                value={formLote.fecha_vencimiento}
-                                onChange={(e) => {
-                                  if (!editMode) return;
-                                  const nueva = e.target.value;
-                                  if (
-                                    formLote.fecha_entrada &&
-                                    nueva &&
-                                    nueva < formLote.fecha_entrada
-                                  ) {
-                                    setLoteDateError(
-                                      "La fecha de vencimiento no puede ser menor que la fecha de entrada"
-                                    );
-                                    return;
-                                  }
-                                  setLoteDateError(null);
-                                  setFormLote((f) => ({
-                                    ...f,
-                                    fecha_vencimiento: nueva,
-                                  }));
-                                }}
-                                placeholder="Fecha de vencimiento"
-                                className="w-full border rounded-lg px-3 py-2"
-                                readOnly={!editMode}
-                                disabled={!editMode}
-                              />
-                            </label>
-                            <label className="font-semibold">
-                              Descripción
-                              <textarea
-                                name="descripcion"
-                                value={formLote.descripcion}
-                                onChange={(e) =>
-                                  setFormLote((f) => ({
-                                    ...f,
-                                    descripcion: e.target.value,
-                                  }))
-                                }
-                                placeholder="Descripción"
-                                className="w-full border rounded-lg px-3 py-2 min-h-[40px]"
-                                readOnly={!editMode}
-                                disabled={!editMode}
-                              />
-                            </label>
-                          </div>
-                        </div>
-                        <div className="flex gap-4 justify-end mt-6">
-                          {(editMode || loadingForm) && (
-                            <Button
-                              text={
-                                loadingForm ? "Guardando..." : "Guardar cambios"
-                              }
-                              style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                              type="submit"
-                              disabled={loadingForm}
-                            />
-                          )}
-                          <Button
-                            text="Cancelar"
-                            type="button"
-                            style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
-                            onClick={() => {
-                              setModalOpen(false);
-                              setEditMode(false);
-                            }}
-                          />
-                        </div>
-                      </form>
-                    </SimpleModal>
-                  )}
-                {cabysModalOpen && (
-                  <SimpleModal
-                    open={true}
-                    onClose={() => {
-                      setCabysModalOpen(false);
-                      // reset legacy search (no-op) anterior
-                      setSelectedCat1("");
-                      // Secondary category states removed
-                    }}
-                    className="w-full max-w-7xl"
-                    isWide
-                  >
-                    <div className="flex flex-col gap-4 relative bg-white rounded-2xl w-[100%] mx-auto overflow-y-auto ">
-                      <h2 className="text-2xl font-bold text-gray-800 mb-3 text-center">
-                        Catálogo CABYS
-                      </h2>
-                      <hr className="pb-4" />
-                      {/* Categoría principal arriba */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
-                        <label className=" flex flex-col md:col-span-1">
-                          <span className="text-sm mb-1 font-semibold text-gray-700">
-                            Categoría principal
-                          </span>
-                          <select
-                            value={selectedCat1}
-                            onChange={(e) => setSelectedCat1(e.target.value)}
-                            className="border rounded-lg px-2 py-2 text-sm"
-                          >
-                            <option value="">Todas</option>
-                            {cat1Options.map((c) => {
-                              const descTrim = (c.description || "").trim();
-                              const startsWithCode = descTrim
-                                .toLowerCase()
-                                .startsWith(c.code.toLowerCase());
-                              const label = startsWithCode
-                                ? descTrim
-                                : `${c.code} - ${descTrim}`;
-                              return (
-                                <option key={c.code} value={c.code}>
-                                  {label}
-                                </option>
-                              );
-                            })}
-                          </select>
-                        </label>
-                      </div>
-
-                      {/* Búsqueda */}
-                      <div className="flex flex-col md:flex-row gap-3 md:items-end">
-                        <div className="flex-1 flex flex-col">
-                          <span className="text-gray-500 text-sm my-1">
-                            Búsqueda (código o descripción)
-                          </span>
-                          <SearchBar<CabysItem>
-                            key={searchBarResetKey}
-                            // dataset driven por servidor (si hubo búsqueda) o por items cargados
-                            data={(cabysSearchResults ?? cabysItems).map(
-                              (it) => ({ ...it })
-                            )}
-                            displayField="code"
-                            searchFields={["code", "description", "_combo"]}
-                            placeholder="Ej: 0101 o arroz"
-                            numericPrefixStartsWith
-                            resultFormatter={(it) =>
-                              `${it.code} - ${it.description}`
+                          onResultsChange={(results) => {
+                            // cuando el SearchBar filtra localmente, actualizamos estado para mostrar
+                            if (results.length === (cabysItems || []).length) {
+                              setCabysSearchResults(null);
+                            } else {
+                              setCabysSearchResults(results as CabysItem[]);
                             }
-                            onResultsChange={(results) => {
-                              // cuando el SearchBar filtra localmente, actualizamos estado para mostrar
-                              if (
-                                results.length === (cabysItems || []).length
-                              ) {
-                                setCabysSearchResults(null);
-                              } else {
-                                setCabysSearchResults(results as CabysItem[]);
-                              }
-                            }}
-                            onSelect={(item) => {
-                              setFormProducto((prev) => ({
-                                ...prev,
-                                codigo_cabys: item.code,
-                                impuesto: item.tax_rate,
-                              }));
-                              setCabysModalOpen(false);
-                              setCabysSearchResults(null);
-                            }}
-                            onInputChange={handleCabysInput}
-                          />
-                        </div>
-                        <div className="flex gap-2 text-xs font-semibold text-gray-600 items-center">
-                          {cabysLoading && (
-                            <span>
-                              Cargando CABYS
-                              {cabysLoadProgress.total > 0 &&
-                                ` ${cabysLoadProgress.loaded}/${cabysLoadProgress.total}`}
-                              {cabysPageInfo.last > 1 &&
-                                ` (página ${cabysPageInfo.page}/${cabysPageInfo.last})`}
-                            </span>
-                          )}
-                          {!cabysLoading &&
-                            cabysPageInfo.last > 0 &&
-                            cabysLoadProgress.loaded <
-                              cabysLoadProgress.total && (
-                              <span className="text-[10px] text-orange-600">
-                                Descarga truncada (seguridad).{" "}
-                                {cabysLoadProgress.loaded}/
-                                {cabysLoadProgress.total}
-                              </span>
-                            )}
-                          {cabysError && (
-                            <span className="text-rojo-oscuro">
-                              {cabysError}
-                            </span>
-                          )}
-                          {!cabysLoading && !cabysError && (
-                            <span className="text-gray-500 text-sm">
-                              {(cabysSearchResults ?? baseCabysFiltered).length}{" "}
-                              resultado
-                              {(cabysSearchResults ?? baseCabysFiltered)
-                                .length !== 1 && "s"}
-                            </span>
-                          )}
-                          <button
-                            type="button"
-                            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-sm transition text-sm cursor-pointer"
-                            onClick={() => {
-                              setSelectedCat1("");
-                              setCabysSearchResults(null);
-                              setSearchBarResetKey((k) => k + 1);
-                              setFormProducto((prev) => ({
-                                ...prev,
-                                codigo_cabys: "",
-                                impuesto: undefined,
-                              }));
-                            }}
-                          >
-                            Limpiar
-                          </button>
-                        </div>
+                          }}
+                          onSelect={(item) => {
+                            setFormProducto((prev) => ({
+                              ...prev,
+                              codigo_cabys: item.code,
+                              impuesto: item.tax_rate,
+                            }));
+                            setCabysModalOpen(false);
+                            setCabysSearchResults(null);
+                          }}
+                          onInputChange={handleCabysInput}
+                        />
                       </div>
+                      <div className="flex gap-2 text-xs font-semibold text-gray-600 items-center">
+                        {cabysLoading && (
+                          <span>
+                            Cargando CABYS
+                            {cabysLoadProgress.total > 0 &&
+                              ` ${cabysLoadProgress.loaded}/${cabysLoadProgress.total}`}
+                            {cabysPageInfo.last > 1 &&
+                              ` (página ${cabysPageInfo.page}/${cabysPageInfo.last})`}
+                          </span>
+                        )}
+                        {!cabysLoading &&
+                          cabysPageInfo.last > 0 &&
+                          cabysLoadProgress.loaded <
+                            cabysLoadProgress.total && (
+                            <span className="text-[10px] text-orange-600">
+                              Descarga truncada (seguridad).{" "}
+                              {cabysLoadProgress.loaded}/
+                              {cabysLoadProgress.total}
+                            </span>
+                          )}
+                        {cabysError && (
+                          <span className="text-rojo-oscuro">{cabysError}</span>
+                        )}
+                        {!cabysLoading && !cabysError && (
+                          <span className="text-gray-500 text-sm">
+                            {(cabysSearchResults ?? baseCabysFiltered).length}{" "}
+                            resultado
+                            {(cabysSearchResults ?? baseCabysFiltered)
+                              .length !== 1 && "s"}
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-sm transition text-sm cursor-pointer"
+                          onClick={() => {
+                            setSelectedCat1("");
+                            setCabysSearchResults(null);
+                            setSearchBarResetKey((k) => k + 1);
+                            setFormProducto((prev) => ({
+                              ...prev,
+                              codigo_cabys: "",
+                              impuesto: undefined,
+                            }));
+                          }}
+                        >
+                          Limpiar
+                        </button>
+                      </div>
+                    </div>
 
-                      {/* Tabla */}
-                      <div className="border rounded-lg overflow-hidden shadow-sm">
-                        <div className="max-h-[50vh] overflow-y-auto bg-white">
-                          <table className="min-w-full text-xs md:text-sm">
-                            <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
-                              <tr>
-                                <th className="px-3 py-2 text-left font-semibold w-32">
-                                  CÓDIGO
-                                </th>
-                                <th className="px-3 py-2 text-left font-semibold">
-                                  DESCRIPCIÓN DEL BIEN O SERVICIO
-                                </th>
-                                <th className="px-3 py-2 text-left font-semibold w-20">
-                                  IMPUESTO
-                                </th>
-                                <th className="px-3 py-2 text-left font-semibold w-24">
-                                  ACCIÓN
-                                </th>
-                              </tr>
-                            </thead>
-                            <tbody className="divide-y">
-                              {!cabysLoading &&
-                                !cabysError &&
-                                cabysItems.length === 0 && (
-                                  <tr>
-                                    <td
-                                      colSpan={4}
-                                      className="px-3 py-6 text-center text-gray-500"
-                                    >
-                                      Catálogo vacío (0 registros). Ver consola
-                                      para diagnóstico de respuesta.
-                                    </td>
-                                  </tr>
-                                )}
-                              {(cabysSearchResults ?? baseCabysFiltered)
-                                .length === 0 && !cabysLoading ? (
+                    {/* Tabla */}
+                    <div className="border rounded-lg overflow-hidden shadow-sm">
+                      <div className="max-h-[50vh] overflow-y-auto bg-white">
+                        <table className="min-w-full text-xs md:text-sm">
+                          <thead className="bg-gray-100 text-gray-700 sticky top-0 z-10">
+                            <tr>
+                              <th className="px-3 py-2 text-left font-semibold w-32">
+                                CÓDIGO
+                              </th>
+                              <th className="px-3 py-2 text-left font-semibold">
+                                DESCRIPCIÓN DEL BIEN O SERVICIO
+                              </th>
+                              <th className="px-3 py-2 text-left font-semibold w-20">
+                                IMPUESTO
+                              </th>
+                              <th className="px-3 py-2 text-left font-semibold w-24">
+                                ACCIÓN
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y">
+                            {!cabysLoading &&
+                              !cabysError &&
+                              cabysItems.length === 0 && (
                                 <tr>
                                   <td
                                     colSpan={4}
                                     className="px-3 py-6 text-center text-gray-500"
                                   >
-                                    Sin resultados
+                                    Catálogo vacío (0 registros). Ver consola
+                                    para diagnóstico de respuesta.
                                   </td>
                                 </tr>
-                              ) : (
-                                (cabysSearchResults ?? baseCabysFiltered)
-                                  .slice(0, 500)
-                                  .map((item) => (
-                                    <tr
-                                      key={item.code}
-                                      className="hover:bg-gray-50 cursor-pointer"
-                                      onClick={() => {
-                                        setFormProducto((f) => ({
-                                          ...f,
-                                          codigo_cabys: item.code,
-                                          impuesto: item.tax_rate ?? f.impuesto,
-                                        }));
-                                        setCabysModalOpen(false);
-                                        setCabysSearchResults(null);
-                                      }}
-                                    >
-                                      <td className="px-3 py-2 font-mono whitespace-nowrap">
-                                        {item.code}
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        {item.description}
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        {item.tax_rate}%
-                                      </td>
-                                      <td className="px-3 py-2">
-                                        <button
-                                          type="button"
-                                          className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold text-sm px-4 py-2 rounded-lg shadow-sm transition cursor-pointer"
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            setFormProducto((f) => ({
-                                              ...f,
-                                              codigo_cabys: item.code,
-                                              impuesto:
-                                                item.tax_rate ?? f.impuesto,
-                                            }));
-                                            setCabysModalOpen(false);
-                                            setCabysSearchResults(null);
-                                          }}
-                                        >
-                                          Seleccionar
-                                        </button>
-                                      </td>
-                                    </tr>
-                                  ))
                               )}
-                            </tbody>
-                          </table>
-                        </div>
-                        {(cabysSearchResults ?? baseCabysFiltered).length >
-                          500 && (
-                          <p className="text-gray-500 text-sm px-3 py-2 bg-gray-50 border-t">
-                            Mostrando primeros 500 resultados. Refina la
-                            búsqueda.
-                          </p>
-                        )}
-                      </div>
-                      {/* Botones */}
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          {/* Mostrar botón Cargar más si hay más páginas */}
-                          {!cabysLoading &&
-                            cabysPageInfo.last > cabysPageInfo.page && (
-                              <button
-                                type="button"
-                                className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition text-sm cursor-pointer"
-                                onClick={() => loadNextCabysPage()}
-                              >
-                                Cargar más
-                              </button>
+                            {(cabysSearchResults ?? baseCabysFiltered)
+                              .length === 0 && !cabysLoading ? (
+                              <tr>
+                                <td
+                                  colSpan={4}
+                                  className="px-3 py-6 text-center text-gray-500"
+                                >
+                                  Sin resultados
+                                </td>
+                              </tr>
+                            ) : (
+                              (cabysSearchResults ?? baseCabysFiltered)
+                                .slice(0, 500)
+                                .map((item) => (
+                                  <tr
+                                    key={item.code}
+                                    className="hover:bg-gray-50 cursor-pointer"
+                                    onClick={() => {
+                                      setFormProducto((f) => ({
+                                        ...f,
+                                        codigo_cabys: item.code,
+                                        impuesto: item.tax_rate ?? f.impuesto,
+                                      }));
+                                      setCabysModalOpen(false);
+                                      setCabysSearchResults(null);
+                                    }}
+                                  >
+                                    <td className="px-3 py-2 font-mono whitespace-nowrap">
+                                      {item.code}
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      {item.description}
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      {item.tax_rate}%
+                                    </td>
+                                    <td className="px-3 py-2">
+                                      <button
+                                        type="button"
+                                        className="bg-verde-claro hover:bg-verde-oscuro text-white font-bold text-sm px-4 py-2 rounded-lg shadow-sm transition cursor-pointer"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setFormProducto((f) => ({
+                                            ...f,
+                                            codigo_cabys: item.code,
+                                            impuesto:
+                                              item.tax_rate ?? f.impuesto,
+                                          }));
+                                          setCabysModalOpen(false);
+                                          setCabysSearchResults(null);
+                                        }}
+                                      >
+                                        Seleccionar
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))
                             )}
-                        </div>
-                        <div>
-                          <button
-                            type="button"
-                            className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-3 rounded-lg shadow-md transition text-sm cursor-pointer"
-                            onClick={() => {
-                              setCabysModalOpen(false);
-                              setCabysSearchResults(null);
-                              setSelectedCat1("");
-                            }}
-                          >
-                            Salir
-                          </button>
-                        </div>
+                          </tbody>
+                        </table>
+                      </div>
+                      {(cabysSearchResults ?? baseCabysFiltered).length >
+                        500 && (
+                        <p className="text-gray-500 text-sm px-3 py-2 bg-gray-50 border-t">
+                          Mostrando primeros 500 resultados. Refina la búsqueda.
+                        </p>
+                      )}
+                    </div>
+                    {/* Botones */}
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        {/* Mostrar botón Cargar más si hay más páginas */}
+                        {!cabysLoading &&
+                          cabysPageInfo.last > cabysPageInfo.page && (
+                            <button
+                              type="button"
+                              className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition text-sm cursor-pointer"
+                              onClick={() => loadNextCabysPage()}
+                            >
+                              Cargar más
+                            </button>
+                          )}
+                      </div>
+                      <div>
+                        <button
+                          type="button"
+                          className="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-3 rounded-lg shadow-md transition text-sm cursor-pointer"
+                          onClick={() => {
+                            setCabysModalOpen(false);
+                            setCabysSearchResults(null);
+                            setSelectedCat1("");
+                          }}
+                        >
+                          Salir
+                        </button>
                       </div>
                     </div>
-                  </SimpleModal>
-                )}
-                <div className="mb-4">
-                  <button
-                    className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition cursor-pointer"
-                    onClick={() => {
-                      setCategoryForm({ nombre: "", descripcion: "" });
-                      setCategoryEditMode(false);
-                      setCategoryModalOpen(true);
-                    }}
-                  >
-                    Gestionar Categorías
-                  </button>
-                </div>
+                  </div>
+                </SimpleModal>
+              )}
+              <div className="mb-4">
+                <button
+                  className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition cursor-pointer"
+                  onClick={() => {
+                    setCategoryForm({ nombre: "", descripcion: "" });
+                    setCategoryEditMode(false);
+                    setCategoryModalOpen(true);
+                  }}
+                >
+                  Gestionar Categorías
+                </button>
               </div>
             </div>
-      
+          </div>
         }
       />
     </ProtectedRoute>

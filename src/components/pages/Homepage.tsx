@@ -14,7 +14,10 @@ export default function Homepage() {
   const [plan, setPlan] = useState("");
 
   // Estado de alerta
-  const [alerta, setAlerta] = useState<{ mensaje: string; tipo: "error" | "info" } | null>(null);
+  const [alerta, setAlerta] = useState<{
+    mensaje: string;
+    tipo: "error" | "info";
+  } | null>(null);
 
   const handleOpenModal = () => setIsModalOpen(true);
   const handleCloseModal = () => setIsModalOpen(false);
@@ -65,7 +68,8 @@ export default function Homepage() {
         {
           id: "basico",
           title: "Básico",
-          description: "Hasta 5GB de almacenamiento\n5 usuarios\nSoporte básico",
+          description:
+            "Hasta 5GB de almacenamiento\n5 usuarios\nSoporte básico",
           price: "$20/mes",
           bgColor: "bg-sky-300",
           icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
@@ -73,7 +77,8 @@ export default function Homepage() {
         {
           id: "estandar",
           title: "Estándar",
-          description: "Hasta 50GB de almacenamiento\n15 usuarios\nManejo de sucursales",
+          description:
+            "Hasta 50GB de almacenamiento\n15 usuarios\nManejo de sucursales",
           price: "$45/mes",
           bgColor: "bg-sky-600",
           icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
@@ -81,7 +86,8 @@ export default function Homepage() {
         {
           id: "avanzado",
           title: "Avanzado",
-          description: "Hasta 500GB de almacenamiento\n200 usuarios\nAsistente IA",
+          description:
+            "Hasta 500GB de almacenamiento\n200 usuarios\nAsistente IA",
           price: "$60/mes",
           bgColor: "bg-sky-800",
           icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
@@ -89,20 +95,23 @@ export default function Homepage() {
         {
           id: "corporativo",
           title: "Corporativo",
-          description: "Hasta 1TB de almacenamiento\nAnálisis de datos de mercado\nSoporte 24/7",
+          description:
+            "Hasta 1TB de almacenamiento\nAnálisis de datos de mercado\nSoporte 24/7",
           price: "$80/mes",
           bgColor: "bg-sky-900",
           icon: <RiMoneyDollarCircleFill className="w-12 h-12 text-white" />,
         },
       ],
-      cardClassName: "flex flex-col items-center w-40 sm:w-44 md:w-48 group bg-white rounded-xl shadow-md p-4",
+      cardClassName:
+        "flex flex-col items-center w-40 sm:w-44 md:w-48 group bg-white rounded-xl shadow-md p-4",
       cardButtonClassName:
         "rounded-full w-20 h-20 md:w-24 md:h-24 flex items-center justify-center mb-3 transition-transform duration-300 transform group-hover:scale-125 group-hover:shadow-cyan",
       buttonText: "Contáctanos",
       onButtonClick: handleOpenModal,
       buttonIcon: <FaWhatsapp className="w-1 h-10 text-white" />,
       containerClassName: "bg-sky-100 text-gray-900 py-20 px-8 md:px-20",
-      buttonClassName: "bg-sky-500 text-black hover:bg-sky-600 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
+      buttonClassName:
+        "bg-sky-500 text-black hover:bg-sky-600 text-lg font-semibold py-3 px-6 rounded shadow-md mt-6",
       alignment: "center",
       direction: "row",
     },
@@ -125,7 +134,7 @@ export default function Homepage() {
         </a>,
         <a
           key="ig"
-          href="https://www.instagram.com/"
+          href="https://www.instagram.com/gestiorcr?igsh=YzJ6ZnM4dHFxbml2 "
           target="_blank"
           rel="noopener noreferrer"
           className="flex flex-col items-center transition-transform duration-300 hover:scale-110"
@@ -156,7 +165,11 @@ export default function Homepage() {
 
   return (
     <>
-      <Container nav={navProps} informationCardsProps={informationCardsProps} miniCards={miniCardsProps} />
+      <Container
+        nav={navProps}
+        informationCardsProps={informationCardsProps}
+        miniCards={miniCardsProps}
+      />
 
       {/* Modal de WhatsApp */}
       {isModalOpen && (
@@ -164,22 +177,26 @@ export default function Homepage() {
           <div className="bg-white rounded-lg p-8 w-80 md:w-96 flex flex-col items-center">
             <h2 className="text-xl font-bold mb-4">Pide Información</h2>
             <p className="mb-4 text-center">
-              Completa tus datos y el plan que te interesa. Te responderemos por WhatsApp.
+              Completa tus datos y el plan que te interesa. Te responderemos por
+              WhatsApp.
             </p>
 
             {/* Formulario */}
-        {/* Formulario */}
-              <input
-                type="text"
-                placeholder="Tu nombre"
-                value={name}
-                onChange={(e) => {
-                  // Solo permitir letras y espacios
-                  const valorFiltrado = e.target.value.replace(/[^A-Za-z\s]/g, "");
-                  setName(valorFiltrado);
-                }}
-                className="mb-3 w-full px-3 py-2 border rounded"
-              />
+            {/* Formulario */}
+            <input
+              type="text"
+              placeholder="Tu nombre"
+              value={name}
+              onChange={(e) => {
+                // Solo permitir letras y espacios
+                const valorFiltrado = e.target.value.replace(
+                  /[^A-Za-z\s]/g,
+                  ""
+                );
+                setName(valorFiltrado);
+              }}
+              className="mb-3 w-full px-3 py-2 border rounded"
+            />
 
             <input
               type="email"
@@ -208,13 +225,19 @@ export default function Homepage() {
 
                 // Validar nombre: solo letras y espacios, máximo 50 caracteres
                 if (!name || !/^[A-Za-z\s]+$/.test(name) || name.length > 50) {
-                  mostrarAlerta("Nombre inválido: solo letras y máximo 50 caracteres", "error");
+                  mostrarAlerta(
+                    "Nombre inválido: solo letras y máximo 50 caracteres",
+                    "error"
+                  );
                   return;
                 }
 
                 // Validar correo: debe tener @ y terminar en .com
                 if (!email || !/^[^\s@]+@[^\s@]+\.com$/.test(email)) {
-                  mostrarAlerta("Correo inválido: debe tener formato ejemplo@dominio.com", "error");
+                  mostrarAlerta(
+                    "Correo inválido: debe tener formato ejemplo@dominio.com",
+                    "error"
+                  );
                   return;
                 }
 

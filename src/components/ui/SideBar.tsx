@@ -326,25 +326,24 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
           </span>
         </div>
       </div>
-  <div
-  role="button"
-  tabIndex={0}
-  className="flex items-center gap-3 w-[90%] mx-auto bg-azul-medio hover:bg-azul-hover backdrop-blur-sm rounded-xl shadow-md p-3 cursor-pointer transition-all duration-300"
-  onClick={() => (window.location.href = "/Dashboard")}
-  onKeyDown={(e) => {
-    if (e.key === "Enter" || e.key === " ")
-      window.location.href = "/Dashboard";
-  }}
->
-  <div className="bg-white/20 p-2 rounded-full flex items-center justify-center">
-    <LayoutDashboard className="w-6 h-6 text-white" />
-  </div>
+      <div
+        role="button"
+        tabIndex={0}
+        className="flex items-center gap-3 w-[90%] mx-auto bg-white/10 hover:bg-azul-hover backdrop-blur-sm rounded-xl shadow-md p-3 cursor-pointer transition-all duration-300"
+        onClick={() => (window.location.href = "/Dashboard")}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ")
+            window.location.href = "/Dashboard";
+        }}
+      >
+        <div className="bg-white/20 p-2 rounded-full flex items-center justify-center">
+          <LayoutDashboard className="w-6 h-6 text-white" />
+        </div>
 
-  <span className="text-white font-semibold text-base leading-tight">
-    Panel de Control
-  </span>
-</div>
-
+        <span className="text-white font-semibold text-base leading-tight">
+          Panel de Control
+        </span>
+      </div>
 
       {/* Secciones */}
       <div className="w-full flex flex-col items-center gap-2">

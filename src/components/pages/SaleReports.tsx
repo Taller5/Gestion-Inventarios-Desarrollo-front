@@ -10,9 +10,6 @@ import InfoIcon from "../ui/InfoIcon";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function SaleReports() {
-
-
-
   const [invoices, setInvoices] = useState<any[]>([]);
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string>("");
@@ -98,12 +95,8 @@ export default function SaleReports() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-       <div className="w-full md:w-auto max-w-[1200px] px-2 md:px-10 mx-auto flex flex-col">
-
-         
-
-           <div className="w-full px-2 md:px-10 mx-auto">
-
+          <div className="w-full md:w-auto px-2 md:px-10 mx-auto flex flex-col">
+            <div className="w-full px-2 md:px-10 mx-auto">
               <h1 className="text-3xl font-bold mb-6 mt-6">
                 Reporte de ventas
                 <InfoIcon
@@ -127,7 +120,9 @@ export default function SaleReports() {
                         setSelectedBusiness(e.target.value || null)
                       }
                     >
-                      <option value="" className="cursor-pointer">-- Seleccione --</option>
+                      <option value="" className="cursor-pointer">
+                        -- Seleccione --
+                      </option>
                       {businessList.map((b) => (
                         <option key={b} value={b} className="cursor-pointer">
                           {b}
@@ -174,8 +169,7 @@ export default function SaleReports() {
                 </div>
               )}
 
-
-             {selectedBusiness && filteredInvoices.length > 0 && (
+              {selectedBusiness && filteredInvoices.length > 0 && (
                 <div className="mb-4 flex gap-4">
                   {/* Exportar Excel */}
                   <ExcelExporter
@@ -190,11 +184,9 @@ export default function SaleReports() {
                     headers={invoiceHeaders}
                     fileName={`Ventas_${selectedBusiness}.pdf`} // nombre dinámico con negocio
                     reportTitle={`Reporte de Ventas - ${selectedBusiness}`} // título dentro del PDF
-                 
                   />
                 </div>
               )}
-
 
               {/* Tabla */}
               {selectedBusiness && filteredInvoices.length > 0 && (
