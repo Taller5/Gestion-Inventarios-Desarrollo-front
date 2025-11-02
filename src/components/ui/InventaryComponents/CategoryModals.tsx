@@ -8,7 +8,9 @@ interface CategoryModalsProps {
   categoryEditMode: boolean;
   setCategoryEditMode: (value: boolean) => void;
   categoryForm: { nombre: string; descripcion?: string };
-  setCategoryForm: React.Dispatch<React.SetStateAction<{ nombre: string; descripcion?: string }>>;
+  setCategoryForm: React.Dispatch<
+    React.SetStateAction<{ nombre: string; descripcion?: string }>
+  >;
   categorySearchModal: string;
   setCategorySearchModal: (value: string) => void;
   categories: { nombre: string; descripcion?: string }[];
@@ -72,15 +74,24 @@ export default function CategoryModals({
               stroke="currentColor"
               strokeWidth={3}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
 
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              if (!categoryForm.nombre.trim() || !categoryForm.descripcion?.trim()) {
-                setAlertMessage("Por favor, completa todos los campos antes de guardar.");
+              if (
+                !categoryForm.nombre.trim() ||
+                !categoryForm.descripcion?.trim()
+              ) {
+                setAlertMessage(
+                  "Por favor, completa todos los campos antes de guardar."
+                );
                 return;
               }
               saveCategory();
@@ -89,19 +100,27 @@ export default function CategoryModals({
           >
             {/* Búsqueda de categorías */}
             <div className="mb-4">
-              <h3 className="font-bold text-gray-700 mb-2">Categorías existentes</h3>
+              <h3 className="font-bold text-gray-700 mb-2">
+                Categorías existentes
+              </h3>
               <input
                 type="text"
                 placeholder="Buscar categoría..."
                 value={categorySearchModal}
-                onChange={(e) => setCategorySearchModal(e.target.value)}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/[0-9]/g, ""); 
+                  setCategorySearchModal(value);
+                }}
+                maxLength={50} 
                 className="w-full border rounded-lg px-3 py-2 mb-4"
               />
               {categorySearchModal.trim() !== "" && (
                 <ul className="max-h-64 overflow-y-auto border rounded-lg">
                   {categories
                     .filter((cat) =>
-                      cat.nombre.toLowerCase().includes(categorySearchModal.toLowerCase())
+                      cat.nombre
+                        .toLowerCase()
+                        .includes(categorySearchModal.toLowerCase())
                     )
                     .map((cat) => (
                       <li
@@ -110,7 +129,9 @@ export default function CategoryModals({
                       >
                         <div>
                           <span className="font-semibold">{cat.nombre}</span>{" "}
-                          <span className="text-gray-500">{cat.descripcion}</span>
+                          <span className="text-gray-500">
+                            {cat.descripcion}
+                          </span>
                         </div>
                         <div className="flex gap-2">
                           <button
@@ -185,8 +206,8 @@ export default function CategoryModals({
                 {categoryLoadingForm
                   ? "Guardando..."
                   : categoryEditMode
-                  ? "Guardar cambios"
-                  : "Agregar"}
+                    ? "Guardar cambios"
+                    : "Agregar"}
               </button>
 
               {categoryEditMode && (
@@ -209,9 +230,14 @@ export default function CategoryModals({
 
       {/* Confirmación eliminación */}
       {categoryToDelete && deleteCategory && (
-        <SimpleModal open onClose={() => setCategoryToDelete(null)} title="Eliminar categoría">
+        <SimpleModal
+          open
+          onClose={() => setCategoryToDelete(null)}
+          title="Eliminar categoría"
+        >
           <p className="mb-6 text-center">
-            ¿Seguro que deseas eliminar la categoría <b>{categoryToDelete}</b>? Esto no se puede deshacer.
+            ¿Seguro que deseas eliminar la categoría <b>{categoryToDelete}</b>?
+            Esto no se puede deshacer.
           </p>
           <div className="flex gap-4 justify-center">
             <Button
@@ -238,7 +264,11 @@ export default function CategoryModals({
 
       {/* Alerta */}
       {alertMessage && (
-        <SimpleModal open onClose={() => setAlertMessage(null)} title="Atención">
+        <SimpleModal
+          open
+          onClose={() => setAlertMessage(null)}
+          title="Atención"
+        >
           <p className="text-center">{alertMessage}</p>
           <div className="flex justify-center mt-6">
             <button

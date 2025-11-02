@@ -95,14 +95,14 @@ export default function Container(props: ContainerProps) {
   const informationCardsArray = Array.isArray(props.informationCardsProps)
     ? props.informationCardsProps
     : props.informationCardsProps
-    ? [props.informationCardsProps]
-    : [];
+      ? [props.informationCardsProps]
+      : [];
 
   const miniCardsArray = Array.isArray(props.miniCards)
     ? props.miniCards
     : props.miniCards
-    ? [props.miniCards]
-    : [];
+      ? [props.miniCards]
+      : [];
 
   // --- Contenido de página ---
   let pageContent;
@@ -130,16 +130,16 @@ export default function Container(props: ContainerProps) {
     user &&
     window.location.pathname !== "/" &&
     window.location.pathname !== "/login";
-useEffect(() => {
-  if (isSidebarOpen) {
-    document.body.style.overflow = "hidden";
-  } else {
-    document.body.style.overflow = "auto";
-  }
-  return () => {
-    document.body.style.overflow = "auto";
-  };
-}, [isSidebarOpen]);
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [isSidebarOpen]);
   return (
     <div className="flex flex-col min-h-screen">
       {/* Nav siempre visible, ahora recibe función para abrir sidebar */}
@@ -156,12 +156,6 @@ useEffect(() => {
         )}
         <main className="flex flex-col flex-grow ">{pageContent}</main>
       </div>
-
-
-
-
-
-
 
       {/* Modal de inactividad */}
       {showInactivityModal && (
@@ -205,7 +199,7 @@ useEffect(() => {
               Facebook
             </a>
             <a
-              href="https://www.instagram.com/"
+              href="https://www.instagram.com/gestiorcr?igsh=YzJ6ZnM4dHFxbml2"
               className="flex items-center gap-2 hover:underline hover:text-sky-300 transition"
               target="_blank"
               rel="noopener noreferrer"
