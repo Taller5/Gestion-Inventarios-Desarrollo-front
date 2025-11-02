@@ -9,6 +9,7 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
+import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -126,6 +127,10 @@ export default function Employees() {
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Personal y Roles
+                <InfoIcon
+                  title="Gestionar Personal y Roles"
+                  description="Aqui puedes gestionar a tus colaboradores y asignarles un rol. Puedes agregar, editar y eliminar colaboradores."
+                />
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">

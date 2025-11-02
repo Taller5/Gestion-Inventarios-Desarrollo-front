@@ -39,9 +39,6 @@ export default function RecoverPassword() {
       }
 
       const data = await res.json();
-      
-      router.navigate({ to: "/login" });
-
       const tempPassword = data.temporaryPassword;
       const userName = data.name;
 
@@ -63,6 +60,11 @@ export default function RecoverPassword() {
 
       setSuccess(true);
       setEmail("");
+
+      // Mostrar mensaje y redirigir después de 10 segundos
+      setTimeout(() => {
+        router.navigate({ to: "/login" });
+      }, 10000);
     } catch (err: any) {
       console.error("Recover error:", err);
       setError(err.message || "Error inesperado");
@@ -87,7 +89,7 @@ export default function RecoverPassword() {
     buttonText2: "Volver",
     hidePasswordField: true,
     successMessage: success
-      ? `¡Listo! Hemos enviado una contraseña temporal a tu correo electrónico. Por favor revisa tu bandeja de entrada y vuelve a la página de inicio de sesión.`
+      ? `¡Listo! Hemos enviado una contraseña temporal a su correo electrónico. Revise su bandeja de entrada donde encontrará su nueva contraseña temporal. Será redirigido al inicio de sesión en unos segundos.`
       : undefined,
   };
 

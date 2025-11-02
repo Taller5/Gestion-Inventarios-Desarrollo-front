@@ -16,6 +16,7 @@ import { RiEdit2Fill } from "react-icons/ri";
 import ProductFilters from "../ui/InventaryComponents/ProductsFillter";
 import type { Warehouse, Business } from "../../types/inventario";
 import CategoryModals from "../ui/InventaryComponents/CategoryModals";
+import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -901,6 +902,10 @@ export default function Inventary() {
               <div className="w-full pl-2">
                 <h1 className="text-2xl font-bold mb-6 text-left">
                   Gestionar Inventario
+                  <InfoIcon
+                    title="Inventario"
+                    description="En este módulo puedes gestionar los productos, lotes y categorías de tu inventario. Usa las acciones para agregar, editar o eliminar productos y lotes."
+                  />
                 </h1>
                 {/* Barra de búsqueda y botones principales */}
                 <div className="flex flex-col sm:flex-row justify-between gap-10 mb-4 w-full">

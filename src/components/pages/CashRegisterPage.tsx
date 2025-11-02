@@ -5,6 +5,7 @@ import TableInformation from "../ui/TableInformation";
 import Button from "../ui/Button";
 import Container from "../ui/Container";
 import SimpleModal from "../ui/SimpleModal";
+import InfoIcon from "../ui/InfoIcon";
 
 type Branch = {
   sucursal_id: number;
@@ -430,6 +431,10 @@ const handleOpenCashRegister = async () => {
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Cajas
+                <InfoIcon
+                  title="Cajas"
+                  description="En esta sección puedes abrir y cerrar cajas de dinero y ver el historial de movimientos de dinero. Solo puedes abrir o cerrar tu propia caja."
+                />
               </h1>
 
               {/* Filtros */}

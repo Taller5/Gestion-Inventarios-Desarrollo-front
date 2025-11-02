@@ -4,6 +4,7 @@ import Container from "../ui/Container";
 import PromotionForm from "../ui/PromotionComponents/PromotionForm";
 import TableInformation from "../ui/TableInformation";
 import { AiOutlineCheck, AiOutlineClose } from "react-icons/ai";
+import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -221,7 +222,12 @@ export default function PromotionPage() {
       <Container
         page={
           <div className="w-full px-2 md:px-10 mx-auto flex flex-col">
-            <h1 className="text-3xl font-bold mb-6 mt-6">Promociones</h1>
+            <h1 className="text-3xl font-bold mb-6 mt-6">Promociones
+              <InfoIcon
+                title="Gestión de Promociones"
+                description="En esta sección puedes crear, editar y eliminar promociones para tus productos. Las promociones pueden ser de tipo porcentaje, fijo o combo. Asegúrate de asignar productos a cada promoción para que sean efectivas."
+              />
+            </h1>
 
             {/* Botón crear promoción */}
             <button

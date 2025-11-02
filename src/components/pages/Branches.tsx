@@ -8,6 +8,7 @@ import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
+import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
 // Types
@@ -505,6 +506,10 @@ export default function Branches() {
             <div className="w-full pl-5 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Sucursales
+                <InfoIcon
+                  title="Gestionar Sucursales"
+                  description="En esta sección puedes agregar, editar y eliminar sucursales de tu negocio. Antes de añadir una sucursal, añade un negocio."
+                />
               </h1>
 
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">

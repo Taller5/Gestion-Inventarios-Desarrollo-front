@@ -8,6 +8,7 @@ import SimpleModal from "../ui/SimpleModal";
 import { IoAddCircle } from "react-icons/io5";
 import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
+import InfoIcon from "../ui/InfoIcon";
 
 type Customer = {
   customer_id: number;
@@ -326,6 +327,10 @@ if (errorEmail) {
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Clientes y Fidelización
+                <InfoIcon
+                  title="Clientes y Fidelización"
+                  description="Aquí puedes gestionar los clientes registrados en el sistema. Puedes añadir nuevos clientes, editar la información existente o eliminar clientes que ya no sean necesarios."
+                />
               </h1>
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-10 mb-6">
