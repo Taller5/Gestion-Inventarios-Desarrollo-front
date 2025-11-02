@@ -9,6 +9,7 @@ import {
   Info,
   CheckCircle,
   XCircle,
+  RotateCcw, // 🔹 NUEVO ícono para restaurar
 } from "lucide-react";
 import Button from "../Button";
 
@@ -27,6 +28,7 @@ interface Promocion {
     descuento: number;
   }[];
 }
+
 export interface CartItemType {
   producto: {
     id?: number;
@@ -36,27 +38,25 @@ export interface CartItemType {
   };
   cantidad: number;
   descuento: number;
-  // ahora acepta string o el objeto que se usa en CartTable
   infoPromo?: string | { id: number; descripcion: string; cantidadAplicada: number };
 }
 
-
 interface PromotionsButtonProps {
   businessId: number;
-  branchId?: number | null; //  Agregado para manejar la sucursal
+  branchId?: number | null;
   carrito: CartItemType[];
   setCarrito: React.Dispatch<React.SetStateAction<CartItemType[]>>;
-    disabled?: boolean;
+  disabled?: boolean;
 }
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function PromotionsButton({
   businessId,
-  branchId = null, // Valor por defecto null si no se pasa
+  branchId = null,
   carrito,
   setCarrito,
-    disabled = false
+  disabled = false,
 }: PromotionsButtonProps) {
   const [promociones, setPromociones] = useState<Promocion[]>([]);
   const [loading, setLoading] = useState(false);
@@ -73,7 +73,7 @@ export default function PromotionsButton({
     }
   }, [modalMessage]);
 
-  //  Obtener promociones activas
+  // 🟦 Obtener promociones activas
   const fetchPromotions = async () => {
     setLoading(true);
     try {
@@ -82,9 +82,7 @@ export default function PromotionsButton({
         `${API_URL}/api/v1/promotions/active?business_id=${businessId}${
           branchId ? `&branch_id=${branchId}` : ""
         }`,
-        {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        }
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
       );
 
       if (!res.ok) {
@@ -96,7 +94,7 @@ export default function PromotionsButton({
       setPromociones(data);
       setShow(true);
     } catch (err: any) {
-      console.error(" Error al cargar promociones:", err);
+      console.error("Error al cargar promociones:", err);
       setModalMessage({
         type: "error",
         text: err.message || "Error al cargar promociones activas.",
@@ -106,21 +104,132 @@ export default function PromotionsButton({
     }
   };
 
-const aplicarPromocion = async () => {
+  // 🟦 Aplicar promoción
+  const aplicarPromocion = async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+
+      const body = {
+        business_id: businessId,
+        branch_id: branchId,
+        carrito: carrito.map((item) => ({
+          producto_id: item.producto.id,
+          cantidad: item.cantidad,
+        })),
+      };
+
+      const res = await fetch(`${API_URL}/api/v1/promotions/apply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(body),
+      });
+
+      const data = await res.json();
+
+      if (!data.success) {
+        setModalMessage({
+          type: "error",
+          text: data.message || data.error || "Error al aplicar promociones",
+        });
+        return;
+      }
+
+      const carritoActualizado = carrito.map((item) => {
+        const promoItem = data.carrito.find(
+          (d: any) => d.producto_id === item.producto.id
+        );
+
+        if (!promoItem || !promoItem.aplicada || promoItem.descuento <= 0) {
+          return {
+            ...item,
+            descuento: 0,
+            infoPromo: promoItem?.motivo_no_aplica
+              ? `No aplica: ${promoItem.motivo_no_aplica}`
+              : "Sin promoción activa",
+          };
+        }
+
+        const descuento = parseFloat(promoItem.descuento);
+        const precioFinal = Math.max(0, item.producto.precio_venta - descuento);
+
+        return {
+          ...item,
+          descuento,
+          producto: {
+            ...item.producto,
+            precio_venta: parseFloat(precioFinal.toFixed(2)),
+          },
+          infoPromo: {
+            id: promoItem.promocion_id ?? null, // 🔹 guardamos ID para restaurar
+            descripcion: `${promoItem.promocion_aplicada}: -₡${descuento.toLocaleString()}`,
+            cantidadAplicada: item.cantidad,
+          },
+        };
+      });
+
+      const algunaPromo = carritoActualizado.some((i) => i.descuento > 0);
+      setCarrito(carritoActualizado);
+      setShow(false);
+
+      
+
+      setModalMessage({
+        type: algunaPromo ? "success" : "error",
+        text:
+          data.message ||
+          (algunaPromo
+            ? "Promociones aplicadas correctamente 🎉"
+            : "Ningún producto califica para promoción o no hay promociones activas"),
+      });
+    } catch (err: any) {
+      setModalMessage({
+        type: "error",
+        text:
+          err?.message ||
+          "Error inesperado al aplicar las promociones. Intenta nuevamente.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+//  NUEVO: Restablecer promociones y stock
+const restablecerPromociones = async () => {
   setLoading(true);
   try {
     const token = localStorage.getItem("token");
 
+    //  Limpia el carrito en frontend
+    const carritoSinPromo = carrito.map((item) => ({
+      ...item,
+      descuento: 0,
+      producto: {
+        ...item.producto,
+        precio_venta:
+          item.producto.precio_venta + (item.descuento || 0), // revertir descuento
+      },
+      infoPromo: "Promoción restablecida",
+    }));
+
+    setCarrito(carritoSinPromo);
+
+    // 🔹 Enviar datos correctos al backend
     const body = {
       business_id: businessId,
       branch_id: branchId,
       carrito: carrito.map((item) => ({
         producto_id: item.producto.id,
         cantidad: item.cantidad,
+        promocion_id:
+          typeof item.infoPromo === "object" ? item.infoPromo.id : null,
       })),
     };
 
-    const res = await fetch(`${API_URL}/api/v1/promotions/apply`, {
+    const res = await fetch(`${API_URL}/api/v1/promotions/restore`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -131,73 +240,21 @@ const aplicarPromocion = async () => {
 
     const data = await res.json();
 
-    //  Mostrar cualquier mensaje del backend
-    if (!data.success) {
-      setModalMessage({
-        type: "error",
-        text: data.message || data.error || "Error al aplicar promociones",
-      });
-      return;
+    if (!res.ok || !data.success) {
+      throw new Error(data.message || "Error al restaurar promociones");
     }
 
-    if (!Array.isArray(data.carrito) || data.carrito.length === 0) {
-      setModalMessage({
-        type: "error",
-        text: data.message || "No hay productos en el carrito para aplicar promociones",
-      });
-      return;
-    }
-
-    // Actualizar carrito con los descuentos
-    const carritoActualizado = carrito.map((item) => {
-      const promoItem = data.carrito.find(
-        (d: any) => d.producto_id === item.producto.id
-      );
-
-      if (!promoItem || !promoItem.aplicada || promoItem.descuento <= 0) {
-        return {
-          ...item,
-          descuento: 0,
-          infoPromo: promoItem?.motivo_no_aplica
-            ? `No aplica: ${promoItem.motivo_no_aplica}`
-            : "Sin promoción activa",
-        };
-      }
-
-      const descuento = parseFloat(promoItem.descuento);
-      const precioFinal = Math.max(0, item.producto.precio_venta - descuento);
-
-      return {
-        ...item,
-        descuento,
-        producto: {
-          ...item.producto,
-          precio_venta: parseFloat(precioFinal.toFixed(2)),
-        },
-        infoPromo: `${promoItem.promocion_aplicada}: -₡${descuento.toLocaleString()}`,
-      };
-    });
-
-    const algunaPromo = carritoActualizado.some((i) => i.descuento > 0);
-
-    setCarrito(carritoActualizado);
-    setShow(false);
-
-    // Mostrar mensaje del backend (éxito o sin promociones)
+    //  Mostrar mensaje y cerrar modal
     setModalMessage({
-      type: algunaPromo ? "success" : "error",
-      text:
-        data.message ||
-        (algunaPromo
-          ? "Promociones aplicadas correctamente 🎉"
-          : "Ningún producto califica para promoción o no hay promociones activas"),
+      type: "success",
+      text: "Promociones y stock restaurados correctamente ♻️",
     });
+
+    setShow(false); //  Cierra el modal de promociones
   } catch (err: any) {
-    // Cualquier error de fetch o inesperado
     setModalMessage({
       type: "error",
-      text:
-        err?.message || "Error inesperado al aplicar las promociones. Intenta nuevamente.",
+      text: err?.message || "Error al restablecer promociones.",
     });
   } finally {
     setLoading(false);
@@ -205,12 +262,13 @@ const aplicarPromocion = async () => {
 };
 
 
+
   return (
     <>
-      {/*  Botón principal */}
+      {/* Botón principal */}
       <Button
         onClick={fetchPromotions}
-       disabled={loading || disabled} //  también deshabilitado si no hay cliente
+        disabled={loading || disabled}
         style="bg-azul-claro hover:bg-azul-hover text-white font-semibold px-5 py-2.5 rounded-xl shadow transition-all flex items-center gap-2"
       >
         <Tag size={18} />
@@ -305,41 +363,50 @@ const aplicarPromocion = async () => {
                   </div>
                 ))}
 
-                <Button
-                  onClick={aplicarPromocion}
-                  style="mt-4 bg-[var(--color-verde-claro)] hover:bg-[var(--color-verde-oscuro)] text-white font-semibold px-5 py-2 rounded-lg shadow transition-all flex items-center justify-center gap-2"
-                >
-                  <Percent size={18} />
-                  Aplicar promociones
-                </Button>
+                {/* 🔹 Botones finales */}
+                <div className="flex flex-col sm:flex-row gap-3 mt-4">
+                  <Button
+                    onClick={aplicarPromocion}
+                    style="bg-[var(--color-verde-claro)] hover:bg-[var(--color-verde-oscuro)] text-white font-semibold px-5 py-2 rounded-lg shadow flex items-center justify-center gap-2"
+                  >
+                    <Percent size={18} />
+                    Aplicar promociones
+                  </Button>
+
+                  <Button
+                    onClick={restablecerPromociones}
+                    style="bg-[var(--color-rojo-claro)] hover:bg-[var(--color-rojo-oscuro)] text-white font-semibold px-5 py-2 rounded-lg shadow flex items-center justify-center gap-2"
+                  >
+                    <RotateCcw size={18} />
+                    Restablecer promociones
+                  </Button>
+                </div>
               </div>
             )}
           </div>
         </div>
       )}
-{/* Modal de mensajes tipo toast */}
-{modalMessage && (
-  <div
-    className={`fixed top-16 right-10 px-5 py-3 rounded-xl font-semibold shadow-lg max-w-sm cursor-pointer ${
-      modalMessage.type === "success"
-        ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-        : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-    }`}
-    onClick={() => setModalMessage(null)}
-  >
-    <div className="flex items-center gap-3">
-      {modalMessage.type === "success" ? (
-        <CheckCircle size={22} />
-      ) : (
-        <XCircle size={22} />
+
+      {/* Toast de mensajes */}
+      {modalMessage && (
+        <div
+          className={`fixed top-16 right-10 px-5 py-3 rounded-xl font-semibold shadow-lg max-w-sm cursor-pointer ${
+            modalMessage.type === "success"
+              ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+              : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+          }`}
+          onClick={() => setModalMessage(null)}
+        >
+          <div className="flex items-center gap-3">
+            {modalMessage.type === "success" ? (
+              <CheckCircle size={22} />
+            ) : (
+              <XCircle size={22} />
+            )}
+            <span className="font-medium text-sm">{modalMessage.text}</span>
+          </div>
+        </div>
       )}
-      <span className="font-medium text-sm">{modalMessage.text}</span>
-    </div>
-  </div>
-)}
-
-
-
     </>
   );
 }
