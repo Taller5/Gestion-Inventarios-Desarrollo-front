@@ -8,6 +8,7 @@ import { useRef } from "react";
 import CustomerSelector from "../ui/SaleComponents/CustomerSelector";
 import ProductSelector from "../ui/SaleComponents/ProductSelector";
 import CartTable from "../ui/SaleComponents/CartTable";
+import InfoIcon from "../ui/InfoIcon";
 
 export type Producto = {
   id?: number;
@@ -681,7 +682,12 @@ await Promise.all(
           
           {/* Contenido principal */}
           <div className="flex-1 flex flex-col">
-            <h1 className="text-2xl font-bold mb-6">Punto de venta</h1>
+            <h1 className="text-2xl font-bold mb-6">Punto de venta
+              <InfoIcon
+                title="Información Punto de Venta"
+                description="En esta sección puedes seleccionar clientes, agregar productos al carrito, y finalizar ventas generando facturas. Asegúrate de tener una caja abierta para ventas en efectivo."
+              />
+            </h1>
 
             {/* Selector de clientes */}
             <CustomerSelector

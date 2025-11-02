@@ -13,6 +13,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -168,7 +169,12 @@ export default function GrossProfitSaleReports() {
       <Container
         page={
           <div className="w-full md:w-auto max-w-[1200px] px-2 md:px-10 mx-8 flex flex-col h-[65rem]">
-            <h1 className="text-3xl font-bold mb-6 mt-6">Reporte de Ganancia Bruta</h1>
+            <h1 className="text-3xl font-bold mb-6 mt-6">Reporte de Ganancia Bruta
+              <InfoIcon
+                title="Reporte de Ganancia Bruta"
+                description="Aqui puedes ver el reporte de ganancia bruta de las ventas realizadas en la sucursal. La ganancia bruta se calcula restando el costo de los productos vendidos al total de la venta, considerando cualquier descuento aplicado."
+              />
+            </h1>
 
             {loading && <p>Cargando...</p>}
             {error && <p className="text-red-500">{error}</p>}

@@ -10,6 +10,7 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
 import Cloudinary from "../services/Cloudinary";
+import InfoIcon from "../ui/InfoIcon";
 
 type Business = {
   margen_ganancia: number;
@@ -295,6 +296,10 @@ export default function Businesses() {
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Negocios
+                <InfoIcon
+                  title="Gestionar Negocios"
+                  description="Aquí puedes gestionar los negocios registrados en el sistema. Puedes añadir nuevos negocios, editar la información existente o eliminar negocios que ya no sean necesarios. "
+                />
               </h1>
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 <div className="w-full h-10">

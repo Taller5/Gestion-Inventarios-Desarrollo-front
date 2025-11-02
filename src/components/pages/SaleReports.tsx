@@ -5,6 +5,7 @@ import Container from "../ui/Container";
 import TableInformation from "../ui/TableInformation";
 import ExcelExporter from "../ui/ExcelExporter";
 import PDFExporter from "../ui/PDFExporter";
+import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -105,6 +106,10 @@ export default function SaleReports() {
 
               <h1 className="text-3xl font-bold mb-6 mt-6">
                 Reporte de ventas
+                <InfoIcon
+                  title="Reporte de Ventas"
+                  description="En este módulo puedes generar reportes de ventas filtrados por negocio y rango de fechas. Selecciona un negocio y un rango de fechas para ver las facturas correspondientes. También puedes exportar los datos a Excel o PDF."
+                />
               </h1>
 
               {loading && <p>Cargando...</p>}

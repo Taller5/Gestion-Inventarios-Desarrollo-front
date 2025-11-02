@@ -9,6 +9,7 @@ import { RiEdit2Fill } from "react-icons/ri";
 import { FaTrash } from "react-icons/fa";
 import { SearchBar } from "../ui/SearchBar";
 import ProductSelectorModal from "../ui/ProviderComponents/ProductSelectorModal";
+import InfoIcon from "../ui/InfoIcon";
 
 type Provider = {
   id: number;
@@ -559,6 +560,10 @@ export default function Providers() {
 
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Proveedores
+                <InfoIcon
+                  title="Gestionar Proveedores"
+                  description="Aquí puedes gestionar los proveedores de tu inventario. Para añadir un proveedor, debes de añadir primero los productos que distribuye en Inventario."
+                />
               </h1>
         <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
 

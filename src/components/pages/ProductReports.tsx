@@ -4,6 +4,7 @@ import Container from "../ui/Container";
 import TableInformation from "../ui/TableInformation";
 import ExcelExporter from "../ui/ExcelExporter";
 import PDFExporter from "../ui/PDFExporter";
+import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -152,6 +153,10 @@ export default function ProductReports() {
           <div className="w-full md:w-auto px-2 md:px-10 mx-auto flex flex-col">
             <h1 className="text-3xl font-bold mb-6 mt-6">
               Reporte de productos
+              <InfoIcon
+                title="Reporte de Productos"
+                description="En este módulo puedes generar reportes de productos filtrados por negocio y bodega. Selecciona un negocio y una bodega para ver los productos correspondientes. También puedes exportar los datos a Excel o PDF."
+              />
             </h1>
 
             {loading && <p>Cargando...</p>}
