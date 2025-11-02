@@ -350,21 +350,21 @@ export default function CashRegisterPage() {
       ID: c.id,
       Sucursal: c.branch?.nombre ?? "-",
       Usuario: c.user?.name ?? "-",
-      "Monto apertura": opening.toLocaleString(undefined, {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      }),
-      "Monto cierre": c.closed_at
-        ? closing.toLocaleString(undefined, {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1,
-          })
-        : "-",
-      ...(!c.closed_at && {
-        Disponible: available.toLocaleString(undefined, {
+    "Monto apertura": `₡${opening.toLocaleString("es-CR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })}`,
+    "Monto cierre": c.closed_at
+      ? `₡${closing.toLocaleString("es-CR", {
           minimumFractionDigits: 1,
           maximumFractionDigits: 1,
-        }),
+        })}`
+      : "-",
+     ...( !c.closed_at && {
+      Disponible: `₡${available.toLocaleString("es-CR", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })}`,
       }),
       Abierta: formatDateSafe(c.opened_at),
       Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",

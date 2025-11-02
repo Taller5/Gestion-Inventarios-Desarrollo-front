@@ -52,7 +52,6 @@ export default function PromotionFormModal({
   const [selectedBusiness, setSelectedBusiness] = useState<string | null>(null);
   const [selectedBodega, setSelectedBodega] = useState<number | null>(null);
 
-  // Formateo de fechas
   const formatDateTimeLocal = (dateStr: string) => {
     if (!dateStr) return "";
     const date = new Date(dateStr);
@@ -85,7 +84,7 @@ export default function PromotionFormModal({
     }
   }, [editing]);
 
-  // Cargar productos, bodegas y sucursales al estilo ProductReports
+  // Cargar productos, bodegas y sucursales
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -133,7 +132,7 @@ export default function PromotionFormModal({
     fetchData();
   }, []);
 
-  // Filtrado de productos para ProductSelector
+  // Filtrado de productos
   const filteredProductosForSelector = productos.filter((p) => {
     if (selectedBusiness && p.business_nombre !== selectedBusiness)
       return false;
@@ -141,7 +140,7 @@ export default function PromotionFormModal({
     return true;
   });
 
-  // Manejo de cambios en inputs
+  // Cambios de inputs
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -166,7 +165,33 @@ export default function PromotionFormModal({
     });
   };
 
-  // Submit del formulario
+  const handleProductsChange = (newProducts: any[], valorNum?: number) => {
+    const valor = valorNum ?? form.valor ?? 0; // valorNum tiene prioridad
+    let updatedProducts = newProducts.map((p: any) => ({
+      product_id: p.product_id ?? p.id,
+      nombre_producto: p.nombre ?? p.nombre_producto ?? "",
+      cantidad: p.cantidad ?? 1,
+      descuento: 0,
+    }));
+
+    if (form.tipo === "combo") {
+      const perProduct = valor / updatedProducts.length;
+      updatedProducts = updatedProducts.map((p) => ({
+        ...p,
+        descuento: perProduct,
+      }));
+    } else if (form.tipo === "porcentaje") {
+      if (updatedProducts.length > 1) updatedProducts = [updatedProducts[0]];
+      updatedProducts = updatedProducts.map((p) => ({
+        ...p,
+        descuento: valor,
+      }));
+    }
+
+    setForm((prev) => ({ ...prev, products: updatedProducts }));
+  };
+
+  // Submit
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -175,12 +200,10 @@ export default function PromotionFormModal({
     const url = editing
       ? `${API_URL}/api/v1/promotions/${editing.id}`
       : `${API_URL}/api/v1/promotions`;
-    // 🔹 Obtenemos el business_id desde la sucursal seleccionada
+
     const selectedBranch = branches.find(
       (b) => b.sucursal_id === Number(form.branch_id || selectedBodega)
     );
-
-    // 🔹 Obtenemos el business_id desde la sucursal seleccionada
     const businessIdToSend = selectedBranch?.business.negocio_id ?? null;
 
     const payload = {
@@ -276,26 +299,35 @@ export default function PromotionFormModal({
             <select
               name="tipo"
               value={form.tipo}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                handleProductsChange(form.products);
+              }}
               className="border rounded-lg w-full p-2 text-sm"
             >
-              <option value="porcentaje">Porcentaje</option>
-              <option value="fijo">Monto fijo</option>
+              <option value="porcentaje">Promocion individual</option>
+
               <option value="combo">Combo</option>
             </select>
           </div>
           <div>
             <label className="block font-medium mb-1">
-              {form.tipo === "porcentaje" ? "Valor (%)" : "Valor fijo"}
+              {form.tipo === "porcentaje" ? "Valor (%)" : "Valor (%)"}
             </label>
             <input
               name="valor"
               type="number"
-              value={form.valor ?? 0}
-              onChange={handleChange}
+              value={form.valor ?? 0} // valor number
+              onChange={(e) => {
+                let val = parseFloat(e.target.value);
+                if (form.tipo === "porcentaje" && val > 100) val = 100;
+                if (val < 0) val = 0;
+                setForm((prev) => ({ ...prev, valor: val })); // sigue siendo number
+                handleProductsChange(form.products, val);
+              }}
               className="border rounded-lg w-full p-2 text-sm"
               required
-              min={form.tipo === "porcentaje" ? 0 : undefined}
+              min={0}
               max={form.tipo === "porcentaje" ? 100 : undefined}
             />
           </div>
@@ -332,89 +364,81 @@ export default function PromotionFormModal({
             />
           </div>
 
-          {/* Negocio */}
-          <div>
-            <label className="block font-medium mb-1">Negocio</label>
-            <select
-              name="business_id"
-              value={form.business_id || ""}
-              onChange={handleChange}
-              className="border rounded-lg w-full p-2 text-sm"
-              required
-              disabled={!!editing} // bloqueado si estamos editando
-            >
-              <option value="">-- Seleccione negocio --</option>
-              {Array.from(
-                new Set(productos.map((p) => p.business_nombre).filter(Boolean))
-              ).map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-          </div>
+       {/* Negocio y Sucursal */}
+{editing ? (
+  <>
+    <div>
+      <label className="block font-medium mb-1">Negocio asignado</label>
+      <input
+        type="text"
+        value={
+          branches.find((b) => b.sucursal_id === form.branch_id)
+            ?.business.nombre_comercial || "-"
+        }
+        disabled
+        className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
+      />
+    </div>
+    <div>
+      <label className="block font-medium mb-1">Sucursal asignada</label>
+      <input
+        type="text"
+        value={
+          branches.find((b) => b.sucursal_id === form.branch_id)?.nombre || "-"
+        }
+        disabled
+        className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
+      />
+    </div>
+  </>
+) : (
+  <>
+    <div>
+      <label className="block font-medium mb-1">Negocio</label>
+      <select
+        name="business_id"
+        value={form.business_id || ""}
+        onChange={handleChange}
+        className="border rounded-lg w-full p-2 text-sm"
+        required
+      >
+        <option value="">-- Seleccione negocio --</option>
+        {Array.from(
+          new Set(productos.map((p) => p.business_nombre).filter(Boolean))
+        ).map((b) => (
+          <option key={b} value={b}>
+            {b}
+          </option>
+        ))}
+      </select>
+    </div>
 
-          {/* Sucursal */}
-          <div>
-            <label className="block font-medium mb-1">Sucursal</label>
-            <select
-              name="branch_id"
-              value={form.branch_id || ""}
-              onChange={handleChange}
-              className="border rounded-lg w-full p-2 text-sm"
-              required
-              disabled={!!editing} // bloqueado si estamos editando
-            >
-              <option value="">-- Seleccione sucursal --</option>
-              {branches
-                .filter((b) =>
-                  editing
-                    ? b.business.nombre_comercial === form.business_id // filtramos según el negocio cargado
-                    : selectedBusiness
-                      ? b.business.nombre_comercial === selectedBusiness
-                      : true
-                )
-                .map((b) => (
-                  <option key={b.sucursal_id} value={b.sucursal_id}>
-                    {b.nombre} ({b.business.nombre_comercial})
-                  </option>
-                ))}
-            </select>
-          </div>
+    <div>
+      <label className="block font-medium mb-1">Sucursal</label>
+      <select
+        name="branch_id"
+        value={form.branch_id || ""}
+        onChange={handleChange}
+        className="border rounded-lg w-full p-2 text-sm"
+        required
+      >
+        <option value="">-- Seleccione sucursal --</option>
+        {branches
+          .filter((b) =>
+            selectedBusiness
+              ? b.business.nombre_comercial === selectedBusiness
+              : true
+          )
+          .map((b) => (
+            <option key={b.sucursal_id} value={b.sucursal_id}>
+              {b.nombre} ({b.business.nombre_comercial})
+            </option>
+          ))}
+      </select>
+    </div>
+  </>
+)}
 
-          {/* Mostrar negocio y sucursal asignados en edición */}
-          {editing && (
-            <>
-              <div>
-                <label className="block font-medium mb-1">
-                  Negocio asignado
-                </label>
-                <input
-                  type="text"
-                  value={
-                    branches.find((b) => b.sucursal_id === form.branch_id)
-                      ?.business.nombre_comercial || "-"
-                  }
-                  disabled
-                  className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
-                />
-              </div>
-              <div>
-                <label className="block font-medium mb-1">
-                  Sucursal asignada
-                </label>
-                <input
-                  type="text"
-                  value={
-                    branches.find((b) => b.sucursal_id === form.branch_id)
-                      ?.nombre || "-"
-                  }
-                  disabled
-                  className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
-                />
-              </div>
-            </>
-          )}
 
           {/* Productos */}
           <div className="col-span-full">
@@ -424,17 +448,8 @@ export default function PromotionFormModal({
             <ProductSelector
               productos={filteredProductosForSelector}
               selected={form.products}
-              onChange={(newProducts) =>
-                setForm((prev) => ({
-                  ...prev,
-                  products: newProducts.map((p: any) => ({
-                    product_id: p.product_id ?? p.id,
-                    nombre_producto: p.nombre ?? p.nombre_producto ?? "",
-                    cantidad: p.cantidad ?? 1,
-                    descuento: p.descuento ?? 0,
-                  })),
-                }))
-              }
+              tipo={form.tipo as "porcentaje" | "combo"} // ⚡ casteo para TS
+              onChange={handleProductsChange}
             />
           </div>
 
@@ -474,10 +489,18 @@ export default function PromotionFormModal({
         {feedback && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20">
             <div
-              className={`bg-white rounded-xl shadow p-4 w-80 text-center border ${feedback.type === "success" ? "border-green-500" : "border-red-500"}`}
+              className={`bg-white rounded-xl shadow p-4 w-80 text-center border ${
+                feedback.type === "success"
+                  ? "border-green-500"
+                  : "border-red-500"
+              }`}
             >
               <p
-                className={`font-semibold ${feedback.type === "success" ? "text-green-600" : "text-red-600"}`}
+                className={`font-semibold ${
+                  feedback.type === "success"
+                    ? "text-green-600"
+                    : "text-red-600"
+                }`}
               >
                 {feedback.message}
               </p>

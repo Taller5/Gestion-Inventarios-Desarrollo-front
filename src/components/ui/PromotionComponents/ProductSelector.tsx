@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Select from "react-select";
 
 interface Producto {
@@ -15,27 +15,52 @@ interface SelectedProduct {
 interface Props {
   productos: Producto[];
   selected: SelectedProduct[];
+  tipo: "porcentaje" | "combo";
   onChange: (newSelected: SelectedProduct[]) => void;
 }
 
-export default function ProductSelector({ productos, selected, onChange }: Props) {
+export default function ProductSelector({
+  productos,
+  selected,
+  tipo,
+  onChange,
+}: Props) {
   const [selectedOption, setSelectedOption] = useState<{ value: number; label: string } | null>(null);
   const [cantidad, setCantidad] = useState<number>(1);
   const [descuento, setDescuento] = useState<number>(0);
+  const [modalMessage, setModalMessage] = useState<string | null>(null); // <-- modal
 
-  const options = productos.map((p) => ({ value: p.id, label: p.nombre_producto }));
+  const options = productos.map((p) => ({
+    value: p.id,
+    label: p.nombre_producto,
+  }));
 
   const handleAdd = () => {
     if (!selectedOption) return;
 
+    // Validación combo
+    if (selected.length >= 1 && tipo !== "combo") {
+      setModalMessage("Si deseas agregar un producto, debes seleccionar  combo.");
+      return;
+    }
+
+    // Validación producto duplicado
     const exists = selected.find((p) => p.product_id === selectedOption.value);
-    if (exists) return alert("Este producto ya fue agregado.");
+    if (exists) {
+      setModalMessage("Este producto ya fue agregado."); // <-- mensaje en modal
+      return;
+    }
+
+    // Bloquear porcentaje > 100
+    let appliedDescuento = descuento;
+    if (tipo === "porcentaje" && appliedDescuento > 100) appliedDescuento = 100;
 
     const nuevo = {
       product_id: selectedOption.value,
       cantidad,
-      descuento,
+      descuento: appliedDescuento,
     };
+
     onChange([...selected, nuevo]);
     setSelectedOption(null);
     setCantidad(1);
@@ -46,26 +71,45 @@ export default function ProductSelector({ productos, selected, onChange }: Props
     onChange(selected.filter((p) => p.product_id !== id));
   };
 
-  const handleUpdate = (id: number, field: "cantidad" | "descuento", value: number) => {
+  const handleUpdate = (
+    id: number,
+    field: "cantidad" | "descuento",
+    value: number
+  ) => {
     onChange(
       selected.map((p) =>
         p.product_id === id
-          ? {
-              ...p,
-              [field]: value,
-            }
+          ? { ...p, [field]: value }
           : p
       )
     );
   };
 
-  return (
-    <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
-      <h3 className="text-lg font-semibold text-gray-700">Productos en promoción</h3>
+  // Cerrar modal automáticamente después de 2 seg
+  useEffect(() => {
+    if (modalMessage) {
+      const timer = setTimeout(() => setModalMessage(null), 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [modalMessage]);
 
-      {/* Seleccionar producto */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-end">
+  return (
+    <div className="border rounded-lg p-4 bg-gray-50 space-y-4 relative">
+      <h3 className="text-lg font-semibold text-gray-700">
+        Productos en promoción
+      </h3>
+
+      {/* Modal */}
+      {modalMessage && (
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-rojo-claro text-white p-2 rounded shadow z-10">
+          {modalMessage}
+        </div>
+      )}
+
+      {/* Selección de producto */}
+      <div className="mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div className="col-span-1 md:col-span-2">
+          <label className="block font-medium mb-1">Producto</label>
           <Select
             options={options}
             value={selectedOption}
@@ -75,23 +119,36 @@ export default function ProductSelector({ productos, selected, onChange }: Props
           />
         </div>
 
-        <input
-          type="number"
-          min={1}
-          value={cantidad}
-          onChange={(e) => setCantidad(Number(e.target.value))}
-          className="border p-2 rounded"
-          placeholder="Cantidad"
-        />
+        <div className="col-span-1">
+          <label htmlFor="cantidad" className="block font-medium mb-1">
+            Cantidad a comprar
+          </label>
+          <input
+            id="cantidad"
+            type="number"
+            min={1}
+            value={cantidad}
+            onChange={(e) => setCantidad(Number(e.target.value))}
+            className="border p-2 rounded w-full"
+            placeholder="Ingrese la cantidad"
+          />
+        </div>
 
-        <input
-          type="number"
-          min={0}
-          value={descuento}
-          onChange={(e) => setDescuento(Number(e.target.value))}
-          className="border p-2 rounded"
-          placeholder="Descuento"
-        />
+        <div className="col-span-1">
+          <label htmlFor="descuento" className="block font-medium mb-1">
+            Descuento aplicado
+          </label>
+          <input
+            id="descuento"
+            type="number"
+            min={0}
+            max={100}
+            value={descuento}
+            onChange={(e) => setDescuento(Number(e.target.value))}
+            className="border p-2 rounded w-full"
+            placeholder="Ingrese el descuento"
+          />
+        </div>
       </div>
 
       <button
@@ -102,13 +159,13 @@ export default function ProductSelector({ productos, selected, onChange }: Props
         Agregar producto
       </button>
 
-      {/* Lista de productos seleccionados */}
+      {/* Lista de productos */}
       <table className="w-full border-collapse border border-gray-300 text-sm mt-4">
         <thead>
           <tr className="bg-gray-100">
             <th className="border p-2">Producto</th>
             <th className="border p-2">Cantidad</th>
-            <th className="border p-2">Descuento</th>
+            <th className="border p-2">Descuento(%)</th>
             <th className="border p-2">Acción</th>
           </tr>
         </thead>
@@ -123,7 +180,9 @@ export default function ProductSelector({ productos, selected, onChange }: Props
                     type="number"
                     min={1}
                     value={p.cantidad}
-                    onChange={(e) => handleUpdate(p.product_id, "cantidad", Number(e.target.value))}
+                    onChange={(e) =>
+                      handleUpdate(p.product_id, "cantidad", Number(e.target.value))
+                    }
                     className="border px-2 py-1 w-20 text-center rounded"
                   />
                 </td>
@@ -133,7 +192,9 @@ export default function ProductSelector({ productos, selected, onChange }: Props
                     min={0}
                     max={100}
                     value={p.descuento}
-                    onChange={(e) => handleUpdate(p.product_id, "descuento", Number(e.target.value))}
+                    onChange={(e) =>
+                      handleUpdate(p.product_id, "descuento", Number(e.target.value))
+                    }
                     className="border px-2 py-1 w-20 text-center rounded"
                   />
                 </td>
