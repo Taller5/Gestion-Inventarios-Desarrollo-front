@@ -677,7 +677,7 @@ await Promise.all(
 <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
   <Container
     page={
-      <div className="w-full flex justify-center px-2 md:px-10 pt-10">
+      <div className="w-full flex md:px-10 pt-10">
         <div className="w-full max-w-[1200px] flex flex-col md:flex-row gap-4 md:gap-6">
           
           {/* Contenido principal */}

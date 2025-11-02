@@ -175,17 +175,17 @@ export default function PromotionFormModal({
     const url = editing
       ? `${API_URL}/api/v1/promotions/${editing.id}`
       : `${API_URL}/api/v1/promotions`;
-        // 🔹 Obtenemos el business_id desde la sucursal seleccionada
-  const selectedBranch = branches.find(
-    (b) => b.sucursal_id === Number(form.branch_id || selectedBodega)
-  );
+    // 🔹 Obtenemos el business_id desde la sucursal seleccionada
+    const selectedBranch = branches.find(
+      (b) => b.sucursal_id === Number(form.branch_id || selectedBodega)
+    );
 
-        // 🔹 Obtenemos el business_id desde la sucursal seleccionada
-  const businessIdToSend = selectedBranch?.business.negocio_id ?? null;
+    // 🔹 Obtenemos el business_id desde la sucursal seleccionada
+    const businessIdToSend = selectedBranch?.business.negocio_id ?? null;
 
     const payload = {
       ...form,
-        business_id: businessIdToSend,
+      business_id: businessIdToSend,
       branch_id: Number(form.branch_id) || Number(selectedBodega) || null,
       valor: form.valor ?? 0,
       products: form.products.map((p) => ({
@@ -243,7 +243,6 @@ export default function PromotionFormModal({
       setLoading(false);
     }
   };
-  
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -333,85 +332,89 @@ export default function PromotionFormModal({
             />
           </div>
 
-        {/* Negocio */}
-<div>
-  <label className="block font-medium mb-1">Negocio</label>
-  <select
-    name="business_id"
-    value={form.business_id || ""}
-    onChange={handleChange}
-    className="border rounded-lg w-full p-2 text-sm"
-    required
-    disabled={!!editing} // bloqueado si estamos editando
-  >
-    <option value="">-- Seleccione negocio --</option>
-    {Array.from(
-      new Set(productos.map((p) => p.business_nombre).filter(Boolean))
-    ).map((b) => (
-      <option key={b} value={b}>
-        {b}
-      </option>
-    ))}
-  </select>
-</div>
+          {/* Negocio */}
+          <div>
+            <label className="block font-medium mb-1">Negocio</label>
+            <select
+              name="business_id"
+              value={form.business_id || ""}
+              onChange={handleChange}
+              className="border rounded-lg w-full p-2 text-sm"
+              required
+              disabled={!!editing} // bloqueado si estamos editando
+            >
+              <option value="">-- Seleccione negocio --</option>
+              {Array.from(
+                new Set(productos.map((p) => p.business_nombre).filter(Boolean))
+              ).map((b) => (
+                <option key={b} value={b}>
+                  {b}
+                </option>
+              ))}
+            </select>
+          </div>
 
-{/* Sucursal */}
-<div>
-  <label className="block font-medium mb-1">Sucursal</label>
-  <select
-    name="branch_id"
-    value={form.branch_id || ""}
-    onChange={handleChange}
-    className="border rounded-lg w-full p-2 text-sm"
-    required
-    disabled={!!editing} // bloqueado si estamos editando
-  >
-    <option value="">-- Seleccione sucursal --</option>
-    {branches
-      .filter((b) =>
-        editing
-          ? b.business.nombre_comercial === form.business_id // filtramos según el negocio cargado
-          : selectedBusiness
-          ? b.business.nombre_comercial === selectedBusiness
-          : true
-      )
-      .map((b) => (
-        <option key={b.sucursal_id} value={b.sucursal_id}>
-          {b.nombre} ({b.business.nombre_comercial})
-        </option>
-      ))}
-  </select>
-</div>
+          {/* Sucursal */}
+          <div>
+            <label className="block font-medium mb-1">Sucursal</label>
+            <select
+              name="branch_id"
+              value={form.branch_id || ""}
+              onChange={handleChange}
+              className="border rounded-lg w-full p-2 text-sm"
+              required
+              disabled={!!editing} // bloqueado si estamos editando
+            >
+              <option value="">-- Seleccione sucursal --</option>
+              {branches
+                .filter((b) =>
+                  editing
+                    ? b.business.nombre_comercial === form.business_id // filtramos según el negocio cargado
+                    : selectedBusiness
+                      ? b.business.nombre_comercial === selectedBusiness
+                      : true
+                )
+                .map((b) => (
+                  <option key={b.sucursal_id} value={b.sucursal_id}>
+                    {b.nombre} ({b.business.nombre_comercial})
+                  </option>
+                ))}
+            </select>
+          </div>
 
-{/* Mostrar negocio y sucursal asignados en edición */}
-{editing && (
-  <>
-    <div>
-      <label className="block font-medium mb-1">Negocio asignado</label>
-      <input
-        type="text"
-        value={
-          branches.find((b) => b.sucursal_id === form.branch_id)?.business
-            .nombre_comercial || "-"
-        }
-        disabled
-        className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
-      />
-    </div>
-    <div>
-      <label className="block font-medium mb-1">Sucursal asignada</label>
-      <input
-        type="text"
-        value={
-          branches.find((b) => b.sucursal_id === form.branch_id)?.nombre || "-"
-        }
-        disabled
-        className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
-      />
-    </div>
-  </>
-)}
-
+          {/* Mostrar negocio y sucursal asignados en edición */}
+          {editing && (
+            <>
+              <div>
+                <label className="block font-medium mb-1">
+                  Negocio asignado
+                </label>
+                <input
+                  type="text"
+                  value={
+                    branches.find((b) => b.sucursal_id === form.branch_id)
+                      ?.business.nombre_comercial || "-"
+                  }
+                  disabled
+                  className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+              <div>
+                <label className="block font-medium mb-1">
+                  Sucursal asignada
+                </label>
+                <input
+                  type="text"
+                  value={
+                    branches.find((b) => b.sucursal_id === form.branch_id)
+                      ?.nombre || "-"
+                  }
+                  disabled
+                  className="border rounded-lg w-full p-2 text-sm bg-gray-100 cursor-not-allowed"
+                />
+              </div>
+            </>
+          )}
 
           {/* Productos */}
           <div className="col-span-full">

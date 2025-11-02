@@ -368,7 +368,9 @@ export default function CartTable({
                   branchId={branch_id}
                   carrito={carrito}
                   setCarrito={setCarrito}
-                  disabled={clienteType === "Cliente genérico"}
+                  disabled={!clienteType || clienteType === "Cliente genérico"}
+
+
                 />
               )}
 

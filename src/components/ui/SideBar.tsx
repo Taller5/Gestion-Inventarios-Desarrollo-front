@@ -18,13 +18,11 @@ import {
   MdCategory,
   MdOutlineApartment,
   MdSavings,
-  MdMonetizationOn 
-
-
+  MdMonetizationOn,
 } from "react-icons/md";
 import { FaUsersGear } from "react-icons/fa6";
 import { FaPercent } from "react-icons/fa6";
-
+import { LayoutDashboard } from "lucide-react";
 interface SideBarProps {
   role: string;
   isOpen?: boolean; // para mobile
@@ -42,7 +40,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     Gestión: false,
     Finanzas: false,
     "Administración de Usuarios": false,
-    "Reportes": false,
+    Reportes: false,
   };
 
   const sectionMap: { [key: string]: string } = {
@@ -135,22 +133,21 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       <TbReportMoney size={20} color="white" /> Reportes de Ventas
     </Button>
   );
-    const btnProductReports = (
+  const btnProductReports = (
     <Button style={btnStyle} to="/productReports">
       <HiOutlineChartBar size={20} color="white" /> Reportes de Productos
     </Button>
   );
-     const btnPromociones = (
+  const btnPromociones = (
     <Button style={btnStyle} to="/promotionPage">
       <FaPercent size={20} color="white" /> Promociones
     </Button>
   );
-       const btnFinanceReports = (
+  const btnFinanceReports = (
     <Button style={btnStyle} to="/financialReports">
-      <MdMonetizationOn  size={20} color="white" /> Reportes de Ganancias
+      <MdMonetizationOn size={20} color="white" /> Reportes de Ganancias
     </Button>
   );
-
 
   const sectionIcons: { [key: string]: JSX.Element } = {
     "Administración de Productos": <MdCategory size={20} color="white" />,
@@ -177,11 +174,15 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     };
   } else {
     sections = {
-      "Administración de Productos": [btnInventario, btnProvider,btnPromociones],
+      "Administración de Productos": [
+        btnInventario,
+        btnProvider,
+        btnPromociones,
+      ],
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
       Finanzas: [btnCashRegisterPage, btnSalesPages],
       "Administración de Usuarios": [btnClientes, btnPersonal],
-      Reportes: [btnSaleReports, btnProductReports,btnFinanceReports],
+      Reportes: [btnSaleReports, btnProductReports, btnFinanceReports],
     };
   }
 
@@ -237,7 +238,11 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
           <span className="flex items-center gap-2 text-white font-bold">
             {sectionIcons[title]} {title}
           </span>
-          {open ? <MdExpandLess color="white" /> : <MdExpandMore color="white" />}
+          {open ? (
+            <MdExpandLess color="white" />
+          ) : (
+            <MdExpandMore color="white" />
+          )}
         </div>
 
         <div
@@ -289,7 +294,8 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
         className="w-11/12 flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-xl shadow-md p-4 cursor-pointer hover:bg-white/20 transition"
         onClick={() => (window.location.href = "/profile")}
         onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") window.location.href = "/profile";
+          if (e.key === "Enter" || e.key === " ")
+            window.location.href = "/profile";
         }}
       >
         <div className="bg-white/20 p-2 rounded-full flex items-center justify-center">
@@ -315,15 +321,38 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
           <span className="text-white font-semibold text-base leading-tight">
             {user?.name || user?.username || "Usuario"}
           </span>
-          <span className="text-gray-300 text-xs">{user?.role || "Rol desconocido"}</span>
+          <span className="text-gray-300 text-xs">
+            {user?.role || "Rol desconocido"}
+          </span>
         </div>
       </div>
+  <div
+  role="button"
+  tabIndex={0}
+  className="flex items-center gap-3 w-[90%] mx-auto bg-azul-medio hover:bg-azul-hover backdrop-blur-sm rounded-xl shadow-md p-3 cursor-pointer transition-all duration-300"
+  onClick={() => (window.location.href = "/Dashboard")}
+  onKeyDown={(e) => {
+    if (e.key === "Enter" || e.key === " ")
+      window.location.href = "/Dashboard";
+  }}
+>
+  <div className="bg-white/20 p-2 rounded-full flex items-center justify-center">
+    <LayoutDashboard className="w-6 h-6 text-white" />
+  </div>
+
+  <span className="text-white font-semibold text-base leading-tight">
+    Panel de Control
+  </span>
+</div>
+
 
       {/* Secciones */}
       <div className="w-full flex flex-col items-center gap-2">
         {Object.entries(sections).map(
           ([title, buttons]) =>
-            buttons.length > 0 && <Section key={title} title={title} buttons={buttons} />
+            buttons.length > 0 && (
+              <Section key={title} title={title} buttons={buttons} />
+            )
         )}
       </div>
     </div>
@@ -335,30 +364,30 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       <section className="bg-azul-oscuro w-1/6 min-w-[200px] min-h-screen flex-col pt-4 hidden lg:flex">
         {sidebarContent}
       </section>
-{/* Sidebar mobile */}
-{isOpen && (
-  <section className="lg:hidden fixed inset-0 z-50 flex bg-black/30">
-    {/* Contenedor del sidebar */}
-    <div className="relative w-64 min-h-screen">
-      {/* Botón de cerrar siempre visible */}
-      <button
-        className="absolute top-4 right-4 text-white text-2xl z-20"
-        onClick={onClose}
-      >
-        ✕
-      </button>
+      {/* Sidebar mobile */}
+      {isOpen && (
+        <section className="lg:hidden fixed inset-0 z-50 flex bg-black/30">
+          {/* Contenedor del sidebar */}
+          <div className="relative w-64 min-h-screen">
+            {/* Botón de cerrar siempre visible */}
+            <button
+              className="absolute top-4 right-4 text-white text-2xl z-20"
+              onClick={onClose}
+            >
+              ✕
+            </button>
 
-      {/* Contenido del sidebar */}
-      <div className="bg-azul-oscuro w-full min-h-screen flex flex-col pt-16"> 
-        {/* pt-16 deja espacio para la X */}
-        {sidebarContent}
-      </div>
-    </div>
+            {/* Contenido del sidebar */}
+            <div className="bg-azul-oscuro w-full min-h-screen flex flex-col pt-16">
+              {/* pt-16 deja espacio para la X */}
+              {sidebarContent}
+            </div>
+          </div>
 
-    {/* Click fuera para cerrar */}
-    <div className="flex-1" onClick={onClose} />
-  </section>
-)}
+          {/* Click fuera para cerrar */}
+          <div className="flex-1" onClick={onClose} />
+        </section>
+      )}
     </>
   );
 }

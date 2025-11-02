@@ -46,6 +46,19 @@ export default function ProductSelector({ productos, selected, onChange }: Props
     onChange(selected.filter((p) => p.product_id !== id));
   };
 
+  const handleUpdate = (id: number, field: "cantidad" | "descuento", value: number) => {
+    onChange(
+      selected.map((p) =>
+        p.product_id === id
+          ? {
+              ...p,
+              [field]: value,
+            }
+          : p
+      )
+    );
+  };
+
   return (
     <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
       <h3 className="text-lg font-semibold text-gray-700">Productos en promoción</h3>
@@ -103,10 +116,27 @@ export default function ProductSelector({ productos, selected, onChange }: Props
           {selected.map((p) => {
             const prod = productos.find((x) => x.id === p.product_id);
             return (
-              <tr key={p.product_id}>
+              <tr key={p.product_id} className="hover:bg-gray-50">
                 <td className="border p-2">{prod?.nombre_producto || "—"}</td>
-                <td className="border p-2">{p.cantidad}</td>
-                <td className="border p-2">{p.descuento}</td>
+                <td className="border p-2 text-center">
+                  <input
+                    type="number"
+                    min={1}
+                    value={p.cantidad}
+                    onChange={(e) => handleUpdate(p.product_id, "cantidad", Number(e.target.value))}
+                    className="border px-2 py-1 w-20 text-center rounded"
+                  />
+                </td>
+                <td className="border p-2 text-center">
+                  <input
+                    type="number"
+                    min={0}
+                    max={100}
+                    value={p.descuento}
+                    onChange={(e) => handleUpdate(p.product_id, "descuento", Number(e.target.value))}
+                    className="border px-2 py-1 w-20 text-center rounded"
+                  />
+                </td>
                 <td className="border p-2 text-center">
                   <button
                     type="button"

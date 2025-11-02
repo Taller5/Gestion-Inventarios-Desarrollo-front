@@ -46,7 +46,7 @@ export default function Homepage() {
       buttonIcon: <MdLogin className="w-10 h-10 text-white" />,
       onButtonClick: () => {
         const user = localStorage.getItem("user");
-        if (user) window.location.href = "/Inventary";
+        if (user) window.location.href = "/Dashboard";
         else window.location.href = "/login";
       },
     },

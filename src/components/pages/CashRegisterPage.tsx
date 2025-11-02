@@ -136,8 +136,8 @@ export default function CashRegisterPage() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   // Declaración en tu componente
-  const [cashRegisterToOpen, setCashRegisterToOpen] = useState<CashRegister | null>(null);
-
+  const [cashRegisterToOpen, setCashRegisterToOpen] =
+    useState<CashRegister | null>(null);
 
   const mostrarAlerta = (type: "success" | "error", message: string) => {
     setAlert({ type, message });
@@ -187,53 +187,56 @@ export default function CashRegisterPage() {
     fetchCashRegisters();
   }, []);
 
-const handleOpenCashRegister = async () => {
-  if (!cashRegisterToOpen || openingAmount === "" || openingAmount <= 0) {
-    setAlert({
-      type: "error",
-      message: "Selecciona una caja y un monto válido.",
-    });
-    return;
-  }
-
-  setLoading(true);
-  setAlert(null);
-
-  try {
-    const res = await fetch(
-      `${API_URL}/api/v1/cash-registers/open/${cashRegisterToOpen.id}`,
-      {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: cashRegisterToOpen.id, //  enviar id en body también
-          user_id: userId,
-          opening_amount: openingAmount,
-        }),
-      }
-    );
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.message || "Error al abrir la caja.");
+  const handleOpenCashRegister = async () => {
+    if (!cashRegisterToOpen || openingAmount === "" || openingAmount <= 0) {
+      setAlert({
+        type: "error",
+        message: "Selecciona una caja y un monto válido.",
+      });
+      return;
     }
 
-    setCashRegisters((prev) =>
-      prev.map((c) => (c.id === data.data.id ? data.data : c))
-    );
+    setLoading(true);
+    setAlert(null);
 
-    mostrarAlerta("success", `Caja #${data.data.id} abierta correctamente`);
-    setModalOpen(false);
-    setCashRegisterToOpen(null);
-    setOpeningAmount("");
-  } catch (err: any) {
-    setAlert({ type: "error", message: err.message });
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      const res = await fetch(
+        `${API_URL}/api/v1/cash-registers/open/${cashRegisterToOpen.id}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            id: cashRegisterToOpen.id, //  enviar id en body también
+            user_id: userId,
+            opening_amount: openingAmount,
+          }),
+        }
+      );
 
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || "Error al abrir la caja.");
+      }
+
+      setCashRegisters((prev) =>
+        prev.map((c) => (c.id === data.data.id ? data.data : c))
+      );
+
+      mostrarAlerta("success", `Caja #${data.data.id} abierta correctamente`);
+      setModalOpen(false);
+      setCashRegisterToOpen(null);
+      setOpeningAmount("");
+      //  Recargar página después de éxito
+      await fetchCashRegisters();
+      await fetchBranches();
+
+    } catch (err: any) {
+      setAlert({ type: "error", message: err.message });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Ordena las cajas abiertas primero
   const sortedCashRegisters = cashRegisters.slice().sort((a, b) => {
@@ -321,6 +324,9 @@ const handleOpenCashRegister = async () => {
       setCashRegisters((prev) => [...prev, data.data]);
       setEmptyModalOpen(false);
       setSelectedBranchEmpty(null);
+      //  Recargar página después de éxito
+    await fetchCashRegisters();
+    await fetchBranches();
 
       mostrarAlerta("success", "Caja vacía creada correctamente");
     } catch (err: any) {
@@ -364,7 +370,7 @@ const handleOpenCashRegister = async () => {
       Cerrada: c.closed_at ? formatDateSafe(c.closed_at) : "-",
       Acciones: (
         <div className="flex gap-2">
-         {isEmpty && (
+          {isEmpty && (
             <Button
               style="bg-azul-medio hover:bg-azul-hover text-white font-bold px-2 py-1 rounded text-sm cursor-pointer"
               onClick={() => {
@@ -421,13 +427,13 @@ const handleOpenCashRegister = async () => {
     const timer = setTimeout(() => setCloseModalAlert(null), 5000);
     return () => clearTimeout(timer);
   }, [closeModalAlert]);
+  const [reopenAmount, setReopenAmount] = useState<number>(5000);
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
       <Container
         page={
           <div className="flex">
-       
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Cajas
@@ -502,7 +508,7 @@ const handleOpenCashRegister = async () => {
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
                   <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
                   <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
-                     <button
+                    <button
                       type="button"
                       onClick={() => setModalOpen(false)}
                       aria-label="Cerrar"
@@ -517,7 +523,11 @@ const handleOpenCashRegister = async () => {
                         stroke="currentColor"
                         strokeWidth={3}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                     <h2 className="text-xl font-bold mb-4 text-center">
@@ -538,7 +548,7 @@ const handleOpenCashRegister = async () => {
 
                       <div>
                         <label className="block font-semibold mb-1">
-                          Monto de apertura
+                          Monto de apertura (₡)
                         </label>
                         <input
                           type="number"
@@ -546,23 +556,37 @@ const handleOpenCashRegister = async () => {
                           onChange={(e) => {
                             const raw = e.target.value;
                             if (/[^0-9.]$/.test(raw)) return;
+
                             if (raw === "") {
                               setOpeningAmount("");
                               setAlert(null);
                               return;
                             }
+
                             const value = Number(raw);
+
                             if (value > MAX_AMOUNT) {
                               setAlert({
                                 type: "error",
-                                message: `El monto no puede poseer más de 8 dígitos`,
+                                message: `El monto no puede poseer más de 8 dígitos.`,
                               });
                               return;
                             }
+
+                            if (value < 5000) {
+                              setAlert({
+                                type: "error",
+                                message: `El monto mínimo de apertura es ₡5 000.`,
+                              });
+                              setOpeningAmount(value);
+                              return;
+                            }
+
                             setAlert(null);
                             setOpeningAmount(value);
                           }}
-                          placeholder="0.00"
+                          placeholder="₡5 000 mínimo"
+                          min={5000}
                           max={MAX_AMOUNT}
                           step="0.01"
                           className="w-full border rounded-lg px-3 py-2"
@@ -596,7 +620,6 @@ const handleOpenCashRegister = async () => {
                 title="Crear caja nueva"
               >
                 <div className="flex flex-col gap-4">
-
                   <div>
                     <label className="block font-semibold mb-1">Sucursal</label>
                     <select
@@ -669,11 +692,36 @@ const handleOpenCashRegister = async () => {
                     actualizado al actual (<b>{user.name}</b>).
                   </p>
 
+                  <div className="flex flex-col gap-2">
+                    <label
+                      htmlFor="montoReapertura"
+                      className="text-sm text-gray-600 font-semibold"
+                    >
+                      Monto inicial (₡)
+                    </label>
+                    <input
+                      id="montoReapertura"
+                      type="number"
+                      min="5000"
+                      className="border rounded-lg px-3 py-2 w-full outline-none focus:ring-2 focus:ring-verde-claro"
+                      placeholder="₡5000 mínimo"
+                      value={reopenAmount}
+                      onChange={(e) => setReopenAmount(Number(e.target.value))}
+                    />
+                  </div>
+
                   <div className="flex gap-4 justify-end mt-4">
                     <Button
                       style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
                       onClick={async () => {
                         if (!cashRegisterToClose) return;
+                        if (reopenAmount < 5000) {
+                          mostrarAlerta(
+                            "error",
+                            "El monto mínimo para reabrir es ₡5 000"
+                          );
+                          return;
+                        }
 
                         try {
                           setLoading(true);
@@ -682,37 +730,34 @@ const handleOpenCashRegister = async () => {
                             {
                               method: "PUT",
                               headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ user_id: userId }),
+                              body: JSON.stringify({
+                                user_id: userId,
+                                monto_inicial: reopenAmount,
+                              }),
                             }
                           );
 
                           const data = await res.json();
 
                           if (!res.ok) {
-                            // Si el backend devuelve error (como "usuario ya tiene caja activa")
                             throw new Error(
                               data.message || "Error al reabrir la caja"
                             );
                           }
 
-                          // Mostrar alerta de éxito
                           mostrarAlerta(
                             "success",
                             `Caja #${data.data.id} reabierta correctamente`
                           );
-
-                          // Actualizar lista local
                           setCashRegisters((prev) =>
                             prev.map((c) =>
                               c.id === data.data.id ? data.data : c
                             )
                           );
 
-                          // Cerrar modal después de mostrar éxito
                           setTimeout(() => setReopenModalOpen(false), 1000);
                         } catch (err: any) {
                           console.error(err);
-                          // Mostrar el mensaje de error que venga del backend
                           mostrarAlerta(
                             "error",
                             err.message ||
@@ -771,7 +816,7 @@ const handleOpenCashRegister = async () => {
                 title={`Cerrar Caja #${cashRegisterToClose?.id}`}
               >
                 <div className="flex flex-col gap-4">
-                  {/* ⚠️ Alerta local del modal */}
+                  {/*  Alerta local del modal */}
                   {closeModalAlert && (
                     <div
                       className={`px-4 py-2 rounded-lg text-center font-semibold ${
@@ -785,7 +830,7 @@ const handleOpenCashRegister = async () => {
                         className="ml-2 font-bold text-lg"
                         onClick={() => setCloseModalAlert(null)}
                       >
-                        ×
+                        X
                       </button>
                     </div>
                   )}
@@ -815,7 +860,7 @@ const handleOpenCashRegister = async () => {
                       onClick={async () => {
                         if (!cashRegisterToClose) return;
 
-                        // ⚠️ Validación: solo el usuario que abrió la caja puede cerrarla
+                        //  Validación: solo el usuario que abrió la caja puede cerrarla
                         if (cashRegisterToClose.user?.id !== userId) {
                           setCloseModalAlert({
                             type: "error",
