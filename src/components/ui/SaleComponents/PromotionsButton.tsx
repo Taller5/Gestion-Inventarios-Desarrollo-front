@@ -28,6 +28,33 @@ interface Promocion {
     descuento: number;
   }[];
 }
+export interface Producto {
+  id: number;
+  nombre_producto: string;
+}
+
+export interface PromotionProduct {
+  product_id: number;
+  cantidad: number;
+  descuento: number;
+}
+
+interface Promocion {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  tipo: "porcentaje" | "fijo" | "combo";
+  valor: number;
+  fecha_inicio: string;
+  fecha_fin: string;
+  products: {
+    id: number;
+    nombre_producto: string;
+    cantidad: number;
+    descuento: number;
+  }[];
+}
+
 
 export interface CartItemType {
   producto: {
@@ -73,129 +100,159 @@ export default function PromotionsButton({
     }
   }, [modalMessage]);
 
-  // 🟦 Obtener promociones activas
-  const fetchPromotions = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(
-        `${API_URL}/api/v1/promotions/active?business_id=${businessId}${
-          branchId ? `&branch_id=${branchId}` : ""
-        }`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+const fetchPromotions = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+    const res = await fetch(
+      `${API_URL}/api/v1/promotions/active?business_id=${businessId}${
+        branchId ? `&branch_id=${branchId}` : ""
+      }`,
+      { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+    );
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      throw new Error(errorData.message || `Error ${res.status}`);
+    }
+
+    const data = await res.json();
+
+    // 🔹 Normalización segura para TypeScript
+const normalized: Promocion[] = data.map((p: any) => ({
+  id: p.id ?? 0,
+  nombre: p.nombre ?? "Sin nombre",
+  descripcion: p.descripcion ?? "Sin descripción",
+  tipo: ["porcentaje", "fijo", "combo"].includes(p.tipo) ? p.tipo : "fijo",
+  valor: p.valor ?? 0,
+  fecha_inicio: p.fecha_inicio ?? "N/A",
+  fecha_fin: p.fecha_fin ?? "N/A",
+products: (p.products ?? []).map((prod: any) => ({
+  id: prod.id ?? 0,
+  nombre_producto: prod.nombre_producto ?? prod.nombre ?? "Sin nombre",
+  cantidad: prod.cantidad ?? prod.pivot?.cantidad ?? 0,
+  descuento: prod.descuento ?? prod.pivot?.descuento ?? 0,
+})),
+
+}));
+
+
+
+    setPromociones(normalized);
+    setShow(true); // 🔹 Esto abre el modal automáticamente
+  } catch (err: any) {
+    console.error("Error al cargar promociones:", err);
+    setModalMessage({
+      type: "error",
+      text: err.message || "Error al cargar promociones activas.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+  
+// 🟦 Aplicar promoción robusta
+const aplicarPromocion = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("token");
+
+    const body = {
+      business_id: businessId,
+      branch_id: branchId,
+      carrito: carrito.map((item) => ({
+        producto_id: Number(item.producto.id), // forzamos number
+        cantidad: item.cantidad,
+      })),
+    };
+
+    const res = await fetch(`${API_URL}/api/v1/promotions/apply`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      setModalMessage({
+        type: "error",
+        text: data.message || data.error || "Error al aplicar promociones",
+      });
+      return;
+    }
+
+    const carritoActualizado = carrito.map((item) => {
+      const promoItem = data.carrito.find(
+        (d: any) => Number(d.producto_id) === Number(item.producto.id)
       );
 
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || `Error ${res.status}`);
-      }
-
-      const data = await res.json();
-      setPromociones(data);
-      setShow(true);
-    } catch (err: any) {
-      console.error("Error al cargar promociones:", err);
-      setModalMessage({
-        type: "error",
-        text: err.message || "Error al cargar promociones activas.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 🟦 Aplicar promoción
-  const aplicarPromocion = async () => {
-    setLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-
-      const body = {
-        business_id: businessId,
-        branch_id: branchId,
-        carrito: carrito.map((item) => ({
-          producto_id: item.producto.id,
-          cantidad: item.cantidad,
-        })),
-      };
-
-      const res = await fetch(`${API_URL}/api/v1/promotions/apply`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
-
-      const data = await res.json();
-
-      if (!data.success) {
-        setModalMessage({
-          type: "error",
-          text: data.message || data.error || "Error al aplicar promociones",
-        });
-        return;
-      }
-
-      const carritoActualizado = carrito.map((item) => {
-        const promoItem = data.carrito.find(
-          (d: any) => d.producto_id === item.producto.id
-        );
-
-        if (!promoItem || !promoItem.aplicada || promoItem.descuento <= 0) {
-          return {
-            ...item,
-            descuento: 0,
-            infoPromo: promoItem?.motivo_no_aplica
-              ? `No aplica: ${promoItem.motivo_no_aplica}`
-              : "Sin promoción activa",
-          };
-        }
-
-        const descuento = parseFloat(promoItem.descuento);
-        const precioFinal = Math.max(0, item.producto.precio_venta - descuento);
-
+      if (!promoItem || !promoItem.aplicada || !promoItem.descuento) {
         return {
           ...item,
-          descuento,
-          producto: {
-            ...item.producto,
-            precio_venta: parseFloat(precioFinal.toFixed(2)),
-          },
-          infoPromo: {
-            id: promoItem.promocion_id ?? null, // 🔹 guardamos ID para restaurar
-            descripcion: `${promoItem.promocion_aplicada}: -₡${descuento.toLocaleString()}`,
-            cantidadAplicada: item.cantidad,
-          },
+          descuento: 0,
+          infoPromo: promoItem?.motivo_no_aplica
+            ? `No aplica: ${promoItem.motivo_no_aplica}`
+            : "Sin promoción activa",
         };
-      });
+      }
 
-      const algunaPromo = carritoActualizado.some((i) => i.descuento > 0);
-      setCarrito(carritoActualizado);
-      setShow(false);
+      const descuento = parseFloat(promoItem.descuento) || 0;
+      let precioFinal = item.producto.precio_venta;
 
-      
+      // Aplica según tipo
+      if (promoItem.tipo === "porcentaje") {
+        precioFinal = precioFinal * (1 - descuento / 100);
+      } else if (promoItem.tipo === "fijo") {
+        precioFinal = Math.max(0, precioFinal - descuento);
+      } else if (promoItem.tipo === "combo") {
+        // Si es combo, el backend ya reparte el descuento proporcional
+        precioFinal = Math.max(0, precioFinal - descuento);
+      }
 
-      setModalMessage({
-        type: algunaPromo ? "success" : "error",
-        text:
-          data.message ||
-          (algunaPromo
-            ? "Promociones aplicadas correctamente 🎉"
-            : "Ningún producto califica para promoción o no hay promociones activas"),
-      });
-    } catch (err: any) {
-      setModalMessage({
-        type: "error",
-        text:
-          err?.message ||
-          "Error inesperado al aplicar las promociones. Intenta nuevamente.",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+      return {
+        ...item,
+        descuento: parseFloat(descuento.toFixed(2)),
+        producto: {
+          ...item.producto,
+          precio_venta: parseFloat(precioFinal.toFixed(2)),
+        },
+        infoPromo: {
+          id: promoItem.promocion_id ?? null,
+          descripcion: `${promoItem.promocion_aplicada}: -₡${descuento.toLocaleString()}`,
+          cantidadAplicada: item.cantidad,
+        },
+      };
+    });
+
+    const algunaPromo = carritoActualizado.some((i) => i.descuento > 0);
+    setCarrito(carritoActualizado);
+    setShow(false);
+
+    setModalMessage({
+      type: algunaPromo ? "success" : "error",
+      text:
+        data.message ||
+        (algunaPromo
+          ? "Promociones aplicadas correctamente 🎉"
+          : "Ningún producto califica para promoción o no hay promociones activas"),
+    });
+  } catch (err: any) {
+    setModalMessage({
+      type: "error",
+      text:
+        err?.message ||
+        "Error inesperado al aplicar las promociones. Intenta nuevamente.",
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 //  NUEVO: Restablecer promociones y stock
 const restablecerPromociones = async () => {
@@ -269,118 +326,123 @@ const restablecerPromociones = async () => {
       <Button
         onClick={fetchPromotions}
         disabled={loading || disabled}
-        style="bg-azul-claro hover:bg-azul-hover text-white font-semibold px-5 py-2.5 rounded-xl shadow transition-all flex items-center gap-2"
+        style="bg-azul-claro hover:bg-azul-hover text-white font-semibold px-5 py-2.5 rounded text-lg  shadow transition-all flex items-center gap-2"
       >
         <Tag size={18} />
         {loading ? "Cargando..." : "Ver promociones"}
       </Button>
 
-      {/* 🔹 Modal de promociones */}
-      {show && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setShow(false)}
-          ></div>
+    {show && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center">
+    <div
+      className="absolute inset-0 bg-black/40"
+      onClick={() => setShow(false)}
+    ></div>
 
-          <div className="relative bg-white text-gray-800 p-6 rounded-2xl shadow-2xl z-10 w-11/12 md:w-2/3 lg:w-1/2 max-h-[85vh] overflow-y-auto border border-[var(--color-azul-claro)]">
-            <button
-              className="absolute top-3 right-4 text-gray-500 hover:text-[var(--color-azul-hover)] text-2xl font-bold"
-              onClick={() => setShow(false)}
+    <div className="relative bg-white text-gray-800 p-6 rounded-2xl shadow-2xl z-10 w-11/12 md:w-2/3 lg:w-1/2 max-h-[85vh] overflow-y-auto border border-[var(--color-azul-claro)]">
+      <button
+        className="absolute top-3 right-4 text-gray-500 hover:text-[var(--color-azul-hover)] text-2xl font-bold"
+        onClick={() => setShow(false)}
+      >
+        <X size={24} />
+      </button>
+
+      <h2 className="text-2xl font-bold mb-5 border-b pb-2 text-center text-[var(--color-azul-oscuro)] flex items-center justify-center gap-2">
+        <Sparkles size={24} />
+        Promociones Activas
+      </h2>
+
+      {promociones.length === 0 ? (
+        <p className="text-[var(--color-gris-oscuro)] text-center py-10 flex flex-col items-center gap-2">
+          <AlertCircle size={28} />
+          No hay promociones activas en este negocio o sucursal.
+        </p>
+      ) : (
+        <div className="flex flex-col gap-4">
+          {promociones.map((p) => (
+            <div
+              key={p.id}
+              className="border border-[var(--color-gris-ultra-claro)] bg-[var(--color-gris-ultra-claro)] rounded-lg p-4 hover:shadow-md transition-all"
             >
-              <X size={24} />
-            </button>
+              <h3 className="font-semibold text-lg text-[var(--color-azul-oscuro)] flex items-center gap-2">
+                {p.tipo === "porcentaje" ? (
+                  <Percent size={18} />
+                ) : p.tipo === "combo" ? (
+                  <Gift size={18} />
+                ) : (
+                  <Tag size={18} />
+                )}
+                {p.nombre}
+              </h3>
 
-            <h2 className="text-2xl font-bold mb-5 border-b pb-2 text-center text-[var(--color-azul-oscuro)] flex items-center justify-center gap-2">
-              <Sparkles size={24} />
-              Promociones Activas
-            </h2>
+              <p className="text-gray-700 text-sm mb-2">{p.descripcion}</p>
 
-            {promociones.length === 0 ? (
-              <p className="text-[var(--color-gris-oscuro)] text-center py-10 flex flex-col items-center gap-2">
-                <AlertCircle size={28} />
-                No hay promociones activas en este negocio o sucursal.
-              </p>
-            ) : (
-              <div className="flex flex-col gap-4">
-                {promociones.map((p) => (
-                  <div
-                    key={p.id}
-                    className="border border-[var(--color-gris-ultra-claro)] bg-[var(--color-gris-ultra-claro)] rounded-lg p-4 hover:shadow-md transition-all"
-                  >
-                    <h3 className="font-semibold text-lg text-[var(--color-azul-oscuro)] flex items-center gap-2">
-                      {p.tipo === "porcentaje" ? (
-                        <Percent size={18} />
-                      ) : p.tipo === "combo" ? (
-                        <Gift size={18} />
+              <span
+                className={`text-xs px-2 py-1 rounded-md font-medium ${
+                  p.tipo === "porcentaje"
+                    ? "bg-[var(--color-verde-ultra-claro)] text-[var(--color-verde-oscuro)]"
+                    : p.tipo === "fijo"
+                    ? "bg-[var(--color-amarillo-claro)] text-[var(--color-amarillo-oscuro)]"
+                    : "bg-[var(--color-azul-claro)] text-[var(--color-azul-oscuro)]"
+                }`}
+              >
+                {p.tipo === "porcentaje"
+                  ? `-${p.valor}%`
+                  : p.tipo === "fijo"
+                  ? `₡${p.valor.toLocaleString()} descuento`
+                  : "Combo especial"}
+              </span>
+
+              <ul className="text-sm text-gray-700 list-disc ml-5 mt-2">
+                {p.products.map((prod) => (
+                  <li key={prod.id} className="flex justify-between items-center">
+                    <span>
+                      {prod.nombre_producto} —{" "}
+                      {p.tipo === "combo" ? (
+                        <span className="text-[var(--color-azul-hover)] font-semibold">
+                          Parte del combo
+                        </span>
                       ) : (
-                        <Tag size={18} />
+                        <span className="font-semibold text-[var(--color-verde-oscuro)]">
+                          {prod.descuento}% off
+                        </span>
                       )}
-                      {p.nombre}
-                    </h3>
-
-                    <p className="text-gray-700 text-sm mb-2">{p.descripcion}</p>
-
-                    <span
-                      className={`text-xs px-2 py-1 rounded-md font-medium ${
-                        p.tipo === "porcentaje"
-                          ? "bg-[var(--color-verde-ultra-claro)] text-[var(--color-verde-oscuro)]"
-                          : p.tipo === "fijo"
-                          ? "bg-[var(--color-amarillo-claro)] text-[var(--color-amarillo-oscuro)]"
-                          : "bg-[var(--color-azul-claro)] text-[var(--color-azul-oscuro)]"
-                      }`}
-                    >
-                      {p.tipo === "porcentaje"
-                        ? `-${p.valor}%`
-                        : p.tipo === "fijo"
-                        ? `₡${p.valor.toLocaleString()} descuento`
-                        : "Combo especial"}
                     </span>
-
-                    <ul className="text-sm text-gray-700 list-disc ml-5 mt-2">
-                      {p.products.map((prod) => (
-                        <li key={prod.id}>
-                          {prod.nombre_producto} —{" "}
-                          {p.tipo === "combo" ? (
-                            <span className="text-[var(--color-azul-hover)] font-semibold">
-                              Parte del combo
-                            </span>
-                          ) : (
-                            <span className="font-semibold text-[var(--color-verde-oscuro)]">
-                              {prod.descuento}% off
-                            </span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
-                      <Info size={14} />
-                      Vigente desde{" "}
-                      <span className="font-medium">{p.fecha_inicio}</span> hasta{" "}
-                      <span className="font-medium">{p.fecha_fin}</span>
-                    </p>
-                  </div>
+                    {/* Mostrar stock si existe, si no 0 */}
+  <span className="text-xs text-gray-500 ml-2">
+    Stock: {prod.cantidad ?? 0}
+  </span>
+                  </li>
                 ))}
+              </ul>
 
-                {/* 🔹 Botones finales */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-4">
-                  <Button
-                    onClick={aplicarPromocion}
-                    style="bg-[var(--color-verde-claro)] hover:bg-[var(--color-verde-oscuro)] text-white font-semibold px-5 py-2 rounded-lg shadow flex items-center justify-center gap-2"
-                  >
-                    <Percent size={18} />
-                    Aplicar promociones
-                  </Button>
+              <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+                <Info size={14} />
+                Vigente desde{" "}
+                <span className="font-medium">{p.fecha_inicio}</span> hasta{" "}
+                <span className="font-medium">{p.fecha_fin}</span>
+              </p>
+            </div>
+          ))}
 
-                  <Button
-                    onClick={restablecerPromociones}
-                    style="bg-[var(--color-rojo-claro)] hover:bg-[var(--color-rojo-oscuro)] text-white font-semibold px-5 py-2 rounded-lg shadow flex items-center justify-center gap-2"
-                  >
-                    <RotateCcw size={18} />
-                    Restablecer promociones
-                  </Button>
-                </div>
+          {/* 🔹 Botones finales */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-4">
+            <Button
+              onClick={aplicarPromocion}
+              style="bg-[var(--color-verde-claro)] hover:bg-[var(--color-verde-oscuro)] text-white font-semibold px-5 py-2 rounded-lg shadow flex items-center justify-center gap-2"
+            >
+              <Percent size={18} />
+              Aplicar promociones
+            </Button>
+
+            <Button
+              onClick={restablecerPromociones}
+              style="bg-[var(--color-rojo-claro)] hover:bg-[var(--color-rojo-oscuro)] text-white font-semibold px-5 py-2 rounded-lg shadow flex items-center justify-center gap-2"
+            >
+              <RotateCcw size={18} />
+              Restablecer promociones
+            </Button>
+          </div>
               </div>
             )}
           </div>
