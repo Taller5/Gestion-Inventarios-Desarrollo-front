@@ -291,7 +291,8 @@ export default function Businesses() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="flex">
+        <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+
            
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
@@ -348,7 +349,7 @@ export default function Businesses() {
                   )}
                 </div>
                 <Button
-                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center gap-2 w-full sm:w-auto sm:mr-20"
                   onClick={() => {
                     setBusinessToEdit(null);
                     setModalOpen(true);

@@ -677,15 +677,17 @@ await Promise.all(
 <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
   <Container
     page={
-      <div className="w-full flex md:px-10 pt-10">
-        <div className="w-full max-w-[1200px] flex flex-col md:flex-row gap-4 md:gap-6">
+         <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+          <div className="w-full pl-4 pt-10">
           
           {/* Contenido principal */}
           <div className="flex-1 flex flex-col">
             <h1 className="text-2xl font-bold mb-6">Punto de venta
               <InfoIcon
                 title="Información Punto de Venta"
-                description="En esta sección puedes seleccionar clientes, agregar productos al carrito, y finalizar ventas generando facturas. Asegúrate de tener una caja abierta para ventas en efectivo."
+                description="En esta sección puedes seleccionar clientes, 
+                agregar productos al carrito, y finalizar ventas generando facturas.
+                 Asegúrate de tener una caja abierta para ventas en efectivo."
               />
             </h1>
 

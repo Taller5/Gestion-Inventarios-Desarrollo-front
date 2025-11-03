@@ -906,7 +906,8 @@ export default function Inventary() {
     >
       <Container
         page={
-          <div className="w-full flex justify-center px-2 md:px-10 pt-10">
+          <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+
             <div className="w-full pl-2">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Inventario

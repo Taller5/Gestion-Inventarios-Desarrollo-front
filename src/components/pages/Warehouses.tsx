@@ -203,18 +203,22 @@ export default function Warehouses() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "bodeguero"]}>
       <Container
         page={
-          <div className="flex">
+        <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
            
-            <div className="w-full pl-10 pt-10">
+       <div className="w-full pl-2 md:pl-10 pt-10">
+
+
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Bodegas
                 <InfoIcon
                   title="Gestionar Bodegas"
-                  description="Aquí puedes gestionar las bodegas de tu inventario. Puedes añadir nuevas bodegas, editar las existentes o eliminarlas según sea necesario. Añade una bodega una vez hayas creado un negocio y una sucursal."
+                  description="Aquí puedes gestionar las bodegas de tu inventario.
+                   Puedes añadir nuevas bodegas, editar las existentes o eliminarlas según sea necesario.
+                    Añade una bodega una vez hayas creado un negocio y una sucursal."
                 />
               </h1>
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
-                <div className="w-full h-10">
+               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
+              <div className="w-full h-10">
                   <SearchBar<Warehouse>
                     data={warehouses}
                     displayField="bodega_id"
@@ -261,7 +265,7 @@ export default function Warehouses() {
                 </div>
                 <div className="relative group">
                   <Button
-                    style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                     style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center gap-2 w-full sm:w-auto sm:mr-20"
                     onClick={() => {
                       setWarehouseToEdit(null);
                       setShowEditModal(true);

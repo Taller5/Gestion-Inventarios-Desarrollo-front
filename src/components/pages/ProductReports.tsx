@@ -147,107 +147,113 @@ export default function ProductReports() {
   
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
-      <Container
-        page={
-          <div className="w-full md:w-auto px-2 md:px-10 mx-auto flex flex-col">
-            <h1 className="text-3xl font-bold mb-6 mt-6">
-              Reporte de productos
-              <InfoIcon
-                title="Reporte de Productos"
-                description="En este módulo puedes generar reportes de productos filtrados por negocio y bodega. Selecciona un negocio y una bodega para ver los productos correspondientes. También puedes exportar los datos a Excel o PDF."
-              />
-            </h1>
+  <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+    <Container
+      page={
+       <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+         <div className="w-full pl-4 ">
+          <div className="flex items-center gap-3 mb-6 mt-6">
+  <h1 className="text-3xl font-bold">
+    Reporte de productos
+  </h1>
+  <InfoIcon
+    title="Reporte de Productos"
+    description="En este módulo puedes generar reportes de productos filtrados por negocio y bodega. Selecciona un negocio y una bodega para ver los productos correspondientes. También puedes exportar los datos a Excel o PDF."
+  />
+</div>
 
-            {loading && <p>Cargando...</p>}
-            {error && <p className="text-red-500">{error}</p>}
 
-            {!loading && !error && businessList.length > 0 && (
-              <div className="flex flex-wrap items-end gap-4 mb-6">
-                {/* Filtro negocio */}
-                <div className="flex flex-col">
-                  <label className="block mb-1 font-semibold">Negocio:</label>
+          {loading && <p>Cargando...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+
+          {!loading && !error && businessList.length > 0 && (
+            <div className="flex flex-col sm:flex-row flex-wrap items-end gap-4 mb-6">
+              {/* Filtro negocio */}
+              <div className="flex flex-col w-full sm:w-auto">
+                <label className="block mb-1 font-semibold">Negocio:</label>
+                <select
+                  className="border px-3 py-2 rounded min-w-[180px] cursor-pointer w-full sm:w-auto"
+                  value={selectedBusiness || ""}
+                  onChange={(e) => {
+                    setSelectedBusiness(e.target.value || null);
+                    setSelectedBodega(null);
+                  }}
+                >
+                  <option value="">-- Todos --</option>
+                  {businessList.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Filtro bodega */}
+              {selectedBusiness && warehouseList.length > 0 && (
+                <div className="flex flex-col w-full sm:w-auto">
+                  <label className="block mb-1 font-semibold">Bodega:</label>
                   <select
-                    className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
-                    value={selectedBusiness || ""}
-                    onChange={(e) => {
-                      setSelectedBusiness(e.target.value || null);
-                      setSelectedBodega(null);
-                    }}
+                    className="border px-3 py-2 rounded min-w-[180px] cursor-pointer w-full sm:w-auto"
+                    value={selectedBodega || ""}
+                    onChange={(e) =>
+                      setSelectedBodega(Number(e.target.value) || null)
+                    }
                   >
-                    <option value="">-- Todos --</option>
-                    {businessList.map((b) => (
-                      <option key={b} value={b}>
-                        {b}
+                    <option value="">Seleccione una bodega</option>
+                    {warehouseList.map((w) => (
+                      <option key={w.bodega_id} value={w.bodega_id}>
+                        {w.codigo} - {w.branch.nombre}
                       </option>
                     ))}
                   </select>
                 </div>
+              )}
 
-                {/* Filtro bodega */}
-                {selectedBusiness && warehouseList.length > 0 && (
-                  <div className="flex flex-col">
-                    <label className="block mb-1 font-semibold">Bodega:</label>
-                    <select
-                      className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
-                      value={selectedBodega || ""}
-                      onChange={(e) =>
-                        setSelectedBodega(Number(e.target.value) || null)
-                      }
-                    >
-                      <option value="">seleccione una bodega</option>
-                      {warehouseList.map((w) => (
-                        <option key={w.bodega_id} value={w.bodega_id}>
-                          {w.codigo} - {w.branch.nombre}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* Botón limpiar */}
-                <div className="flex flex-col">
-                  <button
-                    className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-4 md:mt-0 cursor-pointer"
-                    onClick={clearFilters}
-                  >
-                    Limpiar filtros
-                  </button>
-                </div>
+              {/* Botón limpiar */}
+              <div className="flex flex-col w-full sm:w-auto">
+                <button
+                  className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-2 sm:mt-0 cursor-pointer w-full sm:w-auto"
+                  onClick={clearFilters}
+                >
+                  Limpiar filtros
+                </button>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Exportadores */}
-            {filteredProductos.length > 0 && (
-              <div className="mb-4 flex gap-4">
-                <ExcelExporter
-                  data={filteredProductos}
-                  headers={tableHeaders}
-                  fileName={`Productos_${selectedBusiness || "Todos"}.xlsx`}
-                />
-                <PDFExporter
-                  data={filteredProductos}
-                  headers={tableHeaders}
-                  fileName={`Productos_${selectedBusiness || "Todos"}.pdf`}
-                  reportTitle={`Reporte de Productos - ${selectedBusiness || "Todos"}`}
-                />
-              </div>
-            )}
-
-            {/* Tabla */}
-            {filteredProductos.length > 0 && (
-              <TableInformation
+          {/* Exportadores */}
+          {filteredProductos.length > 0 && (
+            <div className="mb-4 flex flex-col sm:flex-row gap-2 sm:gap-4">
+              <ExcelExporter
+                data={filteredProductos}
                 headers={tableHeaders}
-                tableContent={filteredProductos}
+                fileName={`Productos_${selectedBusiness || "Todos"}.xlsx`}
               />
-            )}
+              <PDFExporter
+                data={filteredProductos}
+                headers={tableHeaders}
+                fileName={`Productos_${selectedBusiness || "Todos"}.pdf`}
+                reportTitle={`Reporte de Productos - ${selectedBusiness || "Todos"}`}
+              />
+            </div>
+          )}
 
-            {filteredProductos.length === 0 && !loading && (
-              <p>No hay productos disponibles para el filtro seleccionado.</p>
-            )}
-          </div>
-        }
-      />
-    </ProtectedRoute>
-  );
+          {/* Tabla */}
+          {filteredProductos.length > 0 && (
+            <TableInformation
+              headers={tableHeaders}
+              tableContent={filteredProductos}
+            />
+          )}
+
+          {filteredProductos.length === 0 && !loading && (
+            <p>No hay productos disponibles para el filtro seleccionado.</p>
+          )}
+        </div>
+        </div>
+      }
+    />
+  </ProtectedRoute>
+);
+
 }

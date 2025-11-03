@@ -22,9 +22,6 @@ const headers = ["ID", "Nombre", "Cédula", "phone", "Email", "Acciones"];
 const API_URL = import.meta.env.VITE_API_URL;
 
 export default function CustomersPage() {
-
-
-
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,47 +142,51 @@ export default function CustomersPage() {
       return;
     }
 
-// Validación de cédula / número de identificación
-if (!/^\d+$/.test(form.identity_number) || form.identity_number.length > 12) {
-  setAlert({
-    type: "error",
-    message: "La cédula o identificación solo puede contener números (máx. 12).",
-  });
-  setLoadingForm(false);
-  return;
-}
+    // Validación de cédula / número de identificación
+    if (
+      !/^\d+$/.test(form.identity_number) ||
+      form.identity_number.length > 12
+    ) {
+      setAlert({
+        type: "error",
+        message:
+          "La cédula o identificación solo puede contener números (máx. 12).",
+      });
+      setLoadingForm(false);
+      return;
+    }
 
-// Validación de teléfono
-if (!/^\d{8}$/.test(form.phone)) {
-  setAlert({
-    type: "error",
-    message: "El teléfono debe contener exactamente 8 números.",
-  });
-  setLoadingForm(false);
-  return;
-}
+    // Validación de teléfono
+    if (!/^\d{8}$/.test(form.phone)) {
+      setAlert({
+        type: "error",
+        message: "El teléfono debe contener exactamente 8 números.",
+      });
+      setLoadingForm(false);
+      return;
+    }
 
-// Validación segura de email
-const validateEmail = (email: string): string | null => {
-  if (email.length > 100) return "Correo demasiado largo (máx. 100 caracteres).";
+    // Validación segura de email
+    const validateEmail = (email: string): string | null => {
+      if (email.length > 100)
+        return "Correo demasiado largo (máx. 100 caracteres).";
 
-  // Regex lineal y acotada para prevenir backtracking super-lineal
-  const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
+      // Regex lineal y acotada para prevenir backtracking super-lineal
+      const emailRegex = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{2,}$/;
 
-  if (!emailRegex.test(email)) return "Correo inválido.";
-  return null;
-};
+      if (!emailRegex.test(email)) return "Correo inválido.";
+      return null;
+    };
 
-const errorEmail = validateEmail(form.email);
-if (errorEmail) {
-  setAlert({
-    type: "error",
-    message: errorEmail,
-  });
-  setLoadingForm(false);
-  return;
-}
-
+    const errorEmail = validateEmail(form.email);
+    if (errorEmail) {
+      setAlert({
+        type: "error",
+        message: errorEmail,
+      });
+      setLoadingForm(false);
+      return;
+    }
 
     try {
       const otherCustomers = customerToEdit
@@ -322,8 +323,7 @@ if (errorEmail) {
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
       <Container
         page={
-          <div className="flex">
-          
+          <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Clientes y Fidelización
@@ -378,20 +378,18 @@ if (errorEmail) {
                   )}
                 </div>
 
-                <div className="flex gap-2">
-                  <Button
-                    style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
-                    onClick={() => {
-                      setCustomerToEdit(null);
-                      setModalOpen(true);
-                    }}
-                  >
-                    <IoAddCircle className="w-6 h-6 flex-shrink-0" />
-                    <span className="whitespace-nowrap text-base">
-                      Añadir Cliente
-                    </span>
-                  </Button>
-                </div>
+                <Button
+                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center gap-2 w-full sm:w-auto sm:mr-20"
+                  onClick={() => {
+                    setCustomerToEdit(null);
+                    setModalOpen(true);
+                  }}
+                >
+                  <IoAddCircle className="w-6 h-6 flex-shrink-0" />
+                  <span className="whitespace-nowrap text-base">
+                    Añadir Cliente
+                  </span>
+                </Button>
               </div>
 
               <TableInformation
@@ -424,7 +422,11 @@ if (errorEmail) {
                         stroke="currentColor"
                         strokeWidth={3}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                     <h2 className="text-2xl font-bold text-gray-800 mb-3 text-center">
