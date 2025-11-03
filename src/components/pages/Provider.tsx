@@ -629,6 +629,7 @@ export default function Providers() {
                 headers={headers}
                 loading={loadingProviders}
                 skeletonRows={8}
+                compact ={true} // <-- Esto hace que la info se "apriete"
               />
 
               {/* Modal dentro del mismo archivo */}
