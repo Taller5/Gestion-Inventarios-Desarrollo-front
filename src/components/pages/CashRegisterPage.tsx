@@ -436,7 +436,7 @@ export default function CashRegisterPage() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
       <Container
         page={
-          <div className="flex">
+            <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
             <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Cajas

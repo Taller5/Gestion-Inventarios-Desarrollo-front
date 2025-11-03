@@ -176,8 +176,6 @@ const headers = [
 ];
 
 export default function Branches() {
-
-  
   const token = localStorage.getItem("token");
 
   // State
@@ -501,8 +499,7 @@ export default function Branches() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="flex ">
-          
+        <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
             <div className="w-full pl-5 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Sucursales
@@ -515,38 +512,40 @@ export default function Branches() {
               <div className="flex flex-col sm:flex-row items-center justify-between gap-10 mb-6">
                 {/* SearchBar */}
                 <div className="w-full h-10">
-                <SearchBar<Branch>
-              data={branches}
-              displayField="sucursal_id" // ⚠️ se mantiene para tipado, no afecta el formatter
-              searchFields={["sucursal_id", "nombre"]}
-              placeholder="Buscar por ID o nombre..."
-              onResultsChange={(results) => {
-                setBranchesFiltered(results);
-                if (results.length > 0) setAlert(null);
-              }}
-  onSelect={(item) => setBranchesFiltered([item])}
-  onNotFound={(q) => {
-    if (!q || q.trim() === "") {
-      setAlert({
-        type: "error",
-        message: "Por favor digite un ID o nombre para buscar.",
-      });
-    } else {
-      setBranchesFiltered([]);
-      setAlert({
-        type: "error",
-        message: `No existe ninguna sucursal con el ID o nombre "${q}".`,
-      });
-    }
-  }}
-  onClearAlert={() => setAlert(null)}
-  resultFormatter={(item) => `${item.sucursal_id} - ${item.nombre}`} // ✅ muestra ID + nombre
-/>
-
+                  <SearchBar<Branch>
+                    data={branches}
+                    displayField="sucursal_id" // ⚠️ se mantiene para tipado, no afecta el formatter
+                    searchFields={["sucursal_id", "nombre"]}
+                    placeholder="Buscar por ID o nombre..."
+                    onResultsChange={(results) => {
+                      setBranchesFiltered(results);
+                      if (results.length > 0) setAlert(null);
+                    }}
+                    onSelect={(item) => setBranchesFiltered([item])}
+                    onNotFound={(q) => {
+                      if (!q || q.trim() === "") {
+                        setAlert({
+                          type: "error",
+                          message:
+                            "Por favor digite un ID o nombre para buscar.",
+                        });
+                      } else {
+                        setBranchesFiltered([]);
+                        setAlert({
+                          type: "error",
+                          message: `No existe ninguna sucursal con el ID o nombre "${q}".`,
+                        });
+                      }
+                    }}
+                    onClearAlert={() => setAlert(null)}
+                    resultFormatter={(item) =>
+                      `${item.sucursal_id} - ${item.nombre}`
+                    } // ✅ muestra ID + nombre
+                  />
                 </div>
 
                 <Button
-                  style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer mr-20 rounded flex items-center gap-2"
+                   style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-4 px-3 cursor-pointer rounded flex items-center gap-2 w-full sm:w-auto sm:mr-20"
                   onClick={() => {
                     setBranchToEdit(null);
                     setShowEditModal(true);
@@ -617,7 +616,7 @@ export default function Branches() {
                       maxHeight: "90vh",
                     }}
                   >
-                     <button
+                    <button
                       type="button"
                       onClick={() => setShowEditModal(false)}
                       aria-label="Cerrar"
@@ -632,7 +631,11 @@ export default function Branches() {
                         stroke="currentColor"
                         strokeWidth={3}
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
                       </svg>
                     </button>
                     <div className="p-6">

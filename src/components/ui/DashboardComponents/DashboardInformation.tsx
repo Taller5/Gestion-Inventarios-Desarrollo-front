@@ -156,29 +156,59 @@ export default function DashboardInformation( { onSucursalLoaded }: Props ) {
         };
     };
 
-    return(
-        <div className="border-2 border-gris-ultra-claro p-2 rounded-lg h-full pl-5 max-w-[22rem]">
-            <h2 className="text-2xl font-bold text-azul-medio">Información del usuario</h2>
-            <hr className="text-gray-200"/>
-            {loading ? (
-                <p>Cargando...</p>
-            ) : (
-                <div>
-                    {getUserInformation() ? (
-                        <div>
-                            <a href="/profile"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Nombre:  <span className="text-azul-hover">{getUserInformation()?.user.name}</span> </p></a>
-                            <a href="/cashRegisterPage"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Caja: <span className="text-azul-hover">{getUserInformation()?.cashRegister.id}</span> </p></a>
-                            <a href="/branches"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Sucursal: <span className="text-azul-hover">{getUserInformation()?.branch.nombre}</span> </p></a>
-                            <a href="/businesses"><p className="mt-4 text-lg font-semibold hover:scale-105 hover:font-bold">Negocio: <span className="text-azul-hover"> {getUserInformation()?.business.nombre_comercial}</span> </p></a>
-                            <img src={getUserInformation()?.business.logo} alt="logo del negocio asociado al usuario" />
-                        </div>
-                    ) : (
-                      <div>
-                    <a href="/cashRegisterPage"><p className="mt-4 text-lg font-semibold">Debe crear una <span className="text-azul-hover hover:font-bold hover:scale-105">caja</span> para ver su información</p></a>
-                      </div>
-                    )}    
-                </div>
+ return (
+  <div className="w-full max-w-sm bg-white border border-gris-ultra-claro rounded-xl shadow-sm p-4 sm:p-6 flex flex-col gap-4">
+    <h2 className="text-2xl font-bold text-azul-medio">Información del usuario</h2>
+    <hr className="border-gray-200" />
+
+    {loading ? (
+      <p className="text-gray-500">Cargando...</p>
+    ) : (
+      <div className="flex flex-col gap-3">
+        {getUserInformation() ? (
+          <>
+            <a href="/profile" className="hover:scale-105 transition-transform duration-200">
+              <p className="text-lg font-semibold">
+                Nombre: <span className="text-azul-hover">{getUserInformation()?.user.name}</span>
+              </p>
+            </a>
+
+            <a href="/cashRegisterPage" className="hover:scale-105 transition-transform duration-200">
+              <p className="text-lg font-semibold">
+                Caja: <span className="text-azul-hover">{getUserInformation()?.cashRegister.id}</span>
+              </p>
+            </a>
+
+            <a href="/branches" className="hover:scale-105 transition-transform duration-200">
+              <p className="text-lg font-semibold">
+                Sucursal: <span className="text-azul-hover">{getUserInformation()?.branch.nombre}</span>
+              </p>
+            </a>
+
+            <a href="/businesses" className="hover:scale-105 transition-transform duration-200">
+              <p className="text-lg font-semibold">
+                Negocio: <span className="text-azul-hover">{getUserInformation()?.business.nombre_comercial}</span>
+              </p>
+            </a>
+
+            {getUserInformation()?.business.logo && (
+              <img
+                src={getUserInformation()?.business.logo}
+                alt="Logo del negocio asociado al usuario"
+                className="w-32 h-32 sm:w-40 sm:h-40 object-contain self-center rounded-md shadow-md mt-4"
+              />
             )}
-        </div>
-    );
+          </>
+        ) : (
+          <a href="/cashRegisterPage" className="hover:scale-105 transition-transform duration-200">
+            <p className="text-lg font-semibold text-gray-600">
+              Debe crear una <span className="text-azul-hover font-bold">caja</span> para ver su información
+            </p>
+          </a>
+        )}
+      </div>
+    )}
+  </div>
+);
+
 }

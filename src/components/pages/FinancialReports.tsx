@@ -168,7 +168,8 @@ export default function GrossProfitSaleReports() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-          <div className="w-full md:w-auto max-w-[1200px] px-2 md:px-10 mx-8 flex flex-col h-[65rem]">
+         <div className="w-full md:w-auto max-w-[1200px] px-2 sm:px-4 md:px-6 lg:px-10 flex flex-col h-[65rem]">
+
             <h1 className="text-3xl font-bold mb-6 mt-6">Reporte de Ganancia Bruta
               <InfoIcon
                 title="Reporte de Ganancia Bruta"
@@ -274,22 +275,22 @@ export default function GrossProfitSaleReports() {
                 <TableInformation headers={invoiceHeaders} tableContent={invoicesWithProfit} />
               </div>
             )}
+{/* GRÁFICO DE LÍNEA */}
+{!loading && !error && profitByDate.length > 0 && (
+  <div className="mt-6 w-full h-64 sm:h-72 md:h-80 lg:h-96">
+    <h2 className="text-lg sm:text-xl font-semibold mb-4">Ganancia por Fecha</h2>
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={profitByDate} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+)}
 
-            {/* GRÁFICO DE LÍNEA */}
-            {!loading && !error && profitByDate.length > 0 && (
-              <div className="mt-15 w-full h-[300px]" >
-                <h2 className="text-lg font-semibold mb-5">Ganancia por Fecha</h2>
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={profitByDate}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
 
             {!loading && !error && profitByDate.length === 0 && (
               <p>No hay facturas para los filtros seleccionados.</p>

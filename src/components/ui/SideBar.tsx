@@ -281,6 +281,35 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     window.addEventListener("userUpdated", handleUserUpdate);
     return () => window.removeEventListener("userUpdated", handleUserUpdate);
   }, []);
+ // Bloquear scroll del body mientras el sidebar móvil está abierto
+useEffect(() => {
+  if (isOpen) {
+    // Guardar la posición actual del scroll
+    const scrollY = window.scrollY;
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${scrollY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+  } else {
+    // Restaurar scroll
+    const scrollY = -parseInt(document.body.style.top || '0', 10);
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    window.scrollTo(0, scrollY);
+  }
+
+  // Cleanup cuando se desmonta
+  return () => {
+    const scrollY = -parseInt(document.body.style.top || '0', 10);
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    window.scrollTo(0, scrollY);
+  };
+}, [isOpen]);
 
   // ------------------------------
   // Render Sidebar
@@ -363,30 +392,30 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       <section className="bg-azul-oscuro w-1/6 min-w-[200px] min-h-screen flex-col pt-4 hidden lg:flex">
         {sidebarContent}
       </section>
-      {/* Sidebar mobile */}
-      {isOpen && (
-        <section className="lg:hidden fixed inset-0 z-50 flex bg-black/30">
-          {/* Contenedor del sidebar */}
-          <div className="relative w-64 min-h-screen">
-            {/* Botón de cerrar siempre visible */}
-            <button
-              className="absolute top-4 right-4 text-white text-2xl z-20"
-              onClick={onClose}
-            >
-              ✕
-            </button>
 
-            {/* Contenido del sidebar */}
-            <div className="bg-azul-oscuro w-full min-h-screen flex flex-col pt-16">
-              {/* pt-16 deja espacio para la X */}
-              {sidebarContent}
-            </div>
-          </div>
+{/* Sidebar mobile */}
+{isOpen && (
+  <section className="lg:hidden fixed inset-0 z-50 flex overflow-x-hidden">
+    {/* Fondo semitransparente */}
+    <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
-          {/* Click fuera para cerrar */}
-          <div className="flex-1" onClick={onClose} />
-        </section>
-      )}
-    </>
+    {/* Contenedor del sidebar */}
+    <div className="relative w-64 min-h-screen bg-azul-oscuro flex flex-col pt-16 overflow-y-auto">
+      {/* Botón de cerrar */}
+      <button
+        className="absolute top-4 right-4 text-white text-2xl z-20"
+        onClick={onClose}
+      >
+        ✕
+      </button>
+
+      {/* Contenido */}
+      {sidebarContent}
+    </div>
+  </section>
+)}
+
+</>
+
   );
 }
