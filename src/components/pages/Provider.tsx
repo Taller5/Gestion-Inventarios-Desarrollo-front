@@ -70,6 +70,7 @@ export default function Providers() {
   } | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [providersFiltered, setProvidersFiltered] = useState<Provider[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState<boolean>(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedProviderId, setSelectedProviderId] = useState<number | null>(
     null
@@ -80,12 +81,15 @@ export default function Providers() {
   // Obtener todos los proveedores
   const fetchProviders = async () => {
     try {
+      setLoadingProviders(true);
       const res = await fetch(`${API_URL}/api/v1/providers`);
       const data = await res.json();
       setProviders(data);
       setProvidersFiltered(data);
     } catch (err) {
       setAlert({ type: "error", message: "Error al cargar proveedores" });
+    } finally {
+      setLoadingProviders(false);
     }
   };
 
@@ -619,7 +623,12 @@ export default function Providers() {
                   </span>
                 </Button>
               </div>
-              <TableInformation tableContent={tableContent} headers={headers} />
+              <TableInformation
+                tableContent={tableContent}
+                headers={headers}
+                loading={loadingProviders}
+                skeletonRows={8}
+              />
 
               {/* Modal dentro del mismo archivo */}
               <ProviderModal />

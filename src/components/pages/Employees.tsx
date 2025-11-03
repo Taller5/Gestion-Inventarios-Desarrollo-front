@@ -35,6 +35,7 @@ export default function Employees() {
   } | null>(null);
 
   const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   const [showModal, setShowModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -46,10 +47,12 @@ export default function Employees() {
   }, [users]);
 
   useEffect(() => {
+    setLoading(true);
     fetch(`${API_URL}/api/v1/employees`)
       .then((res) => res.json())
       .then((data) => setUsers(data))
-      .catch(() => setUsers([]));
+      .catch(() => setUsers([]))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleDelete = async () => {
@@ -188,7 +191,12 @@ export default function Employees() {
                   </span>
                 </Button>
               </div>
-              <TableInformation tableContent={tableContent} headers={headers} />
+              <TableInformation
+                tableContent={tableContent}
+                headers={headers}
+                loading={loading}
+                skeletonRows={8}
+              />
 
               <Modal
                 open={showEditModal}

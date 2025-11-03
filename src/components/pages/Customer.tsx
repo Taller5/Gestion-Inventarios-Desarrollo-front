@@ -394,14 +394,12 @@ if (errorEmail) {
                 </div>
               </div>
 
-              {loading ? (
-                <p>Cargando clientes...</p>
-              ) : (
-                <TableInformation
-                  headers={headers}
-                  tableContent={tableContent}
-                />
-              )}
+              <TableInformation
+                headers={headers}
+                tableContent={tableContent}
+                loading={loading}
+                skeletonRows={8}
+              />
 
               {/* Modal */}
               {modalOpen && (

@@ -2,6 +2,8 @@ interface TableInformationProps {
   headers: string[];
   tableContent?: any[];
   button?: React.ReactNode[];
+  loading?: boolean;
+  skeletonRows?: number;
 }
 
 const headerMap: Record<string, string> = {
@@ -36,6 +38,8 @@ export default function TableInformation(props: TableInformationProps) {
 
   // Si el ancho es menor a 1024px (laptop pequeña), usamos cards
   const useCards = windowWidth < 1024;
+  const isLoading = !!props.loading;
+  const skRows = props.skeletonRows ?? 6;
 
 return (
   <main className="w-full md:pl-1 pt-8">
@@ -56,48 +60,79 @@ return (
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {props.tableContent?.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className="hover:bg-gray-50 transition-colors duration-200"
-              >
-                {props.headers.map((header, colIndex) => (
-                  <td key={colIndex} className="px-2 py-2 text-gray-600">
-                    {header === "phone"
-                      ? formatearTelefono(row[header])
-                      : row[header] ?? ""}
-                  </td>
+            {isLoading
+              ? Array.from({ length: skRows }).map((_, rowIndex) => (
+                  <tr key={`sk-${rowIndex}`} className="animate-pulse">
+                    {props.headers.map((_, colIndex) => (
+                      <td key={colIndex} className="px-2 py-3">
+                        <div className="h-4 bg-gray-200 rounded w-24 md:w-32" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              : props.tableContent?.map((row, rowIndex) => (
+                  <tr
+                    key={rowIndex}
+                    className="hover:bg-gray-50 transition-colors duration-200"
+                  >
+                    {props.headers.map((header, colIndex) => (
+                      <td key={colIndex} className="px-2 py-2 text-gray-600">
+                        {header === "phone"
+                          ? formatearTelefono(row[header])
+                          : row[header] ?? ""}
+                      </td>
+                    ))}
+                  </tr>
                 ))}
-              </tr>
-            ))}
           </tbody>
         </table>
       </div>
     ) : (
       // --- Cards Mobile / Laptop pequeña ---
       <div className="flex flex-col gap-2 px-2">
-        {props.tableContent?.map((row, rowIndex) => (
-          <div
-            key={rowIndex}
-            className="bg-white shadow rounded-lg p-4 flex flex-col"
-          >
-            {props.headers.map((header, colIndex) => (
+        {isLoading
+          ? Array.from({ length: skRows }).map((_, rowIndex) => (
               <div
-                key={colIndex}
-                className="flex justify-between py-2 border-b last:border-b-0"
+                key={`skc-${rowIndex}`}
+                className="bg-white shadow rounded-lg p-4 flex flex-col animate-pulse"
               >
-                <span className="font-semibold text-gray-700">
-                  {headerMap[header] ?? header}
-                </span>
-                <span className="text-gray-600">
-                  {header === "phone"
-                    ? formatearTelefono(row[header])
-                    : row[header] ?? ""}
-                </span>
+                {props.headers.map((header, colIndex) => (
+                  <div
+                    key={colIndex}
+                    className="flex justify-between py-2 border-b last:border-b-0"
+                  >
+                    <span className="font-semibold text-gray-700">
+                      {headerMap[header] ?? header}
+                    </span>
+                    <span className="text-gray-600">
+                      <span className="inline-block h-4 bg-gray-200 rounded w-24" />
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))
+          : props.tableContent?.map((row, rowIndex) => (
+              <div
+                key={rowIndex}
+                className="bg-white shadow rounded-lg p-4 flex flex-col"
+              >
+                {props.headers.map((header, colIndex) => (
+                  <div
+                    key={colIndex}
+                    className="flex justify-between py-2 border-b last:border-b-0"
+                  >
+                    <span className="font-semibold text-gray-700">
+                      {headerMap[header] ?? header}
+                    </span>
+                    <span className="text-gray-600">
+                      {header === "phone"
+                        ? formatearTelefono(row[header])
+                        : row[header] ?? ""}
+                    </span>
+                  </div>
+                ))}
               </div>
             ))}
-          </div>
-        ))}
       </div>
     )}
   </main>

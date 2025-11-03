@@ -282,16 +282,12 @@ export default function Warehouses() {
                 </div>
               </div>
 
-              {loading ? (
-                <div>
-                  <p>Cargando bodegas...</p>
-                </div>
-              ) : (
-                <TableInformation
-                  headers={headers}
-                  tableContent={tableContent}
-                />
-              )}
+              <TableInformation
+                headers={headers}
+                tableContent={tableContent}
+                loading={loading}
+                skeletonRows={8}
+              />
 
               {/* Delete Confirmation Modal */}
               {showModal && (
@@ -386,6 +382,7 @@ export default function Warehouses() {
                             defaultValue={warehouseToEdit?.codigo || ""}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
                             required
+                            maxLength={4}
                           />
                         </div>
                         <div>

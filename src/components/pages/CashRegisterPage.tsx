@@ -151,6 +151,9 @@ export default function CashRegisterPage() {
 
   const MAX_AMOUNT = 99999999.99;
 
+  // Fecha de hoy en formato YYYY-MM-DD 
+  const todayStr = new Date().toISOString().split("T")[0];
+
   const fetchBranches = async () => {
     try {
       const res = await fetch(`${API_URL}/api/v1/branches`);
@@ -467,7 +470,25 @@ export default function CashRegisterPage() {
                   <input
                     type="date"
                     value={startDate ?? ""}
-                    onChange={(e) => setStartDate(e.target.value || null)}
+                    max={todayStr}
+                    onChange={(e) => {
+                      const v = e.target.value || null;
+                      if (!v) {
+                        setStartDate(null);
+                        return;
+                      }
+                      // No permitir inicio posterior a hoy
+                      if (v > todayStr) {
+                        mostrarAlerta("error", "La fecha de inicio no puede ser posterior a hoy.");
+                        return;
+                      }
+                      // No permitir inicio mayor que fin
+                      if (endDate && v > endDate) {
+                        mostrarAlerta("error", "La fecha de inicio no puede ser mayor que la fecha de fin.");
+                        return;
+                      }
+                      setStartDate(v);
+                    }}
                     className="border rounded-lg px-3 py-2 cursor-pointer"
                   />
                 </div>
@@ -476,7 +497,25 @@ export default function CashRegisterPage() {
                   <input
                     type="date"
                     value={endDate ?? ""}
-                    onChange={(e) => setEndDate(e.target.value || null)}
+                    min={todayStr}
+                    onChange={(e) => {
+                      const v = e.target.value || null;
+                      if (!v) {
+                        setEndDate(null);
+                        return;
+                      }
+                      // No permitir fin inferior a hoy
+                      if (v < todayStr) {
+                        mostrarAlerta("error", "La fecha de fin no puede ser inferior a hoy.");
+                        return;
+                      }
+                      // No permitir fin menor que inicio
+                      if (startDate && v < startDate) {
+                        mostrarAlerta("error", "La fecha de fin no puede ser menor que la fecha de inicio.");
+                        return;
+                      }
+                      setEndDate(v);
+                    }}
                     className="border rounded-lg px-3 py-2 cursor-pointer"
                   />
                 </div>
