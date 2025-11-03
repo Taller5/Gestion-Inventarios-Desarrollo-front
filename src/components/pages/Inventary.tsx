@@ -245,6 +245,8 @@ export default function Inventary() {
   const [cabysSearchResults, setCabysSearchResults] = useState<
     CabysItem[] | null
   >(null);
+  // Query controlado para el SearchBar del CABYS evita que se limpie al escribir
+  const [cabysQuery, setCabysQuery] = useState("");
   const [searchBarResetKey, setSearchBarResetKey] = useState(0);
 
   // Configuración general
@@ -488,7 +490,6 @@ export default function Inventary() {
   // Buscar CABYS (consulta al backend). Devuelve y muestra la primera página de resultados.
   const searchCabys = async (query: string) => {
     setCabysSearchResults(null);
-    setSearchBarResetKey((k) => k + 1);
     setCabysLoading(true);
     try {
       const res = await fetchCabysPage(
@@ -524,6 +525,8 @@ export default function Inventary() {
   // Debounced input handler para SearchBar
   const cabysInputTimer = useRef<number | null>(null);
   const handleCabysInput = (val: string) => {
+    // Mantener el texto escrito de forma controlada
+    setCabysQuery(val);
     if (cabysInputTimer.current) {
       window.clearTimeout(cabysInputTimer.current as unknown as number);
       cabysInputTimer.current = null;
@@ -955,14 +958,17 @@ export default function Inventary() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                       {loading ? (
-                        <tr>
-                          <td
-                            colSpan={headers.length}
-                            className="text-center py-4"
-                          >
-                            Cargando...
-                          </td>
-                        </tr>
+                        <>
+                          {Array.from({ length: 8 }).map((_, idx) => (
+                            <tr key={`inv-skel-row-${idx}`} className="animate-pulse">
+                              {headers.map((_, i) => (
+                                <td key={`inv-skel-cell-${idx}-${i}`} className="px-3 py-3">
+                                  <div className="h-4 bg-gray-200 rounded w-4/5" />
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </>
                       ) : productsFiltered.length === 0 ? (
                         <tr>
                           <td
@@ -1242,7 +1248,27 @@ export default function Inventary() {
                 {/* Tarjetas móviles */}
                 <div className="md:hidden flex flex-col gap-4">
                   {loading ? (
-                    <p className="text-center py-4">Cargando...</p>
+                    <>
+                      {Array.from({ length: 5 }).map((_, idx) => (
+                        <div
+                          key={`inv-skel-card-${idx}`}
+                          className="bg-white shadow-md rounded-lg p-4 flex flex-col gap-3 animate-pulse"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex flex-col gap-2 w-full">
+                              {Array.from({ length: 7 }).map((__, i) => (
+                                <div key={`inv-skel-line-${idx}-${i}`} className="h-4 bg-gray-200 rounded w-full" />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap justify-center gap-3 mt-2">
+                            {Array.from({ length: 3 }).map((__, i) => (
+                              <div key={`inv-skel-btn-${idx}-${i}`} className="h-8 bg-gray-200 rounded w-24" />
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </>
                   ) : productsFiltered.length === 0 ? (
                     <p className="text-center py-4">Sin resultados</p>
                   ) : (
@@ -2267,9 +2293,7 @@ export default function Inventary() {
                         <SearchBar<CabysItem>
                           key={searchBarResetKey}
                           // dataset driven por servidor (si hubo búsqueda) o por items cargados
-                          data={(cabysSearchResults ?? cabysItems).map(
-                            (it) => ({ ...it })
-                          )}
+                          data={cabysSearchResults ?? cabysItems}
                           displayField="code"
                           searchFields={["code", "description", "_combo"]}
                           placeholder="Ej: 0101 o arroz"
@@ -2277,6 +2301,7 @@ export default function Inventary() {
                           resultFormatter={(it) =>
                             `${it.code} - ${it.description}`
                           }
+                          value={cabysQuery}
                           onResultsChange={(results) => {
                             // cuando el SearchBar filtra localmente, actualizamos estado para mostrar
                             if (results.length === (cabysItems || []).length) {
@@ -2293,6 +2318,7 @@ export default function Inventary() {
                             }));
                             setCabysModalOpen(false);
                             setCabysSearchResults(null);
+                            setCabysQuery("");
                           }}
                           onInputChange={handleCabysInput}
                         />
@@ -2335,6 +2361,7 @@ export default function Inventary() {
                             setSelectedCat1("");
                             setCabysSearchResults(null);
                             setSearchBarResetKey((k) => k + 1);
+                            setCabysQuery("");
                             setFormProducto((prev) => ({
                               ...prev,
                               codigo_cabys: "",
@@ -2406,6 +2433,7 @@ export default function Inventary() {
                                       }));
                                       setCabysModalOpen(false);
                                       setCabysSearchResults(null);
+                                      setCabysQuery("");
                                     }}
                                   >
                                     <td className="px-3 py-2 font-mono whitespace-nowrap">
@@ -2431,6 +2459,7 @@ export default function Inventary() {
                                           }));
                                           setCabysModalOpen(false);
                                           setCabysSearchResults(null);
+                                          setCabysQuery("");
                                         }}
                                       >
                                         Seleccionar
@@ -2472,6 +2501,7 @@ export default function Inventary() {
                             setCabysModalOpen(false);
                             setCabysSearchResults(null);
                             setSelectedCat1("");
+                            setCabysQuery("");
                           }}
                         >
                           Salir

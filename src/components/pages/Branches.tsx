@@ -559,14 +559,12 @@ export default function Branches() {
                 </Button>
               </div>
 
-              {loading ? (
-                <p>Cargando sucursales...</p>
-              ) : (
-                <TableInformation
-                  headers={headers}
-                  tableContent={tableContent}
-                />
-              )}
+              <TableInformation
+                headers={headers}
+                tableContent={tableContent}
+                loading={loading}
+                skeletonRows={8}
+              />
 
               {/* Delete Confirmation Modal */}
               {showModal && (

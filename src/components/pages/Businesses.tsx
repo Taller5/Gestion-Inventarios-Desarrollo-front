@@ -360,14 +360,12 @@ export default function Businesses() {
                   </span>
                 </Button>
               </div>
-              {loading ? (
-                <p>Cargando...</p>
-              ) : (
-                <TableInformation
-                  headers={headers}
-                  tableContent={tableContent}
-                />
-              )}
+              <TableInformation
+                headers={headers}
+                tableContent={tableContent}
+                loading={loading}
+                skeletonRows={8}
+              />
               {/* Modal Agregar/Editar */}
               {modalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center">

@@ -1,7 +1,11 @@
-import { useState } from "react";
+import {  useState } from "react";
 import Button from "../Button";
 import GenerateInvoice, { type GenerateInvoiceRef } from "./GenerateInvoice";
 import type { Producto, Customer, Sucursal } from "../../../types/salePage";
+// HACIENDA 
+//import { useEffect, useRef, useState } from "react";
+// import SimpleModal from "../SimpleModal";
+// import { generateInvoiceXml, submitInvoice, getInvoiceXmlStatus, type XmlStatus } from "../../../services/invoice.service";
 
 interface FacturaModalProps {
   facturaModal: boolean;
@@ -48,16 +52,157 @@ export default function FacturaModal({
 
   const [processing, setProcessing] = useState(false); // ⚡ Estado para bloquear doble click
 
+  // HACIENDA 
+  // const [confirmSendOpen, setConfirmSendOpen] = useState(false); // Confirmación post-finalizar
+  // const [xmlGenerating, setXmlGenerating] = useState(false);
+  // const [sending, setSending] = useState(false);
+  // const pollingRef = useRef<number | null>(null);
+  // const askedToSendRef = useRef(false);
+  // const [awaitingHaciendaPrompt, setAwaitingHaciendaPrompt] = useState(false);
+  const [voucherError, setVoucherError] = useState<string | null>(null);
+/*
+   Nuevo: al finalizar, auto-generar el PDF cuando ya tiene el id
+  const [shouldGeneratePdf, setShouldGeneratePdf] = useState(false);
+
+   Normaliza estados que pueden venir en español/inglés o con mayúsculas/minúsculas
+   HACIENDA 
+   const normalizeStatus = (raw: string): XmlStatus["status"] => {
+     const s = (raw || "").toString().trim().toUpperCase();
+     switch (s) {
+       case "ACEPTADO":
+       case "ACCEPTED":
+         return "ACCEPTED";
+       case "RECHAZADO":
+       case "REJECTED":
+       return "REJECTED";
+       case "RECIBIDO":
+       case "RECEIVED":
+         return "RECEIVED
+       case "PROCESANDO":
+       case "PROCESSING":
+         return "PROCESSING";
+       default:
+         return s as XmlStatus["status"];
+     }
+   };
+
+  //Intenta extraer el estado desde diferentes formas comunes del payload del backend
+  //HACIENDA
+   const extractRawStatus = (payload: any): string => {
+     if (!payload) return "";
+     const candidates = [
+       payload.status,
+       payload.estado,
+       payload["ind-estado"],
+       payload.ind_estado,
+       payload.data?.status,
+       payload.data?.estado,
+       payload.data?.["ind-estado"],
+       payload.data?.ind_estado,
+       payload.result?.status,
+       payload.result?.estado,
+     ];
+     const found = candidates.find((v) => typeof v === "string" && v.trim().length > 0);
+     return found ? (found as string) : "";
+   };
+*/
   const handleFinalizar = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (processing) return; // ⚡ Evita doble clic
+
+    // Validaciones por método de pago
+    if (metodoPago === "Tarjeta" && !/^\d{6}$/.test(comprobante)) {
+      setVoucherError("El voucher debe tener exactamente 6 dígitos.");
+      return;
+    } else if (metodoPago === "SINPE" && !/^\d{25}$/.test(comprobante)) {
+      setVoucherError("El comprobante SINPE debe tener exactamente 25 dígitos.");
+      return;
+    }
+    setVoucherError(null);
     setProcessing(true);
     try {
       await finalizarVenta(e);
+      // HACIENDA
+      //Marcar que, cuando tengamos el id, debemos preguntar si enviamos a Hacienda
+      //setAwaitingHaciendaPrompt(true);
+     // setShouldGeneratePdf(true);
     } finally {
       setProcessing(false); // ⚡ Libera el botón al finalizar
     }
   };
+/*
+HACIENDA
+  // Limpia polling al cerrar modal
+  useEffect(() => {
+    if (!facturaModal) {
+      // Limpia timers
+      if (pollingRef.current) {
+        window.clearTimeout(pollingRef.current);
+        pollingRef.current = null;
+      }
+      // Reset flags y estados cuando se cierra el modal
+      askedToSendRef.current = false;
+      setAwaitingHaciendaPrompt(false);
+      setConfirmSendOpen(false);
+      setXmlGenerating(false);
+      setSending(false);
+    }
+  }, [facturaModal]);
+*/
+  /*
+  // Abre confirmación en cuanto exista la factura y no se haya preguntado aún
+  useEffect(() => {
+    if (facturaModal && awaitingHaciendaPrompt && facturaCreada?.id && !askedToSendRef.current) {
+      setConfirmSendOpen(true);
+      askedToSendRef.current = true;
+      setAwaitingHaciendaPrompt(false);
+    }
+  }, [facturaModal, awaitingHaciendaPrompt, facturaCreada?.id]);
+
+  const pollStatus = async (invoiceId: number, attempt = 1) => {
+    try {
+      const status = await getInvoiceXmlStatus(invoiceId);
+      const raw = extractRawStatus(status);
+      const s = normalizeStatus(String(raw));
+
+      if (s === "ACCEPTED" || s === "REJECTED") {
+        setSending(false);
+        return;
+      }
+
+      // Polling rápido al inicio, luego más espaciado
+      // Intentos 1-10: 800ms; 11-20: 1500ms; >20: 3000ms
+      let nextDelay = 800;
+      if (attempt > 20) nextDelay = 3000;
+      else if (attempt > 10) nextDelay = 1500;
+
+      if (attempt >= 30) {
+        // Deja en proceso y permite reintentar consulta
+        setSending(false);
+        return;
+      }
+      pollingRef.current = window.setTimeout(() => pollStatus(invoiceId, attempt + 1), nextDelay);
+    } catch (err: any) {
+      setSending(false);
+    }
+  };
+
+  const handleEnviarAHacienda = async () => {
+    if (!facturaCreada?.id || xmlGenerating || sending) return;
+    try {
+      setXmlGenerating(true);
+      await generateInvoiceXml(facturaCreada.id);
+      setXmlGenerating(false);
+
+      // Enviar a Hacienda y luego consultar estado
+  setSending(true);
+      await submitInvoice(facturaCreada.id);
+  await pollStatus(facturaCreada.id, 1);
+    } catch (err: any) {
+      setXmlGenerating(false);
+      setSending(false);
+    }
+  };*/
 
   const subtotal = carrito.reduce(
     (acc, item) => acc + item.producto.precio_venta * item.cantidad,
@@ -164,7 +309,13 @@ return (
           <select
             className="w-full border rounded px-3 py-2"
             value={metodoPago}
-            onChange={(e) => setMetodoPago(e.target.value)}
+            onChange={(e) => {
+              const val = e.target.value;
+              setMetodoPago(val);
+              // limpiar comprobante y advertencia al cambiar método
+              setComprobante("");
+              setVoucherError(null);
+            }}
           >
             <option value="Efectivo">Efectivo</option>
             <option value="Tarjeta">Tarjeta</option>
@@ -194,15 +345,36 @@ return (
             </label>
             <input
               type="text"
+              inputMode={metodoPago === "Tarjeta" || metodoPago === "SINPE" ? "numeric" : undefined}
+              pattern={metodoPago === "Tarjeta" ? "\\d{6}" : metodoPago === "SINPE" ? "\\d{25}" : undefined}
+              maxLength={metodoPago === "Tarjeta" ? 6 : metodoPago === "SINPE" ? 25 : undefined}
+              minLength={metodoPago === "Tarjeta" ? 6 : metodoPago === "SINPE" ? 25 : undefined}
               className="w-full border rounded px-3 py-2"
               value={comprobante}
-              onChange={(e) => setComprobante(e.target.value)}
+              onChange={(e) => {
+                let v = e.target.value;
+                if (metodoPago === "Tarjeta") {
+                  v = v.replace(/\D/g, "").slice(0, 6); 
+                } else if (metodoPago === "SINPE") {
+                  v = v.replace(/\D/g, "").slice(0, 25);
+                }
+                setComprobante(v);
+                if (
+                  (metodoPago === "Tarjeta" && /^\d{6}$/.test(v)) ||
+                  (metodoPago === "SINPE" && /^\d{25}$/.test(v))
+                ) {
+                  setVoucherError(null);
+                }
+              }}
               placeholder={
                 metodoPago === "Tarjeta"
                   ? "Ingrese el voucher o comprobante de la tarjeta"
                   : "Ingrese el comprobante de la transferencia o SINPE"
               }
             />
+            {voucherError && (
+              <span className="mt-1 text-xs text-red-600">{voucherError}</span>
+            )}
           </div>
         )}
       </div>
@@ -235,6 +407,40 @@ return (
           style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 sm:px-8 py-2 sm:py-3 rounded text-lg sm:text-lg w-full sm:w-36 cursor-pointer"
         />
       </div>
+      
+
+      {/* Confirmación para enviar a Hacienda 
+      <SimpleModal
+        open={confirmSendOpen}
+        onClose={() => setConfirmSendOpen(false)}
+        title="Enviar factura a Hacienda"
+      >
+        <div className="space-y-4">
+          <p className="text-sm">
+            La factura se creó correctamente. ¿Deseas generar el XML y enviarla a Hacienda ahora?
+          </p>
+          <div className="flex gap-3 justify-end">
+            <Button
+              text="No"
+              onClick={() => {
+                setFacturaModal(false);
+              }}
+              style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-4 py-2 rounded text-sm cursor-pointer"
+            />
+            <Button
+              text={xmlGenerating || sending ? "Procesando…" : "Sí, enviar ahora"}
+              disabled={xmlGenerating || sending || !facturaCreada?.id}
+              onClick={() => {
+                // Disparar flujo de Hacienda
+                handleEnviarAHacienda();
+                // Cerrar 
+                setFacturaModal(false);
+              }}
+              style="bg-azul-medio hover:bg-azul-oscuro text-white font-bold px-4 py-2 rounded text-sm cursor-pointer"
+            />
+          </div>
+        </div>
+      </SimpleModal>*/}
     </form>
   </div>
 );

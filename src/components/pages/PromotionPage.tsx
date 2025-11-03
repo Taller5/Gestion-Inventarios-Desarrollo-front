@@ -258,11 +258,14 @@ export default function PromotionPage() {
 
             <hr className="my-6" />
 
-            {/* Tabla principal */}
-            {loading ? (
-              <p>Cargando...</p>
-            ) : promotions.length > 0 ? (
-              <TableInformation headers={tableHeaders} tableContent={tableContent} />
+            {/* Tabla principal  */}
+            {promotions.length > 0 || loading ? (
+              <TableInformation
+                headers={tableHeaders}
+                tableContent={tableContent}
+                loading={loading}
+                skeletonRows={8}
+              />
             ) : (
               <p>No hay promociones registradas.</p>
             )}
