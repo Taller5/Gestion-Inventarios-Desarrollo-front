@@ -88,19 +88,32 @@ export default function GrossProfitSaleReports() {
     fetchData();
   }, []);
 
-  const businessList = Array.from(new Set(invoices.map((i) => i.business_name).filter(Boolean)));
-  const branchList = branches.filter((b) => b.business.nombre_comercial === selectedBusiness);
+const businessList = Array.from(
+    new Set(invoices.map((i) => i.business_name).filter(Boolean))
+  );
+  const branchList = branches.filter(
+    (b) => b.business.nombre_comercial === selectedBusiness
+  );
 
   const filteredInvoices = invoices.filter((inv) => {
-    if (selectedBusiness && inv.business_name !== selectedBusiness) return false;
-    if (selectedBranch && inv.branch_id !== selectedBranch) return false;
+    if (selectedBusiness && inv.business_name !== selectedBusiness)
+      return false;
+
+    //  Ajuste: buscar la sucursal según branch_name para filtrar correctamente
+    const branch = branches.find((b) => b.nombre === inv.branch_name);
+    if (selectedBranch && branch && branch.sucursal_id !== selectedBranch)
+      return false;
+
     const invoiceTime = new Date(inv.date).getTime();
-    const start = startDate ? new Date(`${startDate}T00:00:00`).getTime() : null;
+    const start = startDate
+      ? new Date(`${startDate}T00:00:00`).getTime()
+      : null;
     const end = endDate ? new Date(`${endDate}T23:59:59`).getTime() : null;
     if (start && invoiceTime < start) return false;
     if (end && invoiceTime > end) return false;
     return true;
   });
+
 
   const invoicesWithProfit = filteredInvoices.map((inv) => {
     let ganancia_bruta = 0;

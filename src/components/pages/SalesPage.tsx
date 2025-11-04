@@ -425,10 +425,12 @@ useEffect(() => {
   // Al nivel del componente (fuera de finalizarVenta)
   const invoiceRef = useRef<GenerateInvoiceRef>(null);
   const [loadingFactura, setLoadingFactura] = useState(false);
+const [procesandoVenta, setProcesandoVenta] = useState(false);
 
   const finalizarVenta = async (e?: React.FormEvent) => {
     e?.preventDefault?.();
-
+setProcesandoVenta(true);
+try {
     if (!clienteSeleccionado || !sucursalSeleccionada || carrito.length === 0) {
       mostrarAlerta(
         "error",
@@ -485,6 +487,9 @@ useEffect(() => {
         );
         return;
       }
+
+
+  
 
    // --- Aplicar promociones antes de armar factura ---
 await Promise.all(
@@ -576,47 +581,54 @@ await Promise.all(
       setFacturaCreada(responseData);
       setLoadingFactura(true); //  dispara useEffect para generar PDF solo cuando tengamos ID
 
-      if (metodoPagoBackend === "Cash") {
-        if (!cajaSeleccionada?.id) {
-          mostrarAlerta(
-            "error",
-            "No se pudo identificar la caja para actualizar el monto"
-          );
-        } else {
-          try {
-            const cajaResponse = await fetch(
-              `${API_URL}/api/v1/cash-register/addCashSale`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-                body: JSON.stringify({
-                  id: cajaSeleccionada.id, // ID de la caja seleccionada
-                  amount_received: Number(montoEntregado),
-                  change_given: Number(vuelto),
-                }),
-              }
-            );
+// --- Actualizar caja según método de pago ---
+if (!cajaSeleccionada?.id) {
+  mostrarAlerta(
+    "error",
+    "No se pudo identificar la caja para actualizar el monto"
+  );
+} else {
+  try {
+    const payload: any = {
+      id: cajaSeleccionada.id, // ID de la caja seleccionada
+      payment_method: metodoPagoBackend, // 🔥 Tipo de pago (Cash, Card, SINPE, etc.)
+    };
 
-            const cajaData = await cajaResponse.json();
+    // Si es efectivo, incluye monto entregado y vuelto
+    if (metodoPagoBackend === "Cash") {
+      payload.amount_received = Number(montoEntregado);
+      payload.change_given = Number(vuelto);
+    } else {
+      // Si no es efectivo, registra solo el total pagado
+      payload.amount_received = Number(totalAPagar);
+      payload.change_given = 0;
+    }
 
-            if (!cajaResponse.ok) {
-              mostrarAlerta(
-                "error",
-                cajaData.message || "Error al actualizar la caja"
-              );
-            } else {
-              console.log("Caja actualizada:", cajaData.data);
-              mostrarAlerta("success", "Caja actualizada correctamente");
-            }
-          } catch (error: any) {
-            console.error("Error al actualizar caja:", error);
-            mostrarAlerta("error", "No se pudo actualizar la caja");
-          }
-        }
+    const cajaResponse = await fetch(
+      `${API_URL}/api/v1/cash-register/addCashSale`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(payload),
       }
+    );
+
+    const cajaData = await cajaResponse.json();
+
+    if (!cajaResponse.ok) {
+      mostrarAlerta("error", cajaData.message || "Error al actualizar la caja");
+    } else {
+      console.log("Caja actualizada:", cajaData.data);
+      mostrarAlerta("success", "Caja actualizada correctamente");
+    }
+  } catch (error: any) {
+    console.error("Error al actualizar caja:", error);
+    mostrarAlerta("error", "No se pudo actualizar la caja");
+  }
+}
 
       // Restar stock de productos
       await Promise.all(
@@ -665,6 +677,10 @@ await Promise.all(
         "Ocurrió un error al procesar la venta. Por favor intente nuevamente."
       );
     }
+    } finally {
+  // 🔒 desactivar bloqueo SOLO cuando todo terminó (éxito o error)
+  setProcesandoVenta(false);
+}
   };
   // useEffect para generar PDF cuando ya exista la factura y su ID
   useEffect(() => {
@@ -802,6 +818,7 @@ await Promise.all(
             finalizarVenta={finalizarVenta}
             loadingSucursal={loadingSucursal}
             errorSucursal={errorSucursal}
+            procesandoVenta={procesandoVenta} // 👈 nuevo prop
           />
 
           {/* Alert */}

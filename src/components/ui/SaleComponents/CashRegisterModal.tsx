@@ -58,6 +58,37 @@ useEffect(() => {
 }, [modalCaja, sucursalSeleccionada]);
 
 
+
+  // 🔥 Siempre recargar caja cada vez que el modal se abre
+  useEffect(() => {
+    if (!modalCaja || !sucursalSeleccionada) return;
+
+    const cargarCaja = async () => {
+      setCargando(true);
+      try {
+        const caja = await obtenerCajaUsuario();
+
+        if (caja && caja.sucursal_id === sucursalSeleccionada.sucursal_id) {
+          setCajaUsuario(caja);
+          setSucursalCaja(sucursalSeleccionada.sucursal_id);
+          onCerrarCaja(caja);
+        } else {
+          setCajaUsuario(null);
+          setSucursalCaja(sucursalSeleccionada.sucursal_id);
+          mostrarAlerta("error", "No tiene una caja activa en esta sucursal");
+        }
+      } catch (err: any) {
+        setCajaUsuario(null);
+        setSucursalCaja(sucursalSeleccionada.sucursal_id);
+        mostrarAlerta("error", err.message || "Error al buscar caja");
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarCaja();
+  }, [modalCaja]); //  Se ejecuta SIEMPRE al abrir el modal
+
   if (!modalCaja) return null;
 
   return (
