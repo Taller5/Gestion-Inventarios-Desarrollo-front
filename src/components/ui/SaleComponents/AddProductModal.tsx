@@ -22,6 +22,11 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   agregarAlCarrito,
 }) => {
   const stockDisponible = getAvailableStock(productoSeleccionado.codigo_producto);
+// 🔹 Formatear el precio con colones y 1 decimal
+  const precioFormateado = `₡${Number(productoSeleccionado.precio_venta).toLocaleString("es-CR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  })}`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -31,7 +36,7 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
         <h2 className="text-xl font-bold mb-4">Añadir producto</h2>
         <p><strong>Código:</strong> {productoSeleccionado.codigo_producto}</p>
         <p><strong>Nombre:</strong> {productoSeleccionado.nombre_producto}</p>
-        <p><strong>Precio:</strong> ₡{productoSeleccionado.precio_venta}</p>
+         <p><strong>Precio:</strong> {precioFormateado}</p>
         <p><strong>Stock disponible:</strong> {stockDisponible}</p>
 
         {/* Input cantidad */}
