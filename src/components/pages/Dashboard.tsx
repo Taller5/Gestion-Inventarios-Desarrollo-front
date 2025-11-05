@@ -47,7 +47,7 @@ export default function Dashboard() {
 
           {/* Side Info */}
           <div className="mt-8 pt-14 md:mt-0 md:ml-6 w-full md:w-[320px] flex-shrink-0 min-w-0">
-            <DashboardInformation onSucursalLoaded={setUserBranch} />
+            {user.role !== "bodeguero" ? <DashboardInformation onSucursalLoaded={setUserBranch} /> : null}
           </div>
         </div>
       }

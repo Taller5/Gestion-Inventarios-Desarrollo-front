@@ -179,17 +179,29 @@ export default function DashboardInformation( { onSucursalLoaded }: Props ) {
               </p>
             </a>
 
-            <a href="/branches" className="hover:scale-105 transition-transform duration-200">
+            {user.role !== "vendedor" ? (
+              <a href="/branches" className="hover:scale-105 transition-transform duration-200">
               <p className="text-lg font-semibold">
                 Sucursal: <span className="text-azul-hover">{getUserInformation()?.branch.nombre}</span>
               </p>
             </a>
+            ) : (
+              <p className="text-lg font-semibold">
+                Sucursal: <span className="text-azul-hover">{getUserInformation()?.branch.nombre}</span>
+              </p>
+            )}
 
-            <a href="/businesses" className="hover:scale-105 transition-transform duration-200">
+            {user.role !== "vendedor" ? (
+              <a href="/businesses" className="hover:scale-105 transition-transform duration-200">
               <p className="text-lg font-semibold">
                 Negocio: <span className="text-azul-hover">{getUserInformation()?.business.nombre_comercial}</span>
               </p>
             </a>
+            ) : (
+              <p className="text-lg font-semibold">
+                Negocio: <span className="text-azul-hover">{getUserInformation()?.business.nombre_comercial}</span>
+              </p>
+            )}
 
             {getUserInformation()?.business.logo && (
               <img

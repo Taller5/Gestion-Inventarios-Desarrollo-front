@@ -1,4 +1,4 @@
-import { MdBusiness, MdInventory, MdPerson, MdWarehouse } from "react-icons/md";
+import { MdBusiness, MdInventory, MdPerson, MdWarehouse , MdPeople, MdPointOfSale, MdPayments } from "react-icons/md";
 
 interface DashboardButtonsProps {
     role: string;
@@ -38,9 +38,9 @@ export default function DashboardButtons(props: DashboardButtonsProps) {
                 href="/customer"
                 className="rounded-lg border border-gris-ultra-claro flex flex-col items-center p-4 sm:p-6 hover:scale-105 hover:text-azul-medio transition-transform shadow-sm hover:shadow-md bg-white"
               >
-                <MdPerson size={32} className="text-azul-medio mb-2 sm:mb-2" />
+                <MdPeople size={32} className="text-azul-medio mb-2 sm:mb-2" />
                 <h3 className="font-semibold text-center text-base sm:text-lg">
-                  Gestionar colaboradores
+                  Gestionar clientes
                 </h3>
               </a>
 
@@ -48,9 +48,9 @@ export default function DashboardButtons(props: DashboardButtonsProps) {
                 href="/salesPage"
                 className="rounded-lg border border-gris-ultra-claro flex flex-col items-center p-4 sm:p-6 hover:scale-105 hover:text-azul-medio transition-transform shadow-sm hover:shadow-md bg-white"
               >
-                <MdBusiness size={32} className="text-azul-medio mb-2 sm:mb-2" />
+                <MdPointOfSale size={32} className="text-azul-medio mb-2 sm:mb-2" />
                 <h3 className="font-semibold text-center text-base sm:text-lg">
-                  Gestionar negocios
+                  Ir al punto de venta
                 </h3>
               </a>
 
@@ -58,9 +58,9 @@ export default function DashboardButtons(props: DashboardButtonsProps) {
                 href="/cashRegisterPage"
                 className="rounded-lg border border-gris-ultra-claro flex flex-col items-center p-4 sm:p-6 hover:scale-105 hover:text-azul-medio transition-transform shadow-sm hover:shadow-md bg-white"
               >
-                <MdInventory size={32} className="text-azul-medio mb-2 sm:mb-2" />
+                <MdPayments size={32} className="text-azul-medio mb-2 sm:mb-2" />
                 <h3 className="font-semibold text-center text-base sm:text-lg">
-                  Gestionar productos
+                  Gestionar cajas
                 </h3>
               </a>
             </div>
