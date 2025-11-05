@@ -11,6 +11,8 @@ export default function Dashboard() {
   localStorage.getItem("user");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [userBranch, setUserBranch] = useState<Branch | null>(null);
+//   const [userAllowed, setUserAllowed] = useState<boolean>(false);
+
 
   return (
  
@@ -33,7 +35,13 @@ export default function Dashboard() {
 
             {/* Gráfico */}
             <div className="mt-8 w-full h-auto lg:h-[400px]">
-              <DashboardGraphics branch={userBranch} />
+              {user.role !== "bodeguero" && user.role !== "vendedor" ? <DashboardGraphics branch={userBranch} /> : (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <p className="text-gray-500 text-center">
+                    Gracias por el buen trabajo
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
