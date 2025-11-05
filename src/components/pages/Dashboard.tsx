@@ -4,19 +4,19 @@ import DashboardInformation from "../ui/DashboardComponents/DashboardInformation
 import DashboardGraphics from "../ui/DashboardComponents/DashboardGraphics";
 import { useState } from "react";
 import type { Branch } from "../ui/DashboardComponents/DashboardInformation";
-import { MdInventory, MdPerson, MdBusiness } from "react-icons/md";
+import DashboardButtons from "../ui/DashboardComponents/DashboardButtons";
 import InfoIcon from "../ui/InfoIcon";
 
 export default function Dashboard() {
   localStorage.getItem("user");
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const [userBranch, setUserBranch] = useState<Branch | null>(null);
+//   const [userAllowed, setUserAllowed] = useState<boolean>(false);
 
-  // Cuando un admin hace login, debe ver el dashboard que le reporte ventas, ganancias, pérdidas de productos, por meses, gráficas...
 
   return (
  
-  <ProtectedRoute allowedRoles={["administrador"]}>
+  <ProtectedRoute allowedRoles={["administrador", "supervisor", "bodeguero", "vendedor"]}>
     <Container
       page={
         <div className="flex flex-col md:flex-row w-full max-w-full px-4 md:px-10 pt-6 overflow-x-hidden">
@@ -30,47 +30,24 @@ export default function Dashboard() {
             </h1>
 
             {/* Botones principales */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              <a
-                href="/employees"
-                className="rounded-lg border border-gris-ultra-claro flex flex-col items-center p-4 sm:p-6 hover:scale-105 hover:text-azul-medio transition-transform shadow-sm hover:shadow-md bg-white"
-              >
-                <MdPerson size={32} className="text-azul-medio mb-2 sm:mb-2" />
-                <h3 className="font-semibold text-center text-base sm:text-lg">
-                  Gestionar colaboradores
-                </h3>
-              </a>
-
-              <a
-                href="/businesses"
-                className="rounded-lg border border-gris-ultra-claro flex flex-col items-center p-4 sm:p-6 hover:scale-105 hover:text-azul-medio transition-transform shadow-sm hover:shadow-md bg-white"
-              >
-                <MdBusiness size={32} className="text-azul-medio mb-2 sm:mb-2" />
-                <h3 className="font-semibold text-center text-base sm:text-lg">
-                  Gestionar negocios
-                </h3>
-              </a>
-
-              <a
-                href="/inventory"
-                className="rounded-lg border border-gris-ultra-claro flex flex-col items-center p-4 sm:p-6 hover:scale-105 hover:text-azul-medio transition-transform shadow-sm hover:shadow-md bg-white"
-              >
-                <MdInventory size={32} className="text-azul-medio mb-2 sm:mb-2" />
-                <h3 className="font-semibold text-center text-base sm:text-lg">
-                  Gestionar productos
-                </h3>
-              </a>
-            </div>
+            
+            <DashboardButtons role={user.role} />
 
             {/* Gráfico */}
             <div className="mt-8 w-full h-auto lg:h-[400px]">
-              <DashboardGraphics branch={userBranch} />
+              {user.role !== "bodeguero" && user.role !== "vendedor" ? <DashboardGraphics branch={userBranch} /> : (
+                <div className="flex flex-col items-center justify-center h-full">
+                  <p className="text-gray-500 text-center">
+                    Gracias por el buen trabajo
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Side Info */}
           <div className="mt-8 pt-14 md:mt-0 md:ml-6 w-full md:w-[320px] flex-shrink-0 min-w-0">
-            <DashboardInformation onSucursalLoaded={setUserBranch} />
+            {user.role !== "bodeguero" ? <DashboardInformation onSucursalLoaded={setUserBranch} /> : null}
           </div>
         </div>
       }

@@ -174,7 +174,7 @@ export default function ProductSelectorModal({
               onClick={() => { setOrderCatOpen(o => !o); setOrderNameOpen(false); }}
               className="px-3 py-1 border rounded bg-white hover:bg-gris-ultra-claro text-gray-700 cursor-pointer"
             >
-              Categoría
+              {categoryFilter || 'Categoría'}
             </button>
             {orderCatOpen && (
               <div className="absolute mt-2 bg-white border rounded shadow-md z-20 max-h-48 overflow-auto min-w-[200px]">
@@ -200,7 +200,7 @@ export default function ProductSelectorModal({
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar por nombre o código..."
+              placeholder="Buscar nombre, código o categoría..."
               className="w-full border rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-medio"
             />
           </div>
