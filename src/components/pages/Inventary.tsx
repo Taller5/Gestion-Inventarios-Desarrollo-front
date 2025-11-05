@@ -1658,6 +1658,7 @@ export default function Inventary() {
                     <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
                       Agregar Lote
                     </h2>
+                    <hr className="mb-4" />
                     {loteDateError && (
                       <div className="mb-4 px-4 py-2 rounded bg-rojo-ultra-claro text-rojo-oscuro border border-rojo-claro text-sm font-semibold text-center">
                         {loteDateError}
@@ -2512,7 +2513,7 @@ export default function Inventary() {
                   </div>
                 </SimpleModal>
               )}
-              <div className="mb-4">
+              <div className="mb-4 mt-3">
                 <button
                   className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition cursor-pointer"
                   onClick={() => {
