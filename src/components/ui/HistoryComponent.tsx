@@ -86,24 +86,34 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
             <div className="grid gap-4">
               {paginated
                 .filter((h): h is IAHistoryDiario => h.type === "diario")
-                .map((h) => (
-                  <div key={h.id} className="p-4 bg-white rounded-lg shadow border border-gray-200">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-azul-medio">{h.product_name}</span>
-                      <span className="text-xs text-gray-400">{new Date(h.created_at).toLocaleString()}</span>
+                .map((h) => {
+                  const historyItems = Array.isArray(h.history) ? h.history : [h.history];
+                  return (
+                    <div key={h.id} className="p-4 bg-white rounded-lg shadow border border-gray-200">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-azul-medio">{h.product_name}</span>
+                        <span className="text-xs text-gray-400">{new Date(h.created_at).toLocaleString()}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+                        <span>Fecha a predecir:</span>
+                        <span>{historyItems[0]?.prediction_date
+                          ? historyItems[0].prediction_date
+                          : "Sin fecha"}</span>
+                        <span>Precio Propuesto:</span>
+                        <span>₡{h.future_price.toFixed(2)}</span>
+                        <span>Promoción activa:</span>
+                        <span>{h.promotion_active === 1 ? "Sí" : "No"}</span>
+                      </div>
+                      {/* Mostrar todas las predicciones guardadas */}
+                      {historyItems.map((item, idx) => (
+                        <div key={idx} className="grid grid-cols-2 gap-2 text-sm border-t border-gray-200 pt-2 mt-2">
+                          <span>Cantidad estimada:</span>
+                          <span className="font-semibold text-azul-medio">{item.predicted_quantity}</span>
+                        </div>
+                      ))}
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <span>Fecha:</span>
-                      <span>{h.history.prediction_date}</span>
-                      <span>Cantidad Estimada:</span>
-                      <span className="font-semibold text-azul-medio">{h.history.predicted_quantity}</span>
-                      <span>Precio Propuesto:</span>
-                      <span>₡{h.future_price.toFixed(2)}</span>
-                      <span>Promoción activa:</span>
-                      <span>{h.promotion_active === 1 ? "Sí" : "No"}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           )}
 
