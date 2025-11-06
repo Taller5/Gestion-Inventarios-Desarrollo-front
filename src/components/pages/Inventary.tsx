@@ -1313,7 +1313,6 @@ export default function Inventary() {
                             <div className="w-full text-center text-azul-oscuro font-semibold mb-3">
                               Acciones
                             </div>
-
                             <Button
                               style="bg-verde-claro hover:bg-verde-oscuro text-white font-semibold py-2 px-4 rounded flex items-center justify-center gap-1 min-w-[110px] text-sm"
                               onClick={() => {

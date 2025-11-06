@@ -4,6 +4,7 @@ import { SearchBar } from "../SearchBar";
 import Button from "../../ui/Button";
 import { IoAddCircle } from "react-icons/io5";
 import { FaSearch } from "react-icons/fa";
+import ButtonInfo from "../../ui/ButtonInfo";
 
 // Tipos
 import type { Warehouse, Producto, Business } from "../../../types/inventario";
@@ -244,6 +245,7 @@ return (
         </div>
 
         <div className="flex flex-wrap sm:flex-nowrap gap-2 w-full sm:w-auto">
+        <ButtonInfo textInfo="Agregar producto" position="left">
           <Button
             style="bg-azul-medio hover:bg-azul-hover text-white font-bold py-2.5 px-3 rounded flex items-center justify-center text-sm w-full sm:w-auto cursor-pointer"
             onClick={() => {
@@ -267,6 +269,7 @@ return (
             <IoAddCircle className="w-5 h-5" />
             <span className="ml-1">Agregar</span>
           </Button>
+        </ButtonInfo>
 
           <Button
             to="/iaprediction"
