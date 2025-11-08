@@ -199,28 +199,32 @@ const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>(
 
         // --- Tabla compacta productos ---
         const headers = ["Código", "Producto", "Cant.", "Precio", "Desc."];
-        const colWidths = [12, 28, 8, 12, 10]; // más compacta
-        const tableFontSize = 6;
+        const colWidths = [12, 28, 8, 12, 10]; // más compacta y balanceada
+        const tableFontSize = 5; // más pequeña
         let x = padding;
 
+        // encabezado de tabla
         doc.setFont("helvetica", "bold");
         doc.setFontSize(tableFontSize);
-        doc.setFillColor(220, 220, 220);
+        doc.setTextColor(20, 20, 20); // texto gris oscuro
+        doc.setFillColor(235, 235, 235); // gris muy suave para encabezado
         doc.rect(
           x,
           y - 3,
           colWidths.reduce((a, b) => a + b, 0),
-          6,
+          5,
           "F"
         );
         headers.forEach((h, i) => {
           doc.text(h, x + 0.5, y);
           x += colWidths[i];
         });
-        y += 5;
+        y += 4.5;
 
         doc.setFont("helvetica", "normal");
         doc.setFontSize(tableFontSize);
+        doc.setTextColor(40, 40, 40);
+        doc.setLineWidth(0.15); // líneas más finas
 
         let subtotal = 0;
         let totalDescuento = 0;
@@ -233,20 +237,28 @@ const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>(
           subtotal += subtotalItem;
           totalDescuento += subtotalItem * (descuentoPct / 100);
 
+          // recorte o ajuste del nombre de producto
+          const nombreLimpio = (item.producto.nombre_producto || "-").substring(
+            0,
+            25
+          );
+
           const row = [
-            item.producto.codigo_producto || "-",
-            item.producto.nombre_producto || "-",
+            (item.producto.codigo_producto || "-").substring(0, 10),
+            nombreLimpio,
             (item.cantidad || 0).toString(),
             formatNumber(item.producto.precio_venta || 0),
             `${descuentoPct}%`,
           ];
 
           row.forEach((text, i) => {
-            doc.text(text, x + 0.5, y);
+            const maxWidth = colWidths[i] - 1;
+            doc.text(text, x + 0.5, y, { maxWidth });
             x += colWidths[i];
           });
 
-          y += 4.5;
+          y += 4; // espacio más compacto
+          doc.setDrawColor(180, 180, 180); // gris claro (simula transparencia)
           doc.line(
             padding,
             y - 2,
@@ -267,27 +279,28 @@ const GenerateInvoice = forwardRef<GenerateInvoiceRef, GenerateInvoiceProps>(
         const totalAPagar = subtotalConDescuento + impuestos;
 
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(normalFontSize);
+        doc.setFontSize(6);
+        doc.setTextColor(30, 30, 30);
         doc.text(`Subtotal: ${formatNumber(subtotal)}`, padding, y);
-        y += 4;
+        y += 3.5;
         doc.text(
-          `Total Descuento: ${formatNumber(Math.round(totalDescuento))}`,
+          `Descuento: ${formatNumber(Math.round(totalDescuento))}`,
           padding,
           y
         );
-        y += 4;
+        y += 3.5;
         doc.text(
           `Impuestos (13%): ${formatNumber(Math.round(impuestos))}`,
           padding,
           y
         );
-        y += 4;
+        y += 3.5;
         doc.text(
           `Total a pagar: ${formatNumber(Math.round(totalAPagar))}`,
           padding,
           y
         );
-        y += 5;
+        y += 4.5;
 
         doc.setFont("helvetica", "normal");
         doc.text(`Método de pago: ${metodoPago}`, padding, y);
