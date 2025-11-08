@@ -182,6 +182,38 @@ export default function FacturaModal({
     }
   };
 
+  // Polling en segundo plano (no depende del estado del componente)
+  const pollStatusInBackground = async (invoiceId: number, attempt = 1): Promise<void> => {
+    try {
+      const status = await getInvoiceXmlStatus(invoiceId);
+      const raw = extractRawStatus(status);
+      const s = normalizeStatus(String(raw));
+
+      if (s === "ACCEPTED" || s === "REJECTED") {
+        return;
+      }
+
+      // Cadencia escalonada similar al polling UI
+      let nextDelay = 800;
+      if (attempt > 20) nextDelay = 3000;
+      else if (attempt > 10) nextDelay = 1500;
+
+      if (attempt >= 30) {
+        return;
+      }
+
+      window.setTimeout(() => {
+        void pollStatusInBackground(invoiceId, attempt + 1);
+      }, nextDelay);
+    } catch (_err) {
+      // En error, reintentar un poco más tarde, sin tocar estado del componente
+      if (attempt >= 30) return;
+      window.setTimeout(() => {
+        void pollStatusInBackground(invoiceId, attempt + 1);
+      }, 1500);
+    }
+  };
+
   const handleEnviarAHacienda = async () => {
     if (!facturaCreada?.id || xmlGenerating || sending) return;
     try {
@@ -192,7 +224,10 @@ export default function FacturaModal({
       // Enviar a Hacienda y luego consultar estado
   setSending(true);
       await submitInvoice(facturaCreada.id);
-  await pollStatus(facturaCreada.id, 1);
+      // Iniciar polling en segundo plano para que el backend reciba los cambios de estado
+      void pollStatusInBackground(facturaCreada.id, 1);
+      // Como cerraremos el modal, liberamos el estado de envío
+      setSending(false);
     } catch (err: any) {
       setXmlGenerating(false);
       setSending(false);
