@@ -89,7 +89,7 @@ export default function DashboardButtons(props: DashboardButtonsProps) {
               </a>
 
               <a
-                href="/inventory"
+                href="/inventary"
                 className="rounded-lg border border-gris-ultra-claro flex flex-col items-center p-4 sm:p-6 hover:scale-105 hover:text-azul-medio transition-transform shadow-sm hover:shadow-md bg-white"
               >
                 <MdInventory size={32} className="text-azul-medio mb-2 sm:mb-2" />
