@@ -19,6 +19,7 @@ export const UseBusiness = () => {
   const [savingLogo, setSavingLogo] = useState(false);
 
   const [fetchBusinesses, setFetchBusinesses] = useState<Business[]>([]);
+  const [fetchLoading, setFetchLoading] = useState<boolean>(true);
   const [fetchAlert, setFetchAlert] = useState<{
     type: "success" | "error";
     message: string;
@@ -27,11 +28,14 @@ export const UseBusiness = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
+        setFetchLoading(true);
         const data = await getBusinesses();
         setFetchBusinesses(data);
       } catch (error) {
         setFetchAlert({ type: "error", message: "Error al cargar los negocios" });
         throw new Error(error as string);
+      } finally {
+        setFetchLoading(false);
       }
     };
     loadData();
@@ -89,5 +93,5 @@ export const UseBusiness = () => {
       setSavingLogo(false);
     }
   };
-  return { fetchBusinesses, handleDeleteBusiness, handleSubmitBusiness, fetchAlert, handleUpdateLogo, savingLogo };
+  return { fetchBusinesses, fetchLoading, handleDeleteBusiness, handleSubmitBusiness, fetchAlert, handleUpdateLogo, savingLogo };
 };

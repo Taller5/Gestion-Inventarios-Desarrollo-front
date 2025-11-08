@@ -655,8 +655,8 @@ if (!cajaSeleccionada?.id) {
         }`
       );
 
-      // Cerrar modal
-      setFacturaModal(false);
+  //Cerrar modal
+  // setFacturaModal(false);
 
       // Limpiar estados del carrito
       setCarrito([]);

@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, } from "react";
 import Button from "../Button";
 import GenerateInvoice, { type GenerateInvoiceRef } from "./GenerateInvoice";
 import type { Producto, Customer, Sucursal } from "../../../types/salePage";
 // HACIENDA
-//import { useEffect, useRef, useState } from "react";
-// import SimpleModal from "../SimpleModal";
-// import { generateInvoiceXml, submitInvoice, getInvoiceXmlStatus, type XmlStatus } from "../../../services/invoice.service";
+ import SimpleModal from "../SimpleModal";
+ import { generateInvoiceXml, submitInvoice, getInvoiceXmlStatus, type XmlStatus } from "../../../services/invoice.service";
 
 interface FacturaModalProps {
   facturaModal: boolean;
@@ -52,41 +51,34 @@ export default function FacturaModal({
 }: FacturaModalProps) {
   if (!facturaModal) return null;
 
-  const [processing, setProcessing] = useState(false); // ⚡ Estado para bloquear doble click
+  const [processing, setProcessing] = useState(false); // Estado para bloquear doble click
 
   // HACIENDA
-  // const [confirmSendOpen, setConfirmSendOpen] = useState(false); // Confirmación post-finalizar
-  // const [xmlGenerating, setXmlGenerating] = useState(false);
-  // const [sending, setSending] = useState(false);
-  // const pollingRef = useRef<number | null>(null);
-  // const askedToSendRef = useRef(false);
-  // const [awaitingHaciendaPrompt, setAwaitingHaciendaPrompt] = useState(false);
+   const [confirmSendOpen, setConfirmSendOpen] = useState(false); // Confirmación post-finalizar
+   const [xmlGenerating, setXmlGenerating] = useState(false);
+   const [sending, setSending] = useState(false);
+   const pollingRef = useRef<number | null>(null);
+   const askedToSendRef = useRef(false);
+   const [awaitingHaciendaPrompt, setAwaitingHaciendaPrompt] = useState(false);
   const [voucherError, setVoucherError] = useState<string | null>(null);
-  /*
-   Nuevo: al finalizar, auto-generar el PDF cuando ya tiene el id
-  const [shouldGeneratePdf, setShouldGeneratePdf] = useState(false);
+  
 
-   Normaliza estados que pueden venir en español/inglés o con mayúsculas/minúsculas
-   HACIENDA 
-   const normalizeStatus = (raw: string): XmlStatus["status"] => {
-     const s = (raw || "").toString().trim().toUpperCase();
-     switch (s) {
-       case "ACEPTADO":
-       case "ACCEPTED":
-         return "ACCEPTED";
-       case "RECHAZADO":
-       case "REJECTED":
-       return "REJECTED";
-       case "RECIBIDO":
-       case "RECEIVED":
-         return "RECEIVED
-       case "PROCESANDO":
-       case "PROCESSING":
-         return "PROCESSING";
-       default:
-         return s as XmlStatus["status"];
-     }
-   };
+  // Normaliza estados que pueden venir en español/inglés o con mayúsculas/minúsculas 
+  const STATUS_MAP: Record<string, XmlStatus["status"]> = {
+    ACEPTADO: "ACCEPTED",
+    ACCEPTED: "ACCEPTED",
+    RECHAZADO: "REJECTED",
+    REJECTED: "REJECTED",
+    RECIBIDO: "RECEIVED",
+    RECEIVED: "RECEIVED",
+    PROCESANDO: "PROCESSING",
+    PROCESSING: "PROCESSING",
+  };
+
+  const normalizeStatus = (raw: string): XmlStatus["status"] => {
+    const s = (raw || "").toString().trim().toUpperCase();
+    return STATUS_MAP[s] ?? (s as XmlStatus["status"]);
+  };
 
   //Intenta extraer el estado desde diferentes formas comunes del payload del backend
   //HACIENDA
@@ -107,10 +99,10 @@ export default function FacturaModal({
      const found = candidates.find((v) => typeof v === "string" && v.trim().length > 0);
      return found ? (found as string) : "";
    };
-*/
+
   const handleFinalizar = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    if (processing) return; // ⚡ Evita doble clic
+    if (processing) return; // Evita doble clic
 
     // Validaciones por método de pago
     if (metodoPago === "Tarjeta" && !/^\d{6}$/.test(comprobante)) {
@@ -126,16 +118,15 @@ export default function FacturaModal({
     setProcessing(true);
     try {
       await finalizarVenta(e);
-      // HACIENDA
-      //Marcar que, cuando tengamos el id, debemos preguntar si enviamos a Hacienda
-      //setAwaitingHaciendaPrompt(true);
-      // setShouldGeneratePdf(true);
+  // HACIENDA
+  // Marcar que, cuando tengamos el id, debemos preguntar si enviamos a Hacienda
+  setAwaitingHaciendaPrompt(true);
     } finally {
-      setProcessing(false); // ⚡ Libera el botón al finalizar
+      setProcessing(false); // Libera el botón al finalizar
     }
   };
-  /*
-HACIENDA
+  
+//HACIENDA
   // Limpia polling al cerrar modal
   useEffect(() => {
     if (!facturaModal) {
@@ -152,8 +143,8 @@ HACIENDA
       setSending(false);
     }
   }, [facturaModal]);
-*/
-  /*
+
+  
   // Abre confirmación en cuanto exista la factura y no se haya preguntado aún
   useEffect(() => {
     if (facturaModal && awaitingHaciendaPrompt && facturaCreada?.id && !askedToSendRef.current) {
@@ -206,7 +197,7 @@ HACIENDA
       setXmlGenerating(false);
       setSending(false);
     }
-  };*/
+  };
 
   const subtotal = carrito.reduce(
     (acc, item) => acc + item.producto.precio_venta * item.cantidad,
@@ -220,7 +211,7 @@ HACIENDA
     0
   );
   // 🔹 Formatea montos en colones con 1 decimal y separador de miles
-  // ✅ Versión segura del formateador
+  //  Versión segura del formateador
   const formatCurrency = (value: any): string => {
     const num = Number(value);
     if (isNaN(num)) return "₡0.0";
@@ -529,7 +520,7 @@ HACIENDA
           </div>
         </div>
 
-        {/* Confirmación para enviar a Hacienda 
+        {/* Confirmación para enviar a Hacienda */} 
       <SimpleModal
         open={confirmSendOpen}
         onClose={() => setConfirmSendOpen(false)}
@@ -560,7 +551,7 @@ HACIENDA
             />
           </div>
         </div>
-      </SimpleModal>*/}
+      </SimpleModal>
       </form>
     </div>
   );
