@@ -44,6 +44,7 @@ export default function Businesses() {
 
   const {
     fetchBusinesses,
+    fetchLoading,
     handleDeleteBusiness,
     handleSubmitBusiness,
     fetchAlert,
@@ -99,6 +100,12 @@ export default function Businesses() {
     getFetchedBusinesses();
   }, [fetchBusinesses]);
 
+  // Sincroniza el loading local con el del hook para controlar el skeleton
+  useEffect(() => {
+    if (fetchLoading) setLoading(true);
+    else setLoading(false);
+  }, [fetchLoading]);
+  
   // Inicializar modal
   useEffect(() => {
     if (modalOpen) {
