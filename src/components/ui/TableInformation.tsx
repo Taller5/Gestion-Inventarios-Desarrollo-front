@@ -44,7 +44,7 @@ export default function TableInformation(props: TableInformationProps) {
 // Clases ajustadas si compact es true
 const cardPadding = props.compact ? "p-0.5" : "p-4";     // padding casi nulo
 const rowPadding = props.compact ? "py-0.25" : "py-2";   // altura mínima
-const textSize = props.compact ? "text-[10px]" : "text-gray-600"; // letra muy pequeña
+
 
 
 
@@ -85,7 +85,7 @@ return (
                       className="hover:bg-gray-50 transition-colors duration-200"
                     >
                       {props.headers.map((header, colIndex) => (
-                        <td key={colIndex} className={`px-2 py-2 ${textSize}`}>
+                        <td key={colIndex} className={`px-2 py-2 `}>
                           {header === "phone"
                             ? formatearTelefono(row[header])
                             : row[header] ?? ""}

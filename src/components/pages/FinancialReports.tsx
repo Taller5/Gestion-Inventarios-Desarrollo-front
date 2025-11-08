@@ -178,139 +178,164 @@ const businessList = Array.from(
   };
 
   return (
-    <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
-      <Container
-        page={
-         <div className="w-full md:w-auto max-w-[1200px] px-2 sm:px-4 md:px-6 lg:px-10 flex flex-col h-[65rem]">
 
-            <h1 className="text-3xl font-bold mb-6 mt-6">Reporte de Ganancia Bruta
-              <InfoIcon
-                title="Reporte de Ganancia Bruta"
-                description="Aqui puedes ver el reporte de ganancia bruta de las ventas realizadas en la sucursal. La ganancia bruta se calcula restando el costo de los productos vendidos al total de la venta, considerando cualquier descuento aplicado."
-              />
-            </h1>
+  <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
+    <Container
+      page={
+     <div className="w-full max-w-[1200px] px-2 sm:px-4 md:px-6 lg:px-10 flex flex-col pb-10">
 
-            {loading && <p>Cargando...</p>}
-            {error && <p className="text-red-500">{error}</p>}
+          <h1 className="text-3xl font-bold mb-6 mt-6">
+            Reporte de Ganancia Bruta
+            <InfoIcon
+              title="Reporte de Ganancia Bruta"
+              description="Aquí puedes ver el reporte de ganancia bruta de las ventas realizadas en la sucursal. La ganancia bruta se calcula restando el costo de los productos vendidos al total de la venta, considerando cualquier descuento aplicado."
+            />
+          </h1>
 
-            {/* FILTROS */}
-            {!loading && !error && businessList.length > 0 && (
-              <div className="flex flex-wrap items-end gap-4 mb-6">
+          {loading && <p>Cargando...</p>}
+          {error && <p className="text-red-500">{error}</p>}
+
+          {/* FILTROS */}
+          {!loading && !error && businessList.length > 0 && (
+            <div className="flex flex-wrap items-end gap-4 mb-6">
+              <div className="flex flex-col">
+                <label className="block mb-1 font-semibold">Negocio:</label>
+                <select
+                  className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
+                  value={selectedBusiness || ""}
+                  onChange={(e) => {
+                    setSelectedBusiness(e.target.value || null);
+                    setSelectedBranch(null);
+                  }}
+                >
+                  <option value="">-- Todos --</option>
+                  {businessList.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {selectedBusiness && branchList.length > 0 && (
                 <div className="flex flex-col">
-                  <label className="block mb-1 font-semibold">Negocio:</label>
+                  <label className="block mb-1 font-semibold">Sucursal:</label>
                   <select
                     className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
-                    value={selectedBusiness || ""}
-                    onChange={(e) => {
-                      setSelectedBusiness(e.target.value || null);
-                      setSelectedBranch(null);
-                    }}
+                    value={selectedBranch || ""}
+                    onChange={(e) =>
+                      setSelectedBranch(Number(e.target.value) || null)
+                    }
                   >
-                    <option value="">-- Todos --</option>
-                    {businessList.map((b) => (
-                      <option key={b} value={b}>{b}</option>
+                    <option value="">-- Todas --</option>
+                    {branchList.map((b) => (
+                      <option key={b.sucursal_id} value={b.sucursal_id}>
+                        {b.nombre}
+                      </option>
                     ))}
                   </select>
                 </div>
+              )}
 
-                {selectedBusiness && branchList.length > 0 && (
-                  <div className="flex flex-col">
-                    <label className="block mb-1 font-semibold">Sucursal:</label>
-                    <select
-                      className="border px-3 py-2 rounded min-w-[180px] cursor-pointer"
-                      value={selectedBranch || ""}
-                      onChange={(e) => setSelectedBranch(Number(e.target.value) || null)}
-                    >
-                      <option value="">-- Todas --</option>
-                      {branchList.map((b) => (
-                        <option key={b.sucursal_id} value={b.sucursal_id}>{b.nombre}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="flex flex-col">
-                  <label className="block mb-1 font-semibold">Fecha inicio:</label>
-                  <input
-                    type="date"
-                    className="border px-3 py-2 rounded cursor-pointer"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex flex-col">
-                  <label className="block mb-1 font-semibold">Fecha fin:</label>
-                  <input
-                    type="date"
-                    className="border px-3 py-2 rounded cursor-pointer"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-
-                <div className="flex flex-col">
-                  <button
-                    className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-4 md:mt-0 cursor-pointer"
-                    onClick={clearFilters}
-                  >
-                    Limpiar filtros
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* GANANCIA TOTAL */}
-            <p className="mt-4 font-semibold text-lg">
-              Ganancia bruta total: ₡ {totalGanancia.toLocaleString()}
-            </p>
-
-            {/* EXPORTADORES */}
-            {invoicesWithProfit.length > 0 && (
-              <div className="mb-4 flex gap-4">
-                <ExcelExporter
-                  data={invoicesWithProfit}
-                  headers={invoiceHeaders}
-                  fileName={`GananciaBruta_${selectedBusiness || "Todos"}.xlsx`}
-                />
-                <PDFExporter
-                  data={invoicesWithProfit}
-                  headers={invoiceHeaders}
-                  fileName={`GananciaBruta_${selectedBusiness || "Todos"}.pdf`}
-                  reportTitle={`Reporte de Ganancia Bruta - ${selectedBusiness || "Todos"}`}
+              <div className="flex flex-col">
+                <label className="block mb-1 font-semibold">Fecha inicio:</label>
+                <input
+                  type="date"
+                  className="border px-3 py-2 rounded cursor-pointer"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
                 />
               </div>
-            )}
 
-            {/* TABLA */}
-            {invoicesWithProfit.length > 0 && (
-              <div className="max-h-[20rem] overflow-hidden">
-                <TableInformation headers={invoiceHeaders} tableContent={invoicesWithProfit} />
+              <div className="flex flex-col">
+                <label className="block mb-1 font-semibold">Fecha fin:</label>
+                <input
+                  type="date"
+                  className="border px-3 py-2 rounded cursor-pointer"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
               </div>
-            )}
-{/* GRÁFICO DE LÍNEA */}
+
+              <div className="flex flex-col">
+                <button
+                  className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-4 md:mt-0 cursor-pointer"
+                  onClick={clearFilters}
+                >
+                  Limpiar filtros
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* GANANCIA TOTAL */}
+          <p className="mt-4 font-semibold text-lg">
+            Ganancia bruta total: ₡ {totalGanancia.toLocaleString()}
+          </p>
+
+          {/* EXPORTADORES */}
+          {invoicesWithProfit.length > 0 && (
+            <div className="mb-4 flex flex-wrap gap-4">
+              <ExcelExporter
+                data={invoicesWithProfit}
+                headers={invoiceHeaders}
+                fileName={`GananciaBruta_${selectedBusiness || "Todos"}.xlsx`}
+              />
+              <PDFExporter
+                data={invoicesWithProfit}
+                headers={invoiceHeaders}
+                fileName={`GananciaBruta_${selectedBusiness || "Todos"}.pdf`}
+                reportTitle={`Reporte de Ganancia Bruta - ${
+                  selectedBusiness || "Todos"
+                }`}
+              />
+            </div>
+          )}
+
+          {/* TABLA */}
+          {invoicesWithProfit.length > 0 && (
+            <div className="max-h-[24rem] overflow-y-auto rounded-lg border border-gray-200 shadow-sm">
+              <TableInformation
+                headers={invoiceHeaders}
+                tableContent={invoicesWithProfit}
+              />
+            </div>
+          )}
+
+        {/* GRÁFICO DE LÍNEA */}
 {!loading && !error && profitByDate.length > 0 && (
-  <div className="mt-6 w-full h-64 sm:h-72 md:h-80 lg:h-96">
-    <h2 className="text-lg sm:text-xl font-semibold mb-4">Ganancia por Fecha</h2>
+  <div className="mt-10 w-full h-72 sm:h-80 md:h-[24rem]">
+    <h2 className="text-lg sm:text-xl font-semibold mb-4">
+      Ganancia por Fecha
+    </h2>
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={profitByDate} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+      <LineChart
+        data={profitByDate}
+        margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
+      >
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" tick={{ fontSize: 12 }} />
         <YAxis tick={{ fontSize: 12 }} />
         <Tooltip />
-        <Line type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={3} />
+        <Line
+          type="monotone"
+          dataKey="profit"
+          stroke="#10b981"
+          strokeWidth={3}
+        />
       </LineChart>
     </ResponsiveContainer>
   </div>
 )}
 
 
-            {!loading && !error && profitByDate.length === 0 && (
-              <p>No hay facturas para los filtros seleccionados.</p>
-            )}
-          </div>
-        }
-      />
-    </ProtectedRoute>
-  );
+          {!loading && !error && profitByDate.length === 0 && (
+            <p>No hay facturas para los filtros seleccionados.</p>
+          )}
+        </div>
+      }
+    />
+  </ProtectedRoute>
+);
+
 }
