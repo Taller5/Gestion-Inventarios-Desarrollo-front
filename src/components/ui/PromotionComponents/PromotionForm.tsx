@@ -98,7 +98,7 @@ useEffect(() => {
 }, [editing, productos]);
 
 const [businesses, setBusinesses] = useState<Business[]>([]);
-
+void businesses; // para evitar el error de "variable 'businesses' is used before being assigned"
 // Cargar productos, bodegas, sucursales y negocios
 useEffect(() => {
   const fetchData = async () => {
@@ -170,62 +170,74 @@ useEffect(() => {
     return true;
   });
 
-  // Cambios de inputs
-  const handleChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >
-  ) => {
-    const { name, value, type } = e.target;
-    setForm((prev) => {
-      const newForm = {
-        ...prev,
-        [name]:
-          type === "checkbox" ? (e.target as HTMLInputElement).checked : value,
-      };
-      if (name === "business_id") {
-        newForm.branch_id = null;
-        setSelectedBusiness(value || null);
-        setSelectedBodega(null);
-      }
-      if (name === "branch_id") {
-        setSelectedBodega(Number(value) || null);
-      }
-      return newForm;
-    });
-  };
+// Cambios de inputs
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+) => {
+  const { name, value, type } = e.target;
 
-  const handleProductsChange = (newProducts: any[], valorNum?: number) => {
+  // Para inputs de tipo number, parseamos a float
+  const newValue =
+    type === "checkbox"
+      ? (e.target as HTMLInputElement).checked
+      : type === "number"
+      ? parseFloat(value)
+      : value;
+
+  setForm((prev) => {
+    const newForm = {
+      ...prev,
+      [name]: newValue,
+    };
+
+    if (name === "business_id") {
+      newForm.branch_id = null;
+      setSelectedBusiness(value || null);
+      setSelectedBodega(null);
+      handleProductsChange(newForm.products, newForm.valor); // recalcular descuentos
+    }
+
+    if (name === "branch_id") {
+      setSelectedBodega(Number(value) || null);
+      handleProductsChange(newForm.products, newForm.valor); // recalcular descuentos
+    }
+
+    // Si se cambia el valor general, actualizar descuentos
+    if (name === "valor") {
+      handleProductsChange(newForm.products, Number(newValue) || 0);
+    }
+
+    return newForm;
+  });
+};
+
+const handleProductsChange = (newProducts: any[], valorNum?: number) => {
   const valor = valorNum ?? form.valor ?? 0;
 
   let updatedProducts = newProducts.map((p: any) => ({
     product_id: p.product_id ?? p.id,
     nombre_producto: p.nombre ?? p.nombre_producto ?? "",
     cantidad: p.cantidad ?? 1,
-    //  mantenemos descuento manual si ya existe
-    descuento:
-      typeof p.descuento === "number" && p.descuento > 0 ? p.descuento : 0,
-    manual: typeof p.descuento === "number" && p.descuento > 0, // <-- marca si fue manual
+    descuento: typeof p.descuento === "number" && p.descuento > 0 ? p.descuento : 0,
+    manual: typeof p.descuento === "number" && p.descuento > 0,
   }));
 
-  // 🔹 Tipo combo: reparte solo entre los no manuales
   if (form.tipo === "combo") {
-    const perProduct = valor / updatedProducts.length;
-    updatedProducts = updatedProducts.map((p) => ({
+    // Repartir valor entre todos los productos
+    const nonManualCount = updatedProducts.filter(p => !p.manual).length;
+    const perProduct = nonManualCount > 0 ? valor / nonManualCount : 0;
+    updatedProducts = updatedProducts.map(p => ({
       ...p,
       descuento: p.manual ? p.descuento : perProduct,
     }));
-  }
-  // 🔹 Tipo porcentaje: aplica valor global solo si no hay descuento manual
-  else if (form.tipo === "porcentaje") {
-    if (updatedProducts.length > 1) updatedProducts = [updatedProducts[0]];
-    updatedProducts = updatedProducts.map((p) => ({
+  } else if (form.tipo === "porcentaje") {
+    // Solo asignar valor al primer producto (promoción individual)
+    updatedProducts = updatedProducts.map((p, i) => ({
       ...p,
-      descuento: p.manual ? p.descuento : valor,
+      descuento: i === 0 ? valor : p.descuento,
     }));
   }
 
-  //  Guardamos el estado
   setForm((prev) => ({ ...prev, products: updatedProducts }));
 };
 
@@ -361,22 +373,27 @@ useEffect(() => {
             <label className="block font-medium mb-1">
               {form.tipo === "porcentaje" ? "Valor (%)" : "Valor (%)"}
             </label>
-            <input
-              name="valor"
-              type="number"
-              value={form.valor ?? 0} // valor number
-              onChange={(e) => {
-                let val = parseFloat(e.target.value);
-                if (form.tipo === "porcentaje" && val > 100) val = 100;
-                if (val < 0) val = 0;
-                setForm((prev) => ({ ...prev, valor: val })); // sigue siendo number
-                handleProductsChange(form.products, val);
-              }}
-              className="border rounded-lg w-full p-2 text-sm"
-              required
-              min={0}
-              max={form.tipo === "porcentaje" ? 100 : undefined}
-            />
+        <input
+  name="valor"
+  type="number"
+  value={form.valor ?? 0}
+  onChange={(e) => {
+    let val = parseFloat(e.target.value);
+    if (form.tipo === "porcentaje" && val > 100) val = 100;
+    if (val < 0) val = 0;
+
+    // Actualizamos el estado
+    setForm((prev) => ({ ...prev, valor: val }));
+
+    // 🔹 Usamos el valor recién ingresado para recalcular los descuentos
+    handleProductsChange(form.products, val);
+  }}
+  className="border rounded-lg w-full p-2 text-sm"
+  required
+  min={0}
+  max={form.tipo === "porcentaje" ? 100 : undefined}
+/>
+
           </div>
           <div>
             <label className="block font-medium mb-1">Descripción</label>
@@ -440,49 +457,58 @@ useEffect(() => {
   </>
 ) : (
   <>
-    {/* Selección de negocio */}
-    <div>
-      <label className="block font-medium mb-1">Negocio</label>
-      <select
-        name="business_id"
-        value={form.business_id || ""}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2 text-sm"
-        required
-      >
-        <option value="">-- Seleccione negocio --</option>
-        {businesses.map((b) => (
-          <option key={b.negocio_id} value={b.negocio_id}>
-            {b.nombre_comercial}
-          </option>
-        ))}
-      </select>
-    </div>
+         {/* Negocio */}
+{/* Negocio */}
+<div>
+  <label className="block font-medium mb-1">Negocio</label>
+  <select
+    name="business_id"
+    value={form.business_id || ""}
+    onChange={handleChange}
+    className="border rounded-lg w-full p-2 text-sm"
+    required
+    disabled={!!editing} // bloqueado si estamos editando
+  >
+    <option value="">-- Seleccione negocio --</option>
+    {businesses
+      .map((b) => b.nombre_comercial) // sacamos solo los nombres
+      .filter(Boolean) // filtramos posibles null/undefined
+      .map((b) => (
+        <option key={b} value={b}>
+          {b}
+        </option>
+      ))}
+  </select>
+</div>
 
-    {/* Selección de sucursal */}
-    <div>
-      <label className="block font-medium mb-1">Sucursal</label>
-      <select
-        name="branch_id"
-        value={form.branch_id || ""}
-        onChange={handleChange}
-        className="border rounded-lg w-full p-2 text-sm"
-        required
-      >
-        <option value="">-- Seleccione sucursal --</option>
-        {branches
-          .filter(
-            (b) =>
-              !form.business_id ||
-              b.business.negocio_id === Number(form.business_id)
-          )
-          .map((b) => (
-            <option key={b.sucursal_id} value={b.sucursal_id}>
-              {b.nombre} ({b.business.nombre_comercial})
-            </option>
-          ))}
-      </select>
-    </div>
+
+{/* Sucursal */}
+<div>
+  <label className="block font-medium mb-1">Sucursal</label>
+  <select
+    name="branch_id"
+    value={form.branch_id || ""}
+    onChange={handleChange}
+    className="border rounded-lg w-full p-2 text-sm"
+    required
+    disabled={!!editing} // bloqueado si estamos editando
+  >
+    <option value="">-- Seleccione sucursal --</option>
+    {branches
+      .filter((b) =>
+        editing
+          ? b.business.nombre_comercial === form.business_id // filtramos según el negocio cargado
+          : selectedBusiness
+          ? b.business.nombre_comercial === selectedBusiness
+          : true
+      )
+      .map((b) => (
+        <option key={b.sucursal_id} value={b.sucursal_id}>
+          {b.nombre} ({b.business.nombre_comercial})
+        </option>
+      ))}
+  </select>
+</div>
   </>
 )}
 
