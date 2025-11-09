@@ -24,6 +24,16 @@ type Warehouse = {
   };
 };
 
+type Producto = {
+  id?: number;
+  codigo_producto: string;
+  nombre_producto: string;
+  stock: number;
+  precio_compra: number;
+  precio_venta: number;
+  bodega_id: string;
+};
+
 type Branch = {
   sucursal_id: number;
   nombre: string;
@@ -40,9 +50,8 @@ export default function Warehouses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>(
-    null
-  );
+  const [selectedWarehouseId, setSelectedWarehouseId] = useState<number | null>( null );
+  const [productos, setProductos] = useState<Producto[]>([]);
   const [alert, setAlert] = useState<{
     type: "success" | "error";
     message: string;
@@ -84,25 +93,82 @@ export default function Warehouses() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+  setLoading(true);
+
+  fetch(`${API_URL}/api/v1/products`)
+    .then((res) => res.json())
+    .then((productosData) => {
+      setProductos(productosData);
+    })
+    .catch(() => {
+      console.error("Error al obtener productos");
+      setProductos([]);
+    })
+    .finally(() => setLoading(false));
+}, []);
+
+  // const handleDelete = async () => {
+  //   if (selectedWarehouseId === null) return;
+
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     await fetch(`${API_URL}/api/v1/warehouses/${selectedWarehouseId}`, {
+  //       method: "DELETE",
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     });
+
+  //     setWarehouses(
+  //       warehouses.filter((w) => w.bodega_id !== selectedWarehouseId)
+  //     );
+  //     setShowModal(false);
+  //   } catch (err) {
+  //     setAlert({ type: "error", message: "Por favor digite un ID o código para buscar."});
+  //     console.error("Error deleting warehouse:", err);
+  //   }
+  // };
+
   const handleDelete = async () => {
-    if (selectedWarehouseId === null) return;
+  if (selectedWarehouseId === null) return;
 
-    try {
-      const token = localStorage.getItem("token");
-      await fetch(`${API_URL}/api/v1/warehouses/${selectedWarehouseId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+  // Validación: ¿hay productos en esta bodega?
+  const productosEnBodega = productos.filter(
+    (p) => Number(p.bodega_id) === selectedWarehouseId
+  );
 
-      setWarehouses(
-        warehouses.filter((w) => w.bodega_id !== selectedWarehouseId)
-      );
-      setShowModal(false);
-    } catch (err) {
-      setError("Error al eliminar la bodega. Por favor, intente de nuevo.");
-      console.error("Error deleting warehouse:", err);
-    }
-  };
+  if (productosEnBodega.length > 0) {
+    setAlert({
+      type: "error",
+      message: "No se puede eliminar la bodega porque contiene productos asociados.",
+    });
+    setShowModal(false);
+    return;
+  }
+
+  try {
+    const token = localStorage.getItem("token");
+
+    await fetch(`${API_URL}/api/v1/warehouses/${selectedWarehouseId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    setWarehouses(
+      warehouses.filter((w) => w.bodega_id !== selectedWarehouseId)
+    );
+    setAlert({
+      type: "success",
+      message: "Bodega eliminada exitosamente.",
+    });
+    setShowModal(false);
+  } catch (err) {
+    setAlert({
+      type: "error",
+      message: "Por favor digite un ID o código para buscar.",
+    });
+    console.error("Error deleting warehouse:", err);
+  }
+};
 
   const handleWarehouseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

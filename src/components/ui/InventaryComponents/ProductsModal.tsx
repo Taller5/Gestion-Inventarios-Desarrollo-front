@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { FaSearch } from "react-icons/fa";
 import Select from "react-select";
 const API_URL = import.meta.env.VITE_API_URL;
@@ -110,6 +110,7 @@ export default function ProductsModal({
   if (!open) return null;
 
   const [businessName, setBusinessName] = React.useState("");
+  const [codigoError, setCodigoError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,6 +213,23 @@ export default function ProductsModal({
     }
   };
 
+  // Función para verificar código duplicado
+  const checkCodigoDuplicado = (codigo: string) => {
+    const codigoExistente = productos.some(
+      (p) =>
+        p.codigo_producto === codigo &&
+        (!editProductMode || p.id !== formProducto.id)
+    );
+
+    if (codigoExistente) {
+      setCodigoError("Este código ya existe");
+    } else {
+      setCodigoError(null);
+    }
+
+    return codigoExistente;
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Fondo semitransparente */}
@@ -265,29 +283,27 @@ export default function ProductsModal({
               <input
                 name="codigo_producto"
                 value={formProducto.codigo_producto}
-                onChange={(e) =>
+                onChange={(e) => {
+                  const newCodigo = e.target.value;
                   setFormProducto((f) => ({
                     ...f,
-                    codigo_producto: e.target.value,
-                  }))
-                }
-                onBlur={() => {
-                  const codigoExistente = productos.some(
-                    (p) =>
-                      p.codigo_producto === formProducto.codigo_producto &&
-                      (!editProductMode || p.id !== formProducto.id)
-                  );
-                  if (codigoExistente) {
-                    onClose();
-                    setEditProductMode(false);
-                  }
+                    codigo_producto: newCodigo,
+                  }));
+                  checkCodigoDuplicado(newCodigo);
                 }}
                 placeholder="Código"
-                className="w-full border rounded-lg px-4 py-2"
+                className={`w-full border rounded-lg px-4 py-2 ${
+                  codigoError ? "border-rojo-claro" : ""
+                }`}
                 required
                 disabled={editProductMode}
                 readOnly={editProductMode}
               />
+              {codigoError && (
+                <span className="text-rojo-oscuro text-sm mt-1">
+                  {codigoError}
+                </span>
+              )}
             </label>
 
             {/* Nombre */}
@@ -576,7 +592,7 @@ export default function ProductsModal({
         {/* Botones guardar/cancelar */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-6">
           <button
-            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-3 rounded-lg shadow-md transition w-full sm:w-auto"
+            className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-6 py-3 rounded-lg shadow-md transition w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSubmit}
             disabled={
               loadingForm ||
@@ -587,14 +603,15 @@ export default function ProductsModal({
               (!formProducto.precio_compra && !formProducto.precio_venta) ||
               !formProducto.bodega_id ||
               formProducto.impuesto === undefined ||
-              formProducto.unit_id === ""
+              formProducto.unit_id === "" ||
+              codigoError !== null // Nuevo: deshabilitar si hay error
             }
           >
             {loadingForm
               ? "Guardando..."
               : editProductMode
-                ? "Guardar cambios"
-                : "Guardar"}
+              ? "Guardar cambios"
+              : "Guardar"}
           </button>
 
           <button
