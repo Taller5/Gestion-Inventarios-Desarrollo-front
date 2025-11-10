@@ -63,6 +63,8 @@ export default function Warehouses() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [warehouseToEdit, setWarehouseToEdit] =
     useState<Partial<Warehouse> | null>(null);
+  const [codigoError, setCodigoError] = useState<string | null>(null);
+  const [codigoInput, setCodigoInput] = useState<string>("");
 
   // Fetch warehouses and branches on component mount
   useEffect(() => {
@@ -449,11 +451,27 @@ export default function Warehouses() {
                           </label>
                           <input
                             name="codigo"
-                            defaultValue={warehouseToEdit?.codigo || ""}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                            value={codigoInput}
+                            onChange={e => {
+                              const value = e.target.value;
+                              setCodigoInput(value);
+                              const exists = warehouses.some(
+                                w =>
+                                  w.codigo.toLowerCase() === value.toLowerCase() &&
+                                  (!warehouseToEdit || w.bodega_id !== warehouseToEdit.bodega_id)
+                              );
+                              setCodigoError(exists ? "Ya existe una bodega con ese código" : null);
+                            }}
+                            className={`w-full px-3 py-2 border rounded-md shadow-sm ${codigoError ? "border-rojo-claro" : "border-gray-300"}`}
                             required
                             maxLength={4}
+                            autoComplete="off"
                           />
+                          {codigoError && (
+                            <span className="text-rojo-claro text-xs font-semibold mt-1 block">
+                              {codigoError}
+                            </span>
+                          )}
                         </div>
                         <div>
                           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -480,10 +498,9 @@ export default function Warehouses() {
                           <button
                             type="submit"
                             className="px-6 py-2 bg-azul-medio hover:bg-azul-hover text-white font-bold rounded-lg cursor-pointer"
+                            disabled={!!codigoError}
                           >
-                            {warehouseToEdit
-                              ? "Guardar Cambios"
-                              : "Crear Bodega"}
+                            {warehouseToEdit ? "Guardar Cambios" : "Crear Bodega"}
                           </button>
                           <button
                             type="button"
