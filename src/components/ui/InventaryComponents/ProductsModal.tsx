@@ -298,6 +298,7 @@ export default function ProductsModal({
                 required
                 disabled={editProductMode}
                 readOnly={editProductMode}
+                maxLength={20} // ← Limita a 20 caracteres
               />
               {codigoError && (
                 <span className="text-rojo-oscuro text-sm mt-1">

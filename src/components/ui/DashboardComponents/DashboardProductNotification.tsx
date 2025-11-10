@@ -13,7 +13,7 @@ interface Lote {
 }
 
 interface Producto {
-  producto_id: string | number;
+  id: string | number;
   nombre_producto: string;
   stock: number;
 }
@@ -70,10 +70,10 @@ export default function DashboardProductNotification({
       .filter(
         (producto) =>
           Number(producto.stock) <= lowStockThreshold &&
-          !dismissedLowStock.includes(producto.producto_id)
+          !dismissedLowStock.includes(producto.id)
       )
       .map((producto) => ({
-        id: producto.producto_id,
+        id: producto.id, // ← usa producto_id como identificador único
         nombre_producto: producto.nombre_producto,
         stock: producto.stock,
       }));
