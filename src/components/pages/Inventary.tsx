@@ -17,7 +17,7 @@ import ProductFilters from "../ui/InventaryComponents/ProductsFillter";
 import type { Warehouse, Business } from "../../types/inventario";
 import CategoryModals from "../ui/InventaryComponents/CategoryModals";
 import InfoIcon from "../ui/InfoIcon";
-
+import { FaTruckLoading } from "react-icons/fa"; // Camión cargando/saliendo
 const API_URL = import.meta.env.VITE_API_URL;
 
 //type bodega
@@ -112,6 +112,18 @@ export default function Inventary() {
     type: "success" | "error";
     message: string;
   } | null>(null);
+
+  // Limpia la alerta automáticamente después de 8 segundos
+  useEffect(() => {
+    if (alert) {
+      const timer = setTimeout(() => {
+        setAlert(null);
+      }, 8000);
+
+      // Limpieza en caso de que cambie la alerta antes de los 8s
+      return () => clearTimeout(timer);
+    }
+  }, [alert]);
   const [warehouses, setWarehouses] = useState<Warehouse[]>([]);
 
   // Cargar bodegas e inicializar businesses (ver más abajo - un único efecto lo hace)
@@ -790,8 +802,9 @@ export default function Inventary() {
   const [expanded, setExpanded] = useState<string | null>(null); // agrupado por codigo
   // modalOpen: false | 'add-product' | 'add-lote' | Lote
   const [modalOpen, setModalOpen] = useState<
-    false | "add-product" | "add-lote" | Lote
+    false | null | "add-product" | "add-lote" | "traslado" | Lote
   >(false);
+
   const [editMode, setEditMode] = useState(false);
   const [editProductMode, setEditProductMode] = useState(false);
   // Estado para el producto a eliminar y mostrar modal de confirmación
@@ -899,7 +912,7 @@ export default function Inventary() {
     }
   }, [productos, lotes, selectedBusiness, categorySearchMain, warehouses]);
   // Estado inicial del formulario
-
+  const [productoTraslado, setProductoTraslado] = useState<any>(null);
   return (
     <ProtectedRoute
       allowedRoles={["administrador", "supervisor", "vendedor", "bodeguero"]}
@@ -907,7 +920,6 @@ export default function Inventary() {
       <Container
         page={
           <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
-
             <div className="w-full pl-2">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Inventario
@@ -961,9 +973,15 @@ export default function Inventary() {
                       {loading ? (
                         <>
                           {Array.from({ length: 8 }).map((_, idx) => (
-                            <tr key={`inv-skel-row-${idx}`} className="animate-pulse">
+                            <tr
+                              key={`inv-skel-row-${idx}`}
+                              className="animate-pulse"
+                            >
                               {headers.map((_, i) => (
-                                <td key={`inv-skel-cell-${idx}-${i}`} className="px-3 py-3">
+                                <td
+                                  key={`inv-skel-cell-${idx}-${i}`}
+                                  className="px-3 py-3"
+                                >
                                   <div className="h-4 bg-gray-200 rounded w-4/5" />
                                 </td>
                               ))}
@@ -1090,7 +1108,25 @@ export default function Inventary() {
                                 >
                                   <RiEdit2Fill /> Editar
                                 </Button>
-
+                                {/* Trasladar producto */}
+                                <Button
+                                  style="bg-amber-500 hover:bg-amber-600 text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
+                                  onClick={() => {
+                                    setProductoTraslado({
+                                      id: producto.id,
+                                      codigo_producto: producto.codigo_producto,
+                                      nombre_producto: producto.nombre_producto,
+                                      cantidad: 1,
+                                      bodega_origen_id: producto.bodega_id,
+                                      bodega_destino_id: "",
+                                      motivo: "Traslado de bodega",
+                                      descripcion: "",
+                                    });
+                                    setModalOpen("traslado");
+                                  }}
+                                >
+                                  <FaTruckLoading  /> Movilizar
+                                </Button>
                                 {/* Eliminar Producto */}
                                 <Button
                                   style="bg-rojo-claro hover:bg-rojo-oscuro text-white font-bold py-1 px-2 rounded flex items-center gap-2 cursor-pointer"
@@ -1160,6 +1196,7 @@ export default function Inventary() {
                                             setProductoAEliminar(null);
                                           }}
                                         />
+
                                         <Button
                                           text="Cancelar"
                                           style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg shadow-md transition cursor-pointer"
@@ -1258,13 +1295,19 @@ export default function Inventary() {
                           <div className="flex justify-between items-start">
                             <div className="flex flex-col gap-2 w-full">
                               {Array.from({ length: 7 }).map((__, i) => (
-                                <div key={`inv-skel-line-${idx}-${i}`} className="h-4 bg-gray-200 rounded w-full" />
+                                <div
+                                  key={`inv-skel-line-${idx}-${i}`}
+                                  className="h-4 bg-gray-200 rounded w-full"
+                                />
                               ))}
                             </div>
                           </div>
                           <div className="flex flex-wrap justify-center gap-3 mt-2">
                             {Array.from({ length: 3 }).map((__, i) => (
-                              <div key={`inv-skel-btn-${idx}-${i}`} className="h-8 bg-gray-200 rounded w-24" />
+                              <div
+                                key={`inv-skel-btn-${idx}-${i}`}
+                                className="h-8 bg-gray-200 rounded w-24"
+                              />
                             ))}
                           </div>
                         </div>
@@ -2512,6 +2555,236 @@ export default function Inventary() {
                   </div>
                 </SimpleModal>
               )}
+              {modalOpen === "traslado" && productoTraslado && (
+                <SimpleModal open={true} onClose={() => setModalOpen(null)}>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                    Registrar egreso
+                  </h2>
+
+                  <form
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+
+                      try {
+                        if (!productoTraslado.id)
+                          throw new Error("Producto no tiene ID válido");
+
+                        const payload = {
+                          codigo_producto: productoTraslado.codigo_producto,
+                          cantidad: Number(productoTraslado.cantidad),
+                          motivo: productoTraslado.motivo,
+                          descripcion: productoTraslado.descripcion || "",
+                          bodega_origen_id: Number(
+                            productoTraslado.bodega_origen_id
+                          ),
+                          bodega_destino_id:
+                            productoTraslado.motivo === "traslado"
+                              ? Number(productoTraslado.bodega_destino_id)
+                              : null,
+                        };
+
+                        // Registrar egreso
+                        const res = await fetch(`${API_URL}/api/v1/egresos`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify(payload),
+                        });
+
+                        if (!res.ok) {
+                          const errorData = await res.json().catch(() => ({}));
+                          const message =
+                            errorData.message || "Error al registrar egreso";
+
+                          // Si es error de stock, cerramos el modal
+                          if (
+                            message.toLowerCase().includes("stock insuficiente")
+                          ) {
+                            setModalOpen(null);
+                          }
+
+                          throw new Error(message);
+                        }
+
+                        // Reducir stock
+                        const productoRes = await fetch(
+                          `${API_URL}/api/v1/products/${productoTraslado.id}`
+                        );
+                        const productoData = await productoRes.json();
+                        const nuevoStock =
+                          productoData.stock -
+                          Number(productoTraslado.cantidad);
+
+                        await fetch(
+                          `${API_URL}/api/v1/products/${productoTraslado.id}`,
+                          {
+                            method: "PUT",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ stock: nuevoStock }),
+                          }
+                        );
+
+                        if (productoTraslado.motivo === "traslado") {
+                          const destino = warehouses.find(
+                            (w) =>
+                              w.bodega_id ===
+                              Number(productoTraslado.bodega_destino_id)
+                          );
+
+                          console.log("Traslado a:", {
+                            negocio_destino:
+                              destino?.branch.business.nombre_comercial,
+                            sucursal_destino: destino?.branch.nombre,
+                            codigo_bodega_destino: destino?.codigo,
+                          });
+                        }
+
+                        setAlert({
+                          type: "success",
+                          message:
+                            "Egreso registrado y stock actualizado correctamente",
+                        });
+                        setModalOpen(null);
+                        const updatedProductos = await fetch(
+                          `${API_URL}/api/v1/products`
+                        ).then((r) => r.json());
+                        setProductos(updatedProductos);
+                      } catch (err: any) {
+                        console.error("Error:", err);
+                        setAlert({
+                          type: "error",
+                          message:
+                            err.message ||
+                            "No se pudo registrar el egreso ni actualizar el stock",
+                        });
+                      }
+                    }}
+                    className="space-y-4"
+                  >
+                    {/* Código producto */}
+                    <div>
+                      <label className="block mb-1 font-semibold">
+                        Código producto:
+                      </label>
+                      <input
+                        type="text"
+                        value={productoTraslado.codigo_producto}
+                        disabled
+                        className="border rounded px-3 py-2 w-full bg-gray-100"
+                      />
+                    </div>
+
+                    {/* Motivo */}
+                    <div>
+                      <label className="block mb-1 font-semibold">
+                        Motivo del egreso:
+                      </label>
+                      <select
+                        className="border rounded px-3 py-2 w-full"
+                        value={productoTraslado.motivo || ""}
+                        onChange={(e) =>
+                          setProductoTraslado({
+                            ...productoTraslado,
+                            motivo: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="">-- Seleccionar motivo --</option>
+                        <option value="traslado">Traslado a otra bodega</option>
+                        <option value="vencimiento">Vencimiento</option>
+                        <option value="devolucion">Devolución</option>
+                        <option value="otros">Otros</option>
+                      </select>
+                    </div>
+
+                    {/* Cantidad */}
+                    <div>
+                      <label className="block mb-1 font-semibold">
+                        Cantidad:
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={productoTraslado.cantidad}
+                        onChange={(e) =>
+                          setProductoTraslado({
+                            ...productoTraslado,
+                            cantidad: Number(e.target.value),
+                          })
+                        }
+                        className="border rounded px-3 py-2 w-full"
+                      />
+                    </div>
+
+                    {/* Bodega destino (solo si es traslado) */}
+                    {productoTraslado.motivo === "traslado" && (
+                      <div>
+                        <label className="block mb-1 font-semibold">
+                          Bodega destino:
+                        </label>
+                        <select
+                          className="border rounded px-3 py-2 w-full"
+                          value={productoTraslado.bodega_destino_id || ""}
+                          onChange={(e) =>
+                            setProductoTraslado({
+                              ...productoTraslado,
+                              bodega_destino_id: e.target.value
+                                ? Number(e.target.value)
+                                : null,
+                            })
+                          }
+                        >
+                          <option value="">-- Seleccionar --</option>
+                          {warehouses
+                            .filter(
+                              (w) =>
+                                w.bodega_id !==
+                                productoTraslado.bodega_origen_id
+                            )
+                            .map((w) => (
+                              <option key={w.bodega_id} value={w.bodega_id}>
+                                {w.codigo} - {w.branch.nombre} (
+                                {w.branch.business.nombre_comercial})
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Descripción */}
+                    <div>
+                      <label className="block mb-1 font-semibold">
+                        Descripción:
+                      </label>
+                      <textarea
+                        className="border rounded px-3 py-2 w-full"
+                        rows={2}
+                        value={productoTraslado.descripcion}
+                        onChange={(e) =>
+                          setProductoTraslado({
+                            ...productoTraslado,
+                            descripcion: e.target.value,
+                          })
+                        }
+                      ></textarea>
+                    </div>
+
+                    {/* Botones */}
+                    <div className="flex justify-center gap-4 mt-4">
+                      <Button
+                        text="Registrar egreso"
+                        style="bg-verde-claro hover:bg-verde-oscuro text-white font-bold px-6 py-2 rounded-lg cursor-pointer"
+                        type="submit"
+                      />
+                      <Button
+                        text="Cancelar"
+                        style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-6 py-2 rounded-lg cursor-pointer"
+                        onClick={() => setModalOpen(null)}
+                      />
+                    </div>
+                  </form>
+                </SimpleModal>
+              )}
+
               <div className="mb-4 mt-3">
                 <button
                   className="bg-azul-medio hover:bg-azul-hover text-white font-bold px-4 py-2 rounded-lg shadow-md transition cursor-pointer"

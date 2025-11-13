@@ -3,7 +3,7 @@ import ProtectedRoute from "../services/ProtectedRoute";
 
 import Container from "../ui/Container";
 import type { GenerateInvoiceRef } from "../ui/SaleComponents/GenerateInvoice";
-import { FaCashRegister } from 'react-icons/fa';
+import { FaCashRegister } from "react-icons/fa";
 import { useRef } from "react";
 import CustomerSelector from "../ui/SaleComponents/CustomerSelector";
 import ProductSelector from "../ui/SaleComponents/ProductSelector";
@@ -26,7 +26,9 @@ interface CartItemType {
   producto: Producto;
   cantidad: number;
   descuento: number;
-  infoPromo?: string | { id: number; descripcion: string; cantidadAplicada: number };
+  infoPromo?:
+    | string
+    | { id: number; descripcion: string; cantidadAplicada: number };
 }
 
 type Lote = {
@@ -50,7 +52,7 @@ import CashRegisterModal from "../ui/SaleComponents/CashRegisterModal";
 
 export default function SalesPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
-  
+
   const API_URL = import.meta.env.VITE_API_URL;
   // Estados
   const [clientes, setClientes] = useState<Customer[]>([]);
@@ -190,50 +192,50 @@ export default function SalesPage() {
     fetchSucursales();
   }, [API_URL]);
 
-// Recuperar caja guardada al iniciar la página o cambiar de sucursal
-useEffect(() => {
-  if (!sucursalSeleccionada) return;
+  // Recuperar caja guardada al iniciar la página o cambiar de sucursal
+  useEffect(() => {
+    if (!sucursalSeleccionada) return;
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userId = user.id;
-  const sucursalId = sucursalSeleccionada.sucursal_id;
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = user.id;
+    const sucursalId = sucursalSeleccionada.sucursal_id;
 
-  const savedCaja = sessionStorage.getItem(`caja_seleccionada_${userId}_${sucursalId}`);
-  if (savedCaja) {
-    setCajaSeleccionada(JSON.parse(savedCaja));
-  } else {
-    setCajaSeleccionada(null);
-  }
-}, [sucursalSeleccionada]);
-
-// Guardar caja cada vez que cambie
-useEffect(() => {
-  if (!cajaSeleccionada || !sucursalSeleccionada) return;
-
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  const userId = user.id;
-  const sucursalId = sucursalSeleccionada.sucursal_id;
-
-  sessionStorage.setItem(
-    `caja_seleccionada_${userId}_${sucursalId}`,
-    JSON.stringify(cajaSeleccionada)
-  );
-}, [cajaSeleccionada, sucursalSeleccionada]);
-
-
-// Mantener tu validación actual por seguridad
-useEffect(() => {
-  if (cajaSeleccionada && sucursalSeleccionada) {
-    if (cajaSeleccionada.sucursal_id !== sucursalSeleccionada.sucursal_id) {
+    const savedCaja = sessionStorage.getItem(
+      `caja_seleccionada_${userId}_${sucursalId}`
+    );
+    if (savedCaja) {
+      setCajaSeleccionada(JSON.parse(savedCaja));
+    } else {
       setCajaSeleccionada(null);
-      mostrarAlerta(
-        "error",
-        "La caja seleccionada no pertenece a esta sucursal. Debe elegir una nueva caja."
-      );
     }
-  }
-}, [sucursalSeleccionada]);
+  }, [sucursalSeleccionada]);
 
+  // Guardar caja cada vez que cambie
+  useEffect(() => {
+    if (!cajaSeleccionada || !sucursalSeleccionada) return;
+
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const userId = user.id;
+    const sucursalId = sucursalSeleccionada.sucursal_id;
+
+    sessionStorage.setItem(
+      `caja_seleccionada_${userId}_${sucursalId}`,
+      JSON.stringify(cajaSeleccionada)
+    );
+  }, [cajaSeleccionada, sucursalSeleccionada]);
+
+  // Mantener tu validación actual por seguridad
+  useEffect(() => {
+    if (cajaSeleccionada && sucursalSeleccionada) {
+      if (cajaSeleccionada.sucursal_id !== sucursalSeleccionada.sucursal_id) {
+        setCajaSeleccionada(null);
+        mostrarAlerta(
+          "error",
+          "La caja seleccionada no pertenece a esta sucursal. Debe elegir una nueva caja."
+        );
+      }
+    }
+  }, [sucursalSeleccionada]);
 
   // Fetch inicial
   useEffect(() => {
@@ -425,262 +427,266 @@ useEffect(() => {
   // Al nivel del componente (fuera de finalizarVenta)
   const invoiceRef = useRef<GenerateInvoiceRef>(null);
   const [loadingFactura, setLoadingFactura] = useState(false);
-const [procesandoVenta, setProcesandoVenta] = useState(false);
+  const [procesandoVenta, setProcesandoVenta] = useState(false);
 
   const finalizarVenta = async (e?: React.FormEvent) => {
     e?.preventDefault?.();
-setProcesandoVenta(true);
-try {
-    if (!clienteSeleccionado || !sucursalSeleccionada || carrito.length === 0) {
-      mostrarAlerta(
-        "error",
-        "Seleccione cliente, sucursal y agregue productos al carrito."
-      );
-      return;
-    }
-
+    setProcesandoVenta(true);
     try {
-      // Validaciones de pago
-      if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
-        mostrarAlerta("error", "Ingrese el monto entregado");
-        return;
-      }
       if (
-        (metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
-        !comprobante.trim()
+        !clienteSeleccionado ||
+        !sucursalSeleccionada ||
+        carrito.length === 0
       ) {
         mostrarAlerta(
           "error",
-          "Debe ingresar el comprobante para el método de pago seleccionado."
+          "Seleccione cliente, sucursal y agregue productos al carrito."
         );
         return;
       }
 
-      // Obtener caja del usuario logeado en la sucursal actual
-      const cajaUsuario = await obtenerCajaUsuario();
-
-      if (!cajaUsuario && metodoPago === "Efectivo") {
-        mostrarAlerta(
-          "error",
-          "No tiene una caja abierta en esta sucursal. Por favor abra una para registrar ventas en efectivo."
-        );
-        return;
-      }
-      // Mapear método de pago al backend
-      const metodoPagoBackend =
-        metodoPago === "Efectivo"
-          ? "Cash"
-          : metodoPago === "Tarjeta"
-            ? "Card"
-            : metodoPago === "SINPE"
-              ? "SINPE"
-              : metodoPago;
-
-      // Validar monto suficiente si es pago en efectivo
-      if (metodoPago === "Efectivo" && (montoEntregado || 0) < totalAPagar) {
-        setFacturaModal(false);
-        mostrarAlerta(
-          "error",
-          `El monto entregado es menor al total a pagar. Faltan ₡${
-            totalAPagar - (montoEntregado || 0)
-          }`
-        );
-        return;
-      }
-
-
-  
-
-   // --- Aplicar promociones antes de armar factura ---
-await Promise.all(
-  carrito.map(async (item: CartItemType) => {
-    const tienePromoValida =
-      item.descuento > 0 &&
-      item.infoPromo !== undefined &&
-      (typeof item.infoPromo === "string" || typeof item.infoPromo === "object");
-
-    if (tienePromoValida) {
       try {
-        const token = localStorage.getItem("token");
-        await fetch(`${API_URL}/api/v1/promotions/reduce-stock`, {
+        // Validaciones de pago
+        if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
+          mostrarAlerta("error", "Ingrese el monto entregado");
+          return;
+        }
+        if (
+          (metodoPago === "Tarjeta" || metodoPago === "SINPE") &&
+          !comprobante.trim()
+        ) {
+          mostrarAlerta(
+            "error",
+            "Debe ingresar el comprobante para el método de pago seleccionado."
+          );
+          return;
+        }
+
+        // Obtener caja del usuario logeado en la sucursal actual
+        const cajaUsuario = await obtenerCajaUsuario();
+
+        if (!cajaUsuario && metodoPago === "Efectivo") {
+          mostrarAlerta(
+            "error",
+            "No tiene una caja abierta en esta sucursal. Por favor abra una para registrar ventas en efectivo."
+          );
+          return;
+        }
+        // Mapear método de pago al backend
+        const metodoPagoBackend =
+          metodoPago === "Efectivo"
+            ? "Cash"
+            : metodoPago === "Tarjeta"
+              ? "Card"
+              : metodoPago === "SINPE"
+                ? "SINPE"
+                : metodoPago;
+
+        // Validar monto suficiente si es pago en efectivo
+        if (metodoPago === "Efectivo" && (montoEntregado || 0) < totalAPagar) {
+          setFacturaModal(false);
+          mostrarAlerta(
+            "error",
+            `El monto entregado es menor al total a pagar. Faltan ₡${
+              totalAPagar - (montoEntregado || 0)
+            }`
+          );
+          return;
+        }
+
+        // --- Aplicar promociones antes de armar factura ---
+        await Promise.all(
+          carrito.map(async (item: CartItemType) => {
+            const tienePromoValida =
+              item.descuento > 0 &&
+              item.infoPromo !== undefined &&
+              (typeof item.infoPromo === "string" ||
+                typeof item.infoPromo === "object");
+
+            if (tienePromoValida) {
+              try {
+                const token = localStorage.getItem("token");
+                await fetch(`${API_URL}/api/v1/promotions/reduce-stock`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                  },
+                  body: JSON.stringify({
+                    product_id: item.producto.id,
+                    quantity: item.cantidad,
+                  }),
+                });
+              } catch (error) {
+                console.warn(
+                  "No se pudo reducir la promoción para el producto:",
+                  item.producto.codigo_producto,
+                  error
+                );
+              }
+            }
+          })
+        );
+
+        // Preparar productos para la factura
+        const productosFactura = carrito.map((item) => ({
+          code: item.producto.codigo_producto,
+          name: item.producto.nombre_producto,
+          quantity: item.cantidad,
+          discount: item.descuento || 0,
+          price: item.producto.precio_venta,
+        }));
+
+        // Preparar datos de la factura
+        const facturaData = {
+          customer_name: clienteSeleccionado.name,
+          customer_identity_number: clienteSeleccionado.identity_number,
+          branch_name: sucursalSeleccionada.nombre,
+          business_name: sucursalSeleccionada.business.nombre_comercial,
+          business_legal_name: sucursalSeleccionada.business.nombre_legal,
+          business_phone: sucursalSeleccionada.business.telefono || "-",
+          business_email: sucursalSeleccionada.business.email || "-",
+          business_logo: sucursalSeleccionada.business.logo || "", // <--- aquí
+          province: sucursalSeleccionada.provincia || "-",
+          canton: sucursalSeleccionada.canton || "-",
+          branches_phone: sucursalSeleccionada.telefono || "-",
+          business_id_type:
+            sucursalSeleccionada.business.tipo_identificacion || "N/A",
+          business_id_number:
+            sucursalSeleccionada.business.numero_identificacion || "N/A",
+          cashier_name: user?.name || "N/A",
+          date: new Date(),
+          products: productosFactura,
+          subtotal,
+          total_discount: totalDescuento,
+          taxes: impuestos,
+          total: totalAPagar,
+          amount_paid:
+            metodoPagoBackend === "Cash" ? montoEntregado : totalAPagar,
+          change: vuelto,
+          payment_method: metodoPagoBackend,
+          receipt: metodoPagoBackend === "Cash" ? "N/A" : comprobante || "",
+        };
+
+        // Enviar factura al backend
+        const response = await fetch(`${API_URL}/api/v1/invoices`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            Accept: "application/json",
           },
-          body: JSON.stringify({
-            product_id: item.producto.id,
-            quantity: item.cantidad,
-          }),
+          body: JSON.stringify(facturaData),
         });
-      } catch (error) {
-        console.warn(
-          "No se pudo reducir la promoción para el producto:",
-          item.producto.codigo_producto,
-          error
+
+        const responseData = await response.json();
+
+        // Guardar la factura creada para usar en PDF
+        setFacturaCreada(responseData);
+        setLoadingFactura(true); //  dispara useEffect para generar PDF solo cuando tengamos ID
+
+        // --- Actualizar caja según método de pago ---
+        if (!cajaSeleccionada?.id) {
+          mostrarAlerta(
+            "error",
+            "No se pudo identificar la caja para actualizar el monto"
+          );
+        } else {
+          try {
+            const payload: any = {
+              id: cajaSeleccionada.id, // ID de la caja seleccionada
+              payment_method: metodoPagoBackend, //  Tipo de pago (Cash, Card, SINPE, etc.)
+            };
+
+            // Si es efectivo, incluye monto entregado y vuelto
+            if (metodoPagoBackend === "Cash") {
+              payload.amount_received = Number(montoEntregado);
+              payload.change_given = Number(vuelto);
+            } else {
+              // Si no es efectivo, registra solo el total pagado
+              payload.amount_received = Number(totalAPagar);
+              payload.change_given = 0;
+            }
+
+            const cajaResponse = await fetch(
+              `${API_URL}/api/v1/cash-register/addCashSale`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+                body: JSON.stringify(payload),
+              }
+            );
+
+            const cajaData = await cajaResponse.json();
+
+            if (!cajaResponse.ok) {
+              mostrarAlerta(
+                "error",
+                cajaData.message || "Error al actualizar la caja"
+              );
+            } else {
+              console.log("Caja actualizada:", cajaData.data);
+              mostrarAlerta("success", "Caja actualizada correctamente");
+            }
+          } catch (error: any) {
+            console.error("Error al actualizar caja:", error);
+            mostrarAlerta("error", "No se pudo actualizar la caja");
+          }
+        }
+
+        // Restar stock de productos
+        await Promise.all(
+          carrito.map(async (item) => {
+            const productoRes = await fetch(
+              `${API_URL}/api/v1/products/${item.producto.id}`
+            );
+            const productoData = await productoRes.json();
+            const nuevoStock = productoData.stock - item.cantidad;
+
+            await fetch(`${API_URL}/api/v1/products/${item.producto.id}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ stock: nuevoStock }),
+            });
+          })
+        );
+
+        // Mensaje de éxito
+        mostrarAlerta(
+          "success",
+          `Factura #${responseData?.id} creada exitosamente. ${
+            vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ""
+          }`
+        );
+
+        //Cerrar modal
+        // setFacturaModal(false);
+
+        // Limpiar estados del carrito
+        setCarrito([]);
+        setClienteSeleccionado(null);
+        setMontoEntregado(0);
+        setComprobante("");
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+
+        // Actualizar lista de productos
+        const updatedProducts = await fetch(`${API_URL}/api/v1/products`).then(
+          (res) => res.json()
+        );
+        setProductos(updatedProducts);
+      } catch (error: any) {
+        console.error("Error en finalizarVenta:", error);
+        mostrarAlerta(
+          "error",
+          "Ocurrió un error al procesar la venta. Por favor intente nuevamente."
         );
       }
-    }
-  })
-);
-
-
-      // Preparar productos para la factura
-      const productosFactura = carrito.map((item) => ({
-        code: item.producto.codigo_producto,
-        name: item.producto.nombre_producto,
-        quantity: item.cantidad,
-        discount: item.descuento || 0,
-        price: item.producto.precio_venta,
-      }));
-
-      // Preparar datos de la factura
-      const facturaData = {
-        customer_name: clienteSeleccionado.name,
-        customer_identity_number: clienteSeleccionado.identity_number,
-        branch_name: sucursalSeleccionada.nombre,
-        business_name: sucursalSeleccionada.business.nombre_comercial,
-        business_legal_name: sucursalSeleccionada.business.nombre_legal,
-        business_phone: sucursalSeleccionada.business.telefono || "-",
-        business_email: sucursalSeleccionada.business.email || "-",
-        business_logo: sucursalSeleccionada.business.logo || "", // <--- aquí
-        province: sucursalSeleccionada.provincia || "-",
-        canton: sucursalSeleccionada.canton || "-",
-        branches_phone: sucursalSeleccionada.telefono || "-",
-        business_id_type:
-          sucursalSeleccionada.business.tipo_identificacion || "N/A",
-        business_id_number:
-          sucursalSeleccionada.business.numero_identificacion || "N/A",
-        cashier_name: user?.name || "N/A",
-        date: new Date(),
-        products: productosFactura,
-        subtotal,
-        total_discount: totalDescuento,
-        taxes: impuestos,
-        total: totalAPagar,
-        amount_paid:
-          metodoPagoBackend === "Cash" ? montoEntregado : totalAPagar,
-        change: vuelto,
-        payment_method: metodoPagoBackend,
-        receipt: metodoPagoBackend === "Cash" ? "N/A" : comprobante || "",
-      };
-
-      // Enviar factura al backend
-      const response = await fetch(`${API_URL}/api/v1/invoices`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(facturaData),
-      });
-
-      const responseData = await response.json();
-
-      // Guardar la factura creada para usar en PDF
-      setFacturaCreada(responseData);
-      setLoadingFactura(true); //  dispara useEffect para generar PDF solo cuando tengamos ID
-
-// --- Actualizar caja según método de pago ---
-if (!cajaSeleccionada?.id) {
-  mostrarAlerta(
-    "error",
-    "No se pudo identificar la caja para actualizar el monto"
-  );
-} else {
-  try {
-    const payload: any = {
-      id: cajaSeleccionada.id, // ID de la caja seleccionada
-      payment_method: metodoPagoBackend, // 🔥 Tipo de pago (Cash, Card, SINPE, etc.)
-    };
-
-    // Si es efectivo, incluye monto entregado y vuelto
-    if (metodoPagoBackend === "Cash") {
-      payload.amount_received = Number(montoEntregado);
-      payload.change_given = Number(vuelto);
-    } else {
-      // Si no es efectivo, registra solo el total pagado
-      payload.amount_received = Number(totalAPagar);
-      payload.change_given = 0;
-    }
-
-    const cajaResponse = await fetch(
-      `${API_URL}/api/v1/cash-register/addCashSale`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    const cajaData = await cajaResponse.json();
-
-    if (!cajaResponse.ok) {
-      mostrarAlerta("error", cajaData.message || "Error al actualizar la caja");
-    } else {
-      console.log("Caja actualizada:", cajaData.data);
-      mostrarAlerta("success", "Caja actualizada correctamente");
-    }
-  } catch (error: any) {
-    console.error("Error al actualizar caja:", error);
-    mostrarAlerta("error", "No se pudo actualizar la caja");
-  }
-}
-
-      // Restar stock de productos
-      await Promise.all(
-        carrito.map(async (item) => {
-          const productoRes = await fetch(
-            `${API_URL}/api/v1/products/${item.producto.id}`
-          );
-          const productoData = await productoRes.json();
-          const nuevoStock = productoData.stock - item.cantidad;
-
-          await fetch(`${API_URL}/api/v1/products/${item.producto.id}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ stock: nuevoStock }),
-          });
-        })
-      );
-
-      // Mensaje de éxito
-      mostrarAlerta(
-        "success",
-        `Factura #${responseData?.id} creada exitosamente. ${
-          vuelto > 0 ? `Vuelto: ₡${vuelto.toLocaleString()}` : ""
-        }`
-      );
-
-  //Cerrar modal
-  // setFacturaModal(false);
-
-      // Limpiar estados del carrito
-      setCarrito([]);
-      setClienteSeleccionado(null);
-      setMontoEntregado(0);
-      setComprobante("");
-      localStorage.removeItem(LOCAL_STORAGE_KEY);
-
-      // Actualizar lista de productos
-      const updatedProducts = await fetch(`${API_URL}/api/v1/products`).then(
-        (res) => res.json()
-      );
-      setProductos(updatedProducts);
-    } catch (error: any) {
-      console.error("Error en finalizarVenta:", error);
-      mostrarAlerta(
-        "error",
-        "Ocurrió un error al procesar la venta. Por favor intente nuevamente."
-      );
-    }
     } finally {
-  // 🔒 desactivar bloqueo SOLO cuando todo terminó (éxito o error)
-  setProcesandoVenta(false);
-}
+      //  desactivar bloqueo SOLO cuando todo terminó (éxito o error)
+      setProcesandoVenta(false);
+    }
   };
   // useEffect para generar PDF cuando ya exista la factura y su ID
   useEffect(() => {
@@ -690,155 +696,150 @@ if (!cajaSeleccionada?.id) {
     }
   }, [facturaCreada, loadingFactura]);
   return (
-<ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
-  <Container
-    page={
-         <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
-          <div className="w-full pl-4 pt-10">
-          
-          {/* Contenido principal */}
-          <div className="flex-1 flex flex-col">
-            <h1 className="text-2xl font-bold mb-6">Punto de venta
-              <InfoIcon
-                title="Información Punto de Venta"
-                description="En esta sección puedes seleccionar clientes, 
+    <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
+      <Container
+        page={
+          <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+            <div className="w-full pl-4 pt-10">
+              {/* Contenido principal */}
+              <div className="flex-1 flex flex-col">
+                <h1 className="text-2xl font-bold mb-6">
+                  Punto de venta
+                  <InfoIcon
+                    title="Información Punto de Venta"
+                    description="En esta sección puedes seleccionar clientes, 
                 agregar productos al carrito, y finalizar ventas generando facturas.
                  Asegúrate de tener una caja abierta para ventas en efectivo."
-              />
-            </h1>
+                  />
+                </h1>
 
-            {/* Selector de clientes */}
-            <CustomerSelector
-              queryCliente={queryCliente}
-              setQueryCliente={setQueryCliente}
-              clientesFiltrados={clientesFiltrados}
-              clienteSeleccionado={clienteSeleccionado}
-              setClienteSeleccionado={setClienteSeleccionado}
-              sucursalSeleccionada={sucursalSeleccionada}
-              modalSucursal={modalSucursal}
-              setModalSucursal={setModalSucursal}
-            />
+                {/* Selector de clientes */}
+                <CustomerSelector
+                  queryCliente={queryCliente}
+                  setQueryCliente={setQueryCliente}
+                  clientesFiltrados={clientesFiltrados}
+                  clienteSeleccionado={clienteSeleccionado}
+                  setClienteSeleccionado={setClienteSeleccionado}
+                  sucursalSeleccionada={sucursalSeleccionada}
+                  modalSucursal={modalSucursal}
+                  setModalSucursal={setModalSucursal}
+                />
 
-            <div className="my-2">
-              <button
-                className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 
+                <div className="my-2">
+                  <button
+                    className="bg-amarillo-claro hover:bg-amarillo-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 
                            transform flex items-center justify-center cursor-pointer w-full sm:w-auto"
-                onClick={() => setModalCaja(true)}
-              >
-                <FaCashRegister className="mr-2.5" size={20}/> Información de caja
-              </button>
-            </div>
+                    onClick={() => setModalCaja(true)}
+                  >
+                    <FaCashRegister className="mr-2.5" size={20} /> Información
+                    de caja
+                  </button>
+                </div>
 
-            {/* Selector de productos */}
-            <ProductSelector
-              productos={productos}
-              carrito={carrito}
-              queryProducto={queryProducto}
-              setQueryProducto={setQueryProducto}
-              productoSeleccionado={productoSeleccionado}
-              setProductoSeleccionado={setProductoSeleccionado}
-              setModalOpen={setModalOpen}
-              sucursalSeleccionada={sucursalSeleccionada}
-              bodegas={bodegas}
-              cajaSeleccionada={cajaSeleccionada}
-            />
+                {/* Selector de productos */}
+                <ProductSelector
+                  productos={productos}
+                  carrito={carrito}
+                  queryProducto={queryProducto}
+                  setQueryProducto={setQueryProducto}
+                  productoSeleccionado={productoSeleccionado}
+                  setProductoSeleccionado={setProductoSeleccionado}
+                  setModalOpen={setModalOpen}
+                  sucursalSeleccionada={sucursalSeleccionada}
+                  bodegas={bodegas}
+                  cajaSeleccionada={cajaSeleccionada}
+                />
 
-           {/* Tabla de carrito */}
-            {sucursalSeleccionada && (
-              <CartTable
-                carrito={carrito}
-                editIdx={editIdx}
-                editCantidad={editCantidad}
-                setEditCantidad={setEditCantidad}
-                editDescuento={editDescuento}
-                setEditDescuento={setEditDescuento}
-                iniciarEdicion={iniciarEdicion}
-                guardarEdicion={guardarEdicion}
-                eliminarDelCarrito={eliminarDelCarrito}
-                setCarrito={setCarrito}
-                clienteSeleccionado={clienteSeleccionado}
-                setFacturaModal={setFacturaModal}
-                businessId={sucursalSeleccionada.business.negocio_id}
-                branch_id={sucursalSeleccionada.sucursal_id}
-                clienteType={clienteSeleccionado?.name} // aquí solo el string
+                {/* Tabla de carrito */}
+                {sucursalSeleccionada && (
+                  <CartTable
+                    carrito={carrito}
+                    editIdx={editIdx}
+                    editCantidad={editCantidad}
+                    setEditCantidad={setEditCantidad}
+                    editDescuento={editDescuento}
+                    setEditDescuento={setEditDescuento}
+                    iniciarEdicion={iniciarEdicion}
+                    guardarEdicion={guardarEdicion}
+                    eliminarDelCarrito={eliminarDelCarrito}
+                    setCarrito={setCarrito}
+                    clienteSeleccionado={clienteSeleccionado}
+                    setFacturaModal={setFacturaModal}
+                    businessId={sucursalSeleccionada.business.negocio_id}
+                    branch_id={sucursalSeleccionada.sucursal_id}
+                    clienteType={clienteSeleccionado?.name} // aquí solo el string
+                  />
+                )}
+              </div>
+
+              {/* Modales */}
+              {modalOpen && productoSeleccionado && (
+                <AddProductModal
+                  productoSeleccionado={productoSeleccionado}
+                  cantidadSeleccionada={cantidadSeleccionada}
+                  setCantidadSeleccionada={setCantidadSeleccionada}
+                  getAvailableStock={getAvailableStock}
+                  setModalOpen={setModalOpen}
+                  agregarAlCarrito={agregarAlCarritoConCantidad}
+                />
+              )}
+
+              <SucursalModal
+                sucursales={sucursales}
+                modalSucursal={modalSucursal}
+                setModalSucursal={setModalSucursal}
+                setSucursalSeleccionada={setSucursalSeleccionada}
+                API_URL={API_URL}
               />
-            )}
 
+              <CashRegisterModal
+                modalCaja={modalCaja}
+                setModalCaja={setModalCaja}
+                sucursalSeleccionada={sucursalSeleccionada}
+                API_URL={API_URL}
+                mostrarAlerta={mostrarAlerta}
+                onCerrarCaja={(caja) => setCajaSeleccionada(caja)}
+                obtenerCajaUsuario={obtenerCajaUsuario}
+              />
 
-          </div>
+              <FacturaModal
+                facturaModal={facturaModal}
+                setFacturaModal={setFacturaModal}
+                carrito={carrito}
+                clienteSeleccionado={clienteSeleccionado}
+                sucursalSeleccionada={sucursalSeleccionada}
+                user={user}
+                metodoPago={metodoPago}
+                setMetodoPago={setMetodoPago}
+                montoEntregado={montoEntregado}
+                setMontoEntregado={setMontoEntregado}
+                comprobante={comprobante}
+                setComprobante={setComprobante}
+                facturaCreada={facturaCreada}
+                invoiceRef={invoiceRef}
+                botonDisabled={botonDisabled}
+                finalizarVenta={finalizarVenta}
+                loadingSucursal={loadingSucursal}
+                errorSucursal={errorSucursal}
+                procesandoVenta={procesandoVenta} // 👈 nuevo prop
+              />
 
-          
-
-          {/* Modales */}
-          {modalOpen && productoSeleccionado && (
-            <AddProductModal
-              productoSeleccionado={productoSeleccionado}
-              cantidadSeleccionada={cantidadSeleccionada}
-              setCantidadSeleccionada={setCantidadSeleccionada}
-              getAvailableStock={getAvailableStock}
-              setModalOpen={setModalOpen}
-              agregarAlCarrito={agregarAlCarritoConCantidad}
-            />
-          )}
-
-          <SucursalModal
-            sucursales={sucursales}
-            modalSucursal={modalSucursal}
-            setModalSucursal={setModalSucursal}
-            setSucursalSeleccionada={setSucursalSeleccionada}
-            API_URL={API_URL}
-          />
-
-          <CashRegisterModal
-            modalCaja={modalCaja}
-            setModalCaja={setModalCaja}
-            sucursalSeleccionada={sucursalSeleccionada}
-            API_URL={API_URL}
-            mostrarAlerta={mostrarAlerta}
-            onCerrarCaja={(caja) => setCajaSeleccionada(caja)}
-            obtenerCajaUsuario={obtenerCajaUsuario}
-          />
-
-          <FacturaModal
-            facturaModal={facturaModal}
-            setFacturaModal={setFacturaModal}
-            carrito={carrito}
-            clienteSeleccionado={clienteSeleccionado}
-            sucursalSeleccionada={sucursalSeleccionada}
-            user={user}
-            metodoPago={metodoPago}
-            setMetodoPago={setMetodoPago}
-            montoEntregado={montoEntregado}
-            setMontoEntregado={setMontoEntregado}
-            comprobante={comprobante}
-            setComprobante={setComprobante}
-            facturaCreada={facturaCreada}
-            invoiceRef={invoiceRef}
-            botonDisabled={botonDisabled}
-            finalizarVenta={finalizarVenta}
-            loadingSucursal={loadingSucursal}
-            errorSucursal={errorSucursal}
-            procesandoVenta={procesandoVenta} // 👈 nuevo prop
-          />
-
-          {/* Alert */}
-          {alert && (
-            <div
-              className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
-                alert.type === "success"
-                  ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
-                  : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
-              }`}
-            >
-              {alert.message}
+              {/* Alert */}
+              {alert && (
+                <div
+                  className={`fixed bottom-6 right-6 px-4 py-2 rounded-lg font-semibold shadow-md ${
+                    alert.type === "success"
+                      ? "bg-verde-ultra-claro text-verde-oscuro border-verde-claro border"
+                      : "bg-rojo-ultra-claro text-rojo-oscuro border-rojo-claro border"
+                  }`}
+                >
+                  {alert.message}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-    }
-  />
-</ProtectedRoute>
-
-
+          </div>
+        }
+      />
+    </ProtectedRoute>
   );
 }
