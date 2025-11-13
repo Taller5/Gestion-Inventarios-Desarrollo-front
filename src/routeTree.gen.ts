@@ -19,11 +19,13 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ProductReportsRouteImport } from './routes/productReports'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InventaryRouteImport } from './routes/inventary'
+import { Route as IngressPageRouteImport } from './routes/ingressPage'
 import { Route as IapredictionRouteImport } from './routes/iaprediction'
 import { Route as HomepageRouteImport } from './routes/homepage'
 import { Route as FinancialReportsRouteImport } from './routes/financialReports'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as EmployeesRouteImport } from './routes/employees'
+import { Route as EgressPageRouteImport } from './routes/egressPage'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CustomerRouteImport } from './routes/customer'
 import { Route as CashRegisterPageRouteImport } from './routes/cashRegisterPage'
@@ -81,6 +83,11 @@ const InventaryRoute = InventaryRouteImport.update({
   path: '/inventary',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IngressPageRoute = IngressPageRouteImport.update({
+  id: '/ingressPage',
+  path: '/ingressPage',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IapredictionRoute = IapredictionRouteImport.update({
   id: '/iaprediction',
   path: '/iaprediction',
@@ -104,6 +111,11 @@ const FinanceRoute = FinanceRouteImport.update({
 const EmployeesRoute = EmployeesRouteImport.update({
   id: '/employees',
   path: '/employees',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EgressPageRoute = EgressPageRouteImport.update({
+  id: '/egressPage',
+  path: '/egressPage',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DashboardRoute = DashboardRouteImport.update({
@@ -144,11 +156,13 @@ export interface FileRoutesByFullPath {
   '/cashRegisterPage': typeof CashRegisterPageRoute
   '/customer': typeof CustomerRoute
   '/dashboard': typeof DashboardRoute
+  '/egressPage': typeof EgressPageRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/financialReports': typeof FinancialReportsRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
+  '/ingressPage': typeof IngressPageRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/productReports': typeof ProductReportsRoute
@@ -167,11 +181,13 @@ export interface FileRoutesByTo {
   '/cashRegisterPage': typeof CashRegisterPageRoute
   '/customer': typeof CustomerRoute
   '/dashboard': typeof DashboardRoute
+  '/egressPage': typeof EgressPageRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/financialReports': typeof FinancialReportsRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
+  '/ingressPage': typeof IngressPageRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/productReports': typeof ProductReportsRoute
@@ -191,11 +207,13 @@ export interface FileRoutesById {
   '/cashRegisterPage': typeof CashRegisterPageRoute
   '/customer': typeof CustomerRoute
   '/dashboard': typeof DashboardRoute
+  '/egressPage': typeof EgressPageRoute
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/financialReports': typeof FinancialReportsRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
+  '/ingressPage': typeof IngressPageRoute
   '/inventary': typeof InventaryRoute
   '/login': typeof LoginRoute
   '/productReports': typeof ProductReportsRoute
@@ -216,11 +234,13 @@ export interface FileRouteTypes {
     | '/cashRegisterPage'
     | '/customer'
     | '/dashboard'
+    | '/egressPage'
     | '/employees'
     | '/finance'
     | '/financialReports'
     | '/homepage'
     | '/iaprediction'
+    | '/ingressPage'
     | '/inventary'
     | '/login'
     | '/productReports'
@@ -239,11 +259,13 @@ export interface FileRouteTypes {
     | '/cashRegisterPage'
     | '/customer'
     | '/dashboard'
+    | '/egressPage'
     | '/employees'
     | '/finance'
     | '/financialReports'
     | '/homepage'
     | '/iaprediction'
+    | '/ingressPage'
     | '/inventary'
     | '/login'
     | '/productReports'
@@ -262,11 +284,13 @@ export interface FileRouteTypes {
     | '/cashRegisterPage'
     | '/customer'
     | '/dashboard'
+    | '/egressPage'
     | '/employees'
     | '/finance'
     | '/financialReports'
     | '/homepage'
     | '/iaprediction'
+    | '/ingressPage'
     | '/inventary'
     | '/login'
     | '/productReports'
@@ -286,11 +310,13 @@ export interface RootRouteChildren {
   CashRegisterPageRoute: typeof CashRegisterPageRoute
   CustomerRoute: typeof CustomerRoute
   DashboardRoute: typeof DashboardRoute
+  EgressPageRoute: typeof EgressPageRoute
   EmployeesRoute: typeof EmployeesRoute
   FinanceRoute: typeof FinanceRoute
   FinancialReportsRoute: typeof FinancialReportsRoute
   HomepageRoute: typeof HomepageRoute
   IapredictionRoute: typeof IapredictionRoute
+  IngressPageRoute: typeof IngressPageRoute
   InventaryRoute: typeof InventaryRoute
   LoginRoute: typeof LoginRoute
   ProductReportsRoute: typeof ProductReportsRoute
@@ -375,6 +401,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InventaryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ingressPage': {
+      id: '/ingressPage'
+      path: '/ingressPage'
+      fullPath: '/ingressPage'
+      preLoaderRoute: typeof IngressPageRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/iaprediction': {
       id: '/iaprediction'
       path: '/iaprediction'
@@ -408,6 +441,13 @@ declare module '@tanstack/react-router' {
       path: '/employees'
       fullPath: '/employees'
       preLoaderRoute: typeof EmployeesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/egressPage': {
+      id: '/egressPage'
+      path: '/egressPage'
+      fullPath: '/egressPage'
+      preLoaderRoute: typeof EgressPageRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dashboard': {
@@ -462,11 +502,13 @@ const rootRouteChildren: RootRouteChildren = {
   CashRegisterPageRoute: CashRegisterPageRoute,
   CustomerRoute: CustomerRoute,
   DashboardRoute: DashboardRoute,
+  EgressPageRoute: EgressPageRoute,
   EmployeesRoute: EmployeesRoute,
   FinanceRoute: FinanceRoute,
   FinancialReportsRoute: FinancialReportsRoute,
   HomepageRoute: HomepageRoute,
   IapredictionRoute: IapredictionRoute,
+  IngressPageRoute: IngressPageRoute,
   InventaryRoute: InventaryRoute,
   LoginRoute: LoginRoute,
   ProductReportsRoute: ProductReportsRoute,

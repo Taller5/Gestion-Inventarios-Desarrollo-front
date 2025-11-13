@@ -2,6 +2,8 @@ import React, { useState, useEffect, type JSX } from "react";
 import Button from "./Button";
 import { TbReportSearch, TbReportMoney } from "react-icons/tb";
 import { HiOutlineChartBar } from "react-icons/hi";
+import { ArrowUpRight  } from "lucide-react";
+import { FaTruck } from "react-icons/fa";
 import {
   MdInventory,
   MdPeople,
@@ -19,6 +21,8 @@ import {
   MdOutlineApartment,
   MdSavings,
   MdMonetizationOn,
+  
+
 } from "react-icons/md";
 import { FaUsersGear } from "react-icons/fa6";
 import { FaPercent } from "react-icons/fa6";
@@ -59,6 +63,8 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     "/financeReports": "Reportes",
     "/promotionPage": "Promociones",
     "/financialReports": "Reportes de ganancias",
+    "/egressPage": "Reportes de egresos",
+    "/ingressPage": "Reportes de ingresos",
   };
 
   const currentSection = Object.keys(sectionMap).find((path) =>
@@ -147,6 +153,18 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     <Button style={btnStyle} to="/financialReports">
       <MdMonetizationOn size={20} color="white" /> Reportes de Ganancias
     </Button>
+
+  );
+  const btnEgresos = (
+    <Button style={btnStyle} to="/egressPage">
+      <ArrowUpRight size={20} color="white" /> Reportes de Egresos
+    </Button>
+  );
+
+  const btnIngresos = (
+    <Button style={btnStyle} to="/ingressPage">
+      <FaTruck  size={20} color="white" /> Reportes de Ingresos
+    </Button>
   );
 
   const sectionIcons: { [key: string]: JSX.Element } = {
@@ -182,7 +200,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
       Finanzas: [btnCashRegisterPage, btnSalesPages],
       "Administración de Usuarios": [btnClientes, btnPersonal],
-      Reportes: [btnSaleReports, btnProductReports, btnFinanceReports],
+      Reportes: [btnSaleReports, btnProductReports, btnFinanceReports, btnEgresos, btnIngresos],
     };
   }
 
