@@ -26,6 +26,7 @@ interface FacturaModalProps {
   loadingSucursal?: boolean;
   errorSucursal?: string | null;
   procesandoVenta: boolean;
+  documentType: 'auto' | '01' | '04';
 }
 
 export default function FacturaModal({
@@ -48,6 +49,7 @@ export default function FacturaModal({
   loadingSucursal,
   errorSucursal,
   procesandoVenta,
+  documentType,
 }: FacturaModalProps) {
   if (!facturaModal) return null;
 
@@ -57,9 +59,10 @@ export default function FacturaModal({
    const [confirmSendOpen, setConfirmSendOpen] = useState(false); // Confirmación post-finalizar
    const [xmlGenerating, setXmlGenerating] = useState(false);
    const [sending, setSending] = useState(false);
-   const pollingRef = useRef<number | null>(null);
+  const pollingRef = useRef<number | null>(null);
    const askedToSendRef = useRef(false);
    const [awaitingHaciendaPrompt, setAwaitingHaciendaPrompt] = useState(false);
+  const autoSendRef = useRef(false);
   const [voucherError, setVoucherError] = useState<string | null>(null);
   
 
@@ -118,9 +121,14 @@ export default function FacturaModal({
     setProcessing(true);
     try {
       await finalizarVenta(e);
-  // HACIENDA
-  // Marcar que, cuando tengamos el id, debemos preguntar si enviamos a Hacienda
-  setAwaitingHaciendaPrompt(true);
+      // HACIENDA
+      // Solo preguntar si el select está en tiquete o factura (no en auto)
+      if (documentType === '04' || documentType === '01') {
+        setAwaitingHaciendaPrompt(true);
+      } else {
+        autoSendRef.current = true;
+        setFacturaModal(false);
+      }
     } finally {
       setProcessing(false); // Libera el botón al finalizar
     }
@@ -145,9 +153,21 @@ export default function FacturaModal({
   }, [facturaModal]);
 
   
-  // Abre confirmación en cuanto exista la factura y no se haya preguntado aún
+  // En cuanto exista la factura:
+  // - si es auto y hay pendiente autoSend, enviamos sin preguntar
+  // - si no es auto y aún no preguntamos, abrimos confirmación
   useEffect(() => {
-    if (facturaModal && awaitingHaciendaPrompt && facturaCreada?.id && !askedToSendRef.current) {
+    if (!facturaModal || !facturaCreada?.id) return;
+
+    if (autoSendRef.current) {
+      autoSendRef.current = false;
+      void (async () => {
+        await handleEnviarAHacienda();
+      })();
+      return;
+    }
+
+    if (awaitingHaciendaPrompt && !askedToSendRef.current) {
       setConfirmSendOpen(true);
       askedToSendRef.current = true;
       setAwaitingHaciendaPrompt(false);
@@ -156,7 +176,8 @@ export default function FacturaModal({
 
   const pollStatus = async (invoiceId: number, attempt = 1) => {
     try {
-      const status = await getInvoiceXmlStatus(invoiceId);
+      const tipo = (facturaCreada?.document_type as '01' | '04' | undefined) || (documentType !== 'auto' ? documentType as '01' | '04' : undefined);
+      const status = await getInvoiceXmlStatus(invoiceId, tipo);
       const raw = extractRawStatus(status);
       const s = normalizeStatus(String(raw));
 
@@ -185,7 +206,8 @@ export default function FacturaModal({
   // Polling en segundo plano (no depende del estado del componente)
   const pollStatusInBackground = async (invoiceId: number, attempt = 1): Promise<void> => {
     try {
-      const status = await getInvoiceXmlStatus(invoiceId);
+      const tipo = (facturaCreada?.document_type as '01' | '04' | undefined) || (documentType !== 'auto' ? documentType as '01' | '04' : undefined);
+      const status = await getInvoiceXmlStatus(invoiceId, tipo);
       const raw = extractRawStatus(status);
       const s = normalizeStatus(String(raw));
 
@@ -218,12 +240,13 @@ export default function FacturaModal({
     if (!facturaCreada?.id || xmlGenerating || sending) return;
     try {
       setXmlGenerating(true);
-      await generateInvoiceXml(facturaCreada.id);
+      const tipo = (facturaCreada?.document_type as '01' | '04' | undefined) || (documentType !== 'auto' ? documentType as '01' | '04' : undefined);
+      await generateInvoiceXml(facturaCreada.id, tipo);
       setXmlGenerating(false);
 
       // Enviar a Hacienda y luego consultar estado
-  setSending(true);
-      await submitInvoice(facturaCreada.id);
+      setSending(true);
+      await submitInvoice(facturaCreada.id, tipo);
       // Iniciar polling en segundo plano para que el backend reciba los cambios de estado
       void pollStatusInBackground(facturaCreada.id, 1);
       // Como cerraremos el modal, liberamos el estado de envío

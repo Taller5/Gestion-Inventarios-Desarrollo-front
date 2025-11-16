@@ -43,6 +43,7 @@ type Customer = {
   identity_number: string;
   phone?: string;
   email?: string;
+  id_type?: string;
 };
 import type { Caja, Warehouse } from "../../types/salePage";
 import AddProductModal from "../ui/SaleComponents/AddProductModal";
@@ -94,6 +95,8 @@ export default function SalesPage() {
   const [montoEntregado, setMontoEntregado] = useState<number>(0);
   const [comprobante, setComprobante] = useState<string>("");
   const [facturaCreada, setFacturaCreada] = useState<any>(null);
+  // Tipo de documento: auto (decide según cliente), 04 (tiquete), 01 (factura)
+  const [documentType, setDocumentType] = useState<'auto' | '04' | '01'>('auto');
 
   //sucursales y negocios
   const [bodegas, setBodegas] = useState<Warehouse[]>([]);
@@ -445,6 +448,13 @@ export default function SalesPage() {
         return;
       }
 
+      // Validación: si usuario selecciona factura (01) y cliente es genérico
+      const isGenericClient = clienteSeleccionado.identity_number === 'N/A' || clienteSeleccionado.customer_id === 0;
+      if (documentType === '01' && isGenericClient) {
+        mostrarAlerta('error', 'Para generar una factura electrónica (01) seleccione un cliente real, no genérico.');
+        return;
+      }
+
       try {
         // Validaciones de pago
         if (metodoPago === "Efectivo" && (montoEntregado || 0) <= 0) {
@@ -538,9 +548,19 @@ export default function SalesPage() {
         }));
 
         // Preparar datos de la factura
-        const facturaData = {
+        const resolvedDocumentType: '01' | '04' = documentType === 'auto'
+          ? (isGenericClient ? '04' : '01')
+          : documentType;
+
+        const maybeCustomerIdType = (resolvedDocumentType === '01' && !isGenericClient)
+          ? (clienteSeleccionado.id_type || '01')
+          : undefined; // Tickets no requieren receptor
+
+        const facturaData: Record<string, any> = {
           customer_name: clienteSeleccionado.name,
           customer_identity_number: clienteSeleccionado.identity_number,
+          customer_email: clienteSeleccionado.email || undefined,
+          customer_phone: clienteSeleccionado.phone || undefined,
           branch_name: sucursalSeleccionada.nombre,
           business_name: sucursalSeleccionada.business.nombre_comercial,
           business_legal_name: sucursalSeleccionada.business.nombre_legal,
@@ -566,19 +586,32 @@ export default function SalesPage() {
           change: vuelto,
           payment_method: metodoPagoBackend,
           receipt: metodoPagoBackend === "Cash" ? "N/A" : comprobante || "",
+          document_type: resolvedDocumentType,
         };
+        if (maybeCustomerIdType) facturaData.customer_id_type = maybeCustomerIdType;
 
-        // Enviar factura al backend
-        const response = await fetch(`${API_URL}/api/v1/invoices`, {
+        const creationEndpoint = resolvedDocumentType === '04' ? 'tickets' : 'facturas';
+
+        // Enviar comprobante al backend usando alias
+        const response = await fetch(`${API_URL}/api/v1/${creationEndpoint}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
+            ...(localStorage.getItem('token') ? { Authorization: `Bearer ${localStorage.getItem('token')}` } : {}),
           },
           body: JSON.stringify(facturaData),
         });
 
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || 'Error al crear comprobante');
+        }
         const responseData = await response.json();
+        // Asegurar que el tipo de documento esté disponible en la respuesta almacenada
+        if (!responseData.document_type) {
+          (responseData as any).document_type = resolvedDocumentType;
+        }
 
         // Guardar la factura creada para usar en PDF
         setFacturaCreada(responseData);
@@ -669,6 +702,7 @@ export default function SalesPage() {
         setClienteSeleccionado(null);
         setMontoEntregado(0);
         setComprobante("");
+        setDocumentType('auto');
         localStorage.removeItem(LOCAL_STORAGE_KEY);
 
         // Actualizar lista de productos
@@ -723,6 +757,8 @@ export default function SalesPage() {
                   sucursalSeleccionada={sucursalSeleccionada}
                   modalSucursal={modalSucursal}
                   setModalSucursal={setModalSucursal}
+                  documentType={documentType}
+                  setDocumentType={setDocumentType}
                 />
 
                 <div className="my-2">
@@ -821,7 +857,8 @@ export default function SalesPage() {
                 finalizarVenta={finalizarVenta}
                 loadingSucursal={loadingSucursal}
                 errorSucursal={errorSucursal}
-                procesandoVenta={procesandoVenta} // 👈 nuevo prop
+                procesandoVenta={procesandoVenta} // 
+                documentType={documentType}
               />
 
               {/* Alert */}
