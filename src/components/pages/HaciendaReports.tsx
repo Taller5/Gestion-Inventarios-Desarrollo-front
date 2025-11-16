@@ -3,8 +3,9 @@ import ProtectedRoute from '../services/ProtectedRoute';
 import Container from '../ui/Container';
 import TableInformation from '../ui/TableInformation';
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL; 
 const HACIENDA_ENDPOINT = '/api/v1/hacienda-report';
+const API_BASE = (API_URL || '').replace(/\/+$/, '');
 
 interface HaciendaReportItem {
   id: number;
@@ -64,7 +65,8 @@ export default function HaciendaReports() {
         params.append('page', String(pageToLoad));
 
         const url = params.toString() ? `${HACIENDA_ENDPOINT}?${params.toString()}` : HACIENDA_ENDPOINT;
-        const res = await fetch(url, { headers });
+        const fullUrl = API_BASE ? `${API_BASE}${url.startsWith('/') ? url : '/' + url}` : url;
+        const res = await fetch(fullUrl, { headers });
         const contentType = res.headers.get('content-type') || '';
         let rawBody: string | null = null;
         if (!res.ok) {
