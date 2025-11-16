@@ -22,6 +22,7 @@ import { Route as InventaryRouteImport } from './routes/inventary'
 import { Route as IngressPageRouteImport } from './routes/ingressPage'
 import { Route as IapredictionRouteImport } from './routes/iaprediction'
 import { Route as HomepageRouteImport } from './routes/homepage'
+import { Route as HaciendaReportRouteImport } from './routes/haciendaReport'
 import { Route as FinancialReportsRouteImport } from './routes/financialReports'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as EmployeesRouteImport } from './routes/employees'
@@ -98,6 +99,11 @@ const HomepageRoute = HomepageRouteImport.update({
   path: '/homepage',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HaciendaReportRoute = HaciendaReportRouteImport.update({
+  id: '/haciendaReport',
+  path: '/haciendaReport',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FinancialReportsRoute = FinancialReportsRouteImport.update({
   id: '/financialReports',
   path: '/financialReports',
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/financialReports': typeof FinancialReportsRoute
+  '/haciendaReport': typeof HaciendaReportRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
   '/ingressPage': typeof IngressPageRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/financialReports': typeof FinancialReportsRoute
+  '/haciendaReport': typeof HaciendaReportRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
   '/ingressPage': typeof IngressPageRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/employees': typeof EmployeesRoute
   '/finance': typeof FinanceRoute
   '/financialReports': typeof FinancialReportsRoute
+  '/haciendaReport': typeof HaciendaReportRoute
   '/homepage': typeof HomepageRoute
   '/iaprediction': typeof IapredictionRoute
   '/ingressPage': typeof IngressPageRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
     | '/employees'
     | '/finance'
     | '/financialReports'
+    | '/haciendaReport'
     | '/homepage'
     | '/iaprediction'
     | '/ingressPage'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/employees'
     | '/finance'
     | '/financialReports'
+    | '/haciendaReport'
     | '/homepage'
     | '/iaprediction'
     | '/ingressPage'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/employees'
     | '/finance'
     | '/financialReports'
+    | '/haciendaReport'
     | '/homepage'
     | '/iaprediction'
     | '/ingressPage'
@@ -314,6 +326,7 @@ export interface RootRouteChildren {
   EmployeesRoute: typeof EmployeesRoute
   FinanceRoute: typeof FinanceRoute
   FinancialReportsRoute: typeof FinancialReportsRoute
+  HaciendaReportRoute: typeof HaciendaReportRoute
   HomepageRoute: typeof HomepageRoute
   IapredictionRoute: typeof IapredictionRoute
   IngressPageRoute: typeof IngressPageRoute
@@ -422,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomepageRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/haciendaReport': {
+      id: '/haciendaReport'
+      path: '/haciendaReport'
+      fullPath: '/haciendaReport'
+      preLoaderRoute: typeof HaciendaReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/financialReports': {
       id: '/financialReports'
       path: '/financialReports'
@@ -506,6 +526,7 @@ const rootRouteChildren: RootRouteChildren = {
   EmployeesRoute: EmployeesRoute,
   FinanceRoute: FinanceRoute,
   FinancialReportsRoute: FinancialReportsRoute,
+  HaciendaReportRoute: HaciendaReportRoute,
   HomepageRoute: HomepageRoute,
   IapredictionRoute: IapredictionRoute,
   IngressPageRoute: IngressPageRoute,
