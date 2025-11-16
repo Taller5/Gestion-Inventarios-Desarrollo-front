@@ -4,6 +4,9 @@ export interface Customer {
   identity_number: string;
   phone?: string;
   email?: string;
+  // Tipo de identificacion del cliente (requerido por backend para factura electronica)
+  id_type?: string; // e.g. '01','02','03' etc.
+  tipo_identificacion?: string; // si backend usa este nombre en /customers
 }
 
 export interface Producto {

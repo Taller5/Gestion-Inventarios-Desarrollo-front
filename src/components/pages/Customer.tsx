@@ -16,6 +16,7 @@ type Customer = {
   identity_number: string;
   phone?: string;
   email: string;
+  id_type?: string;
 };
 
 const headers = ["ID", "Nombre", "Cédula", "phone", "Email", "Acciones"];
@@ -38,6 +39,7 @@ export default function CustomersPage() {
     email: "",
     phone: "",
     identity_number: "",
+    id_type: "01", // por defecto Cédula Física
   });
   const [loadingForm, setLoadingForm] = useState(false);
   const [alert, setAlert] = useState<{
@@ -74,9 +76,10 @@ export default function CustomersPage() {
           email: customerToEdit.email,
           phone: customerToEdit.phone ?? "",
           identity_number: customerToEdit.identity_number,
+          id_type: customerToEdit.id_type || "01",
         });
       } else {
-        setForm({ name: "", email: "", phone: "", identity_number: "" });
+        setForm({ name: "", email: "", phone: "", identity_number: "", id_type: "01" });
       }
       setAlert(null);
     }
@@ -471,6 +474,25 @@ export default function CustomersPage() {
                           className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-fuerte"
                           required
                         />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-1">
+                          Tipo Identificación
+                        </label>
+                        <select
+                          name="id_type"
+                          value={form.id_type}
+                          onChange={(e) => setForm({ ...form, id_type: e.target.value })}
+                          className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-azul-fuerte"
+                          required
+                        >
+                          <option value="01">01 - Cédula Física</option>
+                          <option value="02">02 - Cédula Jurídica</option>
+                          <option value="03">03 - DIMEX</option>
+                          <option value="04">04 - NITE</option>
+                          <option value="05">05 - Extranjero No Domiciliado</option>
+                          <option value="06">06 - No Contribuyente</option>
+                        </select>
                       </div>
                       <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1">

@@ -16,8 +16,29 @@ const getAuthHeaders = (): Record<string, string> => {
   return headers;
 };
 
-export async function generateInvoiceXml(invoiceId: number): Promise<void> {
-  const res = await fetch(`${API_URL}/api/v1/invoices/${invoiceId}/xml`, {
+type DocType = '01' | '04' | undefined;
+
+// Construye endpoint alias si se provee tipo y acción
+const buildAliasEndpoint = (invoiceId: number, action: 'xml' | 'submit' | 'status', docType?: DocType) => {
+  if (docType === '01') {
+    if (action === 'xml') return `${API_URL}/api/v1/facturas/${invoiceId}/xml`;
+    if (action === 'submit') return `${API_URL}/api/v1/facturas/${invoiceId}/submit`;
+    if (action === 'status') return `${API_URL}/api/v1/facturas/${invoiceId}/status`;
+  }
+  if (docType === '04') {
+    if (action === 'xml') return `${API_URL}/api/v1/tickets/${invoiceId}/xml`;
+    if (action === 'submit') return `${API_URL}/api/v1/tickets/${invoiceId}/submit`;
+    if (action === 'status') return `${API_URL}/api/v1/tickets/${invoiceId}/status`;
+  }
+  // Fallback genérico
+  if (action === 'xml') return `${API_URL}/api/v1/invoices/${invoiceId}/xml`;
+  if (action === 'submit') return `${API_URL}/api/v1/invoices/${invoiceId}/submit`;
+  return `${API_URL}/api/v1/invoices/${invoiceId}/status`;
+};
+
+export async function generateInvoiceXml(invoiceId: number, docType?: DocType): Promise<void> {
+  const endpoint = buildAliasEndpoint(invoiceId, 'xml', docType);
+  const res = await fetch(endpoint, {
     method: 'GET',
     headers: {
       ...getAuthHeaders(),
@@ -36,8 +57,9 @@ export async function generateInvoiceXml(invoiceId: number): Promise<void> {
   }
 }
 
-export async function submitInvoice(invoiceId: number): Promise<{ status?: string; message?: string }> {
-  const res = await fetch(`${API_URL}/api/v1/invoices/${invoiceId}/submit`, {
+export async function submitInvoice(invoiceId: number, docType?: DocType): Promise<{ status?: string; message?: string }> {
+  const endpoint = buildAliasEndpoint(invoiceId, 'submit', docType);
+  const res = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -63,8 +85,9 @@ export async function submitInvoice(invoiceId: number): Promise<{ status?: strin
   }
 }
 
-export async function getInvoiceXmlStatus(invoiceId: number): Promise<XmlStatus> {
-  const res = await fetch(`${API_URL}/api/v1/invoices/${invoiceId}/status`, {
+export async function getInvoiceXmlStatus(invoiceId: number, docType?: DocType): Promise<XmlStatus> {
+  const endpoint = buildAliasEndpoint(invoiceId, 'status', docType);
+  const res = await fetch(endpoint, {
     method: 'GET',
     headers: {
       ...getAuthHeaders(),

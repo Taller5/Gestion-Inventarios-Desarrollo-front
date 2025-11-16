@@ -19,6 +19,14 @@ const headerMap: Record<string, string> = {
   date: "Fecha de la factura",
   customer_name: "Cliente",
   payment_method: "Método de pago",
+  // Nuevos encabezados para Reporte Hacienda
+  business_nombre: "Negocio",
+  tipo: "Tipo",
+  fecha: "Fecha",
+  clave: "Clave",
+  hacienda_estado: "Estado Hacienda",
+  xml: "XML Generado",
+  xml_respuesta: "XML Respuesta",
 };
 
 const formatearTelefono = (numero: string | number) => {

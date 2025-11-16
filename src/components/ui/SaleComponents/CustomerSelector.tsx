@@ -13,6 +13,8 @@ interface Props {
   setModalSucursal: (open: boolean) => void;
   sucursalSeleccionada: any;
   modalSucursal?: boolean;
+  documentType: 'auto' | '04' | '01';
+  setDocumentType: (v: 'auto' | '04' | '01') => void;
 }
 
 export default function CustomerSelector({
@@ -24,9 +26,24 @@ export default function CustomerSelector({
   setModalSucursal,
   sucursalSeleccionada,
   modalSucursal = false,
+  documentType,
+  setDocumentType,
 }: Props) {
   return (
   <div className="mb-6 w-full  mx-auto">
+      {/* Selectores compactos */}
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <span className="text-sm font-semibold text-gray-700">Comprobante:</span>
+        <select
+          className="border rounded px-2 py-1 text-sm w-auto"
+          value={documentType}
+          onChange={(e) => setDocumentType(e.target.value as 'auto' | '04' | '01')}
+        >
+          <option value="auto">Auto</option>
+          <option value="04">Tiquete (04)</option>
+          <option value="01">Factura (01)</option>
+        </select>
+      </div>
       {/* Buscador */}
       <div className="relative mb-2 w-full">
         <IoSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-lg" />
@@ -99,16 +116,17 @@ export default function CustomerSelector({
 
         <Button
           style="bg-gris-claro hover:bg-gris-oscuro text-white font-bold px-5 py-2 rounded-lg shadow-md transition-transform duration-150 transform flex items-center justify-center w-full sm:w-auto cursor-pointer"
-          onClick={() =>
-            setClienteSeleccionado({
-              customer_id: 0,
-              name: "Cliente genérico",
-              identity_number: "N/A",
-            })
-          }
+          onClick={() => setClienteSeleccionado({
+            customer_id: 0,
+            name: 'Cliente genérico',
+            identity_number: 'N/A'
+          })}
         >
           <FaRegCircleUser className="mr-1" size={20} /> Cliente genérico
         </Button>
+        {documentType === '01' && clienteSeleccionado?.identity_number === 'N/A' && (
+          <p className="text-red-600 text-xs font-semibold">Seleccione un cliente real para Factura (01).</p>
+        )}
       </div>
 
       {/* Info Sucursal */}

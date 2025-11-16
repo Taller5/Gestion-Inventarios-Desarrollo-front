@@ -166,6 +166,11 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       <FaTruck  size={20} color="white" /> Reportes de Ingresos
     </Button>
   );
+  const btnHaciendaReports = (
+    <Button style={btnStyle} to="/haciendaReport">
+      <TbReportSearch size={20} color="white" /> Reportes Hacienda
+    </Button>
+  );
 
   const sectionIcons: { [key: string]: JSX.Element } = {
     "Administración de Productos": <MdCategory size={20} color="white" />,
@@ -200,7 +205,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
       Gestión: [btnNegocios, btnSucursales, btnBodegas],
       Finanzas: [btnCashRegisterPage, btnSalesPages],
       "Administración de Usuarios": [btnClientes, btnPersonal],
-      Reportes: [btnSaleReports, btnProductReports, btnFinanceReports, btnEgresos, btnIngresos],
+      Reportes: [btnSaleReports, btnProductReports, btnFinanceReports, btnEgresos, btnIngresos, btnHaciendaReports],
     };
   }
 
