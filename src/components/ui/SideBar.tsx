@@ -47,24 +47,29 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     Reportes: false,
   };
 
-  const sectionMap: { [key: string]: string } = {
+   const sectionMap: { [key: string]: string } = {
     "/inventary": "Administración de Productos",
     "/provider": "Administración de Productos",
     "/salespage": "Administración de Productos",
+    "/promotionpage": "Administración de Productos", // promociones dentro de Productos
+
     "/businesses": "Gestión",
     "/branches": "Gestión",
     "/warehouses": "Gestión",
+
     "/finance": "Finanzas",
     "/cashregisterpage": "Finanzas",
+
     "/customer": "Administración de Usuarios",
     "/employees": "Administración de Usuarios",
-    "/saleReports": "Reportes",
-    "/productReports": "Reportes",
-    "/financeReports": "Reportes",
-    "/promotionPage": "Promociones",
-    "/financialReports": "Reportes de ganancias",
-    "/egressPage": "Reportes de egresos",
-    "/ingressPage": "Reportes de ingresos",
+
+    "/salereports": "Reportes",
+    "/productreports": "Reportes",
+    "/financereports": "Reportes",
+    "/financialreports": "Reportes",
+    "/egresspage": "Reportes",
+    "/ingresspage": "Reportes",
+    "/haciendareport": "Reportes", // ejemplo adicional si lo usas
   };
 
   const currentSection = Object.keys(sectionMap).find((path) =>
@@ -87,9 +92,9 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     });
   };
 
-  // --- Botones ---
+  // --- Botones (usa rutas en MINÚSCULAS) ---
   const btnInventario = (
-    <Button style={btnStyle} to="/Inventary">
+    <Button style={btnStyle} to="/inventary">
       <MdInventory size={20} color="white" /> Inventario
     </Button>
   );
@@ -120,57 +125,56 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     </Button>
   );
   const btnSalesPages = (
-    <Button style={btnStyle} to="/salesPage">
+    <Button style={btnStyle} to="/salespage">
       <MdPointOfSale size={20} color="white" /> Punto de Venta
     </Button>
   );
   const btnProvider = (
-    <Button style={btnStyle} to="/Provider">
+    <Button style={btnStyle} to="/provider">
       <MdLocalShipping size={20} color="white" /> Proveedores
     </Button>
   );
   const btnCashRegisterPage = (
-    <Button style={btnStyle} to="/cashRegisterPage">
+    <Button style={btnStyle} to="/cashregisterpage">
       <MdPayments size={20} color="white" /> Cajas
     </Button>
   );
   const btnSaleReports = (
-    <Button style={btnStyle} to="/saleReports">
+    <Button style={btnStyle} to="/salereports">
       <TbReportMoney size={20} color="white" /> Reportes de Ventas
     </Button>
   );
   const btnProductReports = (
-    <Button style={btnStyle} to="/productReports">
+    <Button style={btnStyle} to="/productreports">
       <HiOutlineChartBar size={20} color="white" /> Reportes de Productos
     </Button>
   );
   const btnPromociones = (
-    <Button style={btnStyle} to="/promotionPage">
+    <Button style={btnStyle} to="/promotionpage">
       <FaPercent size={20} color="white" /> Promociones
     </Button>
   );
   const btnFinanceReports = (
-    <Button style={btnStyle} to="/financialReports">
+    <Button style={btnStyle} to="/financialreports">
       <MdMonetizationOn size={20} color="white" /> Reportes de Ganancias
     </Button>
-
   );
   const btnEgresos = (
-    <Button style={btnStyle} to="/egressPage">
+    <Button style={btnStyle} to="/egresspage">
       <ArrowUpRight size={20} color="white" /> Reportes de Egresos
     </Button>
   );
-
   const btnIngresos = (
-    <Button style={btnStyle} to="/ingressPage">
-      <FaTruck  size={20} color="white" /> Reportes de Ingresos
+    <Button style={btnStyle} to="/ingresspage">
+      <FaTruck size={20} color="white" /> Reportes de Ingresos
     </Button>
   );
   const btnHaciendaReports = (
-    <Button style={btnStyle} to="/haciendaReport">
+    <Button style={btnStyle} to="/haciendareport">
       <TbReportSearch size={20} color="white" /> Reportes Hacienda
     </Button>
   );
+
 
   const sectionIcons: { [key: string]: JSX.Element } = {
     "Administración de Productos": <MdCategory size={20} color="white" />,
@@ -209,75 +213,80 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     };
   }
 
-  const renderButtons = (buttons: JSX.Element[]) =>
-    buttons.map((btn, i) => {
-      const btnPath = (btn.props.to || "").toLowerCase();
-      const isActive =
-        currentPath === btnPath || currentPath.startsWith(btnPath + "/");
-      return (
-        <div
-          key={i}
-          className={`overflow-hidden transition-all duration-300 ease-in-out flex items-center gap-2 mb-2 w-full rounded-xl pl-4 cursor-pointer
-            ${isActive ? "bg-azul-medio" : "hover:bg-azul-hover"}`}
-        >
-          {React.cloneElement(btn, { className: "flex-1" })}
-        </div>
-      );
-    });
+  const btnActiveClasses = "bg-azul-medio border border-white/40 shadow-md";
+const btnHoverClasses = "hover:bg-azul-hover transition-colors duration-200 ease-in-out";
 
-  const Section = ({
-    title,
-    buttons,
-  }: {
-    title: string;
-    buttons: JSX.Element[];
-  }) => {
-    const contentRef = React.useRef<HTMLDivElement>(null);
-    const open = openSections[title] ?? false;
-    const [maxHeight, setMaxHeight] = useState(open ? "500px" : "0px");
-
-    useEffect(() => {
-      if (contentRef.current) {
-        setMaxHeight(open ? `${contentRef.current.scrollHeight}px` : "0px");
-      }
-    }, [open, buttons]);
-
-    if (buttons.length === 0) return null;
-
+const renderButtons = (buttons: JSX.Element[]) =>
+  buttons.map((btn, i) => {
+    const btnPath = (btn.props.to || "").toLowerCase();
+    const isActive =
+      currentPath === btnPath || currentPath.startsWith(btnPath + "/");
     return (
-      <div className="w-11/12">
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={() => handleToggleSection(title)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              handleToggleSection(title);
-            }
-          }}
-          className="flex items-center justify-between mb-2 w-full rounded-xl pl-4 pr-2 py-2 cursor-pointer hover:bg-azul-hover"
-        >
-          <span className="flex items-center gap-2 text-white font-bold">
-            {sectionIcons[title]} {title}
-          </span>
-          {open ? (
-            <MdExpandLess color="white" />
-          ) : (
-            <MdExpandMore color="white" />
-          )}
-        </div>
-
-        <div
-          ref={contentRef}
-          className="ml-6 flex flex-col gap-1 overflow-hidden transition-[max-height] duration-300 ease-in-out"
-          style={{ maxHeight }}
-        >
-          {renderButtons(buttons)}
-        </div>
+      <div
+        key={i}
+        className={`overflow-hidden transition-all duration-300 ease-in-out flex items-center gap-2 mb-2 w-full rounded-xl pl-4 cursor-pointer
+          ${isActive ? btnActiveClasses : btnHoverClasses}`}
+      >
+        {React.cloneElement(btn, { className: "flex-1" })}
       </div>
     );
-  };
+  });
+
+const Section = ({
+  title,
+  buttons,
+}: {
+  title: string;
+  buttons: JSX.Element[];
+}) => {
+  const contentRef = React.useRef<HTMLDivElement>(null);
+  const open = openSections[title] ?? false;
+  const [maxHeight, setMaxHeight] = useState(open ? "500px" : "0px");
+
+  useEffect(() => {
+    if (contentRef.current) {
+      setMaxHeight(open ? `${contentRef.current.scrollHeight}px` : "0px");
+    }
+  }, [open, buttons]);
+
+  if (buttons.length === 0) return null;
+
+  return (
+    <div className="w-11/12">
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => handleToggleSection(title)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleToggleSection(title);
+          }
+        }}
+        className={`flex items-center justify-between mb-3 w-full rounded-xl pl-4 pr-2 py-2 cursor-pointer
+          transition-colors duration-200 ease-in-out
+          ${open ? "bg-azul-medio font-semibold text-white" : "hover:bg-azul-hover text-white"}`}
+      >
+        <span className="flex items-center gap-2">
+          {sectionIcons[title]} {title}
+        </span>
+        {open ? (
+          <MdExpandLess color="white" />
+        ) : (
+          <MdExpandMore color="white" />
+        )}
+      </div>
+
+      <div
+        ref={contentRef}
+        className="ml-6 flex flex-col gap-2 overflow-hidden transition-[max-height] duration-300 ease-in-out"
+        style={{ maxHeight }}
+      >
+        {renderButtons(buttons)}
+      </div>
+    </div>
+  );
+};
 
   const API_URL = import.meta.env.VITE_API_URL;
 

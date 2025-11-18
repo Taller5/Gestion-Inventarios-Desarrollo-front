@@ -41,3 +41,24 @@
     cursor: pointer;
   }
 }
+.auto-animate-enter {
+  opacity: 0;
+  transform: scale(0.98);
+}
+
+.auto-animate-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auto-animate-leave {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.auto-animate-leave-active {
+  opacity: 0;
+  transform: scale(0.98);
+  transition: opacity 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}

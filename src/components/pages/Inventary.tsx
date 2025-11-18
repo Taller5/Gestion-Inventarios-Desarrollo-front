@@ -2733,7 +2733,7 @@ export default function Inventary() {
                             })
                           }
                         >
-                          <option value="">-- Seleccionar --</option>
+                          <option value=""> Seleccionar</option>
                           {warehouses
                             .filter(
                               (w) =>

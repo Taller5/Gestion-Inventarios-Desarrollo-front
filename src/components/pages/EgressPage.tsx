@@ -44,17 +44,18 @@ export default function EgressPage() {
     "fecha",
   ];
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleString("es-CR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  };
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr); // dateStr es ISO UTC, p.ej. "2025-11-17T22:45:00Z"
+  return d.toLocaleString("es-CR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,39 +72,38 @@ export default function EgressPage() {
           }).then((res) => res.json()),
         ]);
 
-        // Mapeo de egresos incluyendo destino
-        const mappedEgresses = egressRes.map((eg: any) => {
-          const origen = warehousesRes.find(
-            (w: Warehouse) => w.bodega_id === eg.bodega_origen_id
-          );
-          const destino = warehousesRes.find(
-            (w: Warehouse) => w.bodega_id === eg.bodega_destino_id
-          );
+  const mappedEgresses = egressRes.map((eg: any) => {
+  const origen = warehousesRes.find(
+    (w: Warehouse) => w.bodega_id === eg.bodega_origen_id
+  );
+  const destino = warehousesRes.find(
+    (w: Warehouse) => w.bodega_id === eg.bodega_destino_id
+  );
 
-          return {
-            ...eg,
-            nombre_producto:
-              eg.producto?.nombre ||
-              eg.producto?.nombre_producto ||
-              "Producto no disponible",
+  return {
+    ...eg,
+    nombre_producto:
+      eg.producto?.nombre ||
+      eg.producto?.nombre_producto ||
+      "Producto no disponible",
 
-            // Origen
-            bodega_origen: origen?.codigo || "N/A",
-            sucursal_origen: origen?.branch?.nombre || "—",
-            negocio_origen: origen?.branch?.business?.nombre_comercial || "—",
+    // Origen
+    bodega_origen: origen?.codigo || "N/A",
+    sucursal_origen: origen?.branch?.nombre || "—",
+    negocio_origen: origen?.branch?.business?.nombre_comercial || "—",
 
-            // Destino
-            bodega_destino:
-              destino?.codigo || (eg.motivo === "traslado" ? "—" : ""),
-            sucursal_destino:
-              destino?.branch?.nombre || (eg.motivo === "traslado" ? "—" : ""),
-            negocio_destino:
-              destino?.branch?.business?.nombre_comercial ||
-              (eg.motivo === "traslado" ? "—" : ""),
-
-            fecha: formatDate(eg.fecha),
-          };
-        });
+    // Destino
+    bodega_destino:
+      destino?.codigo || (eg.motivo === "traslado" ? "—" : ""),
+    sucursal_destino:
+      destino?.branch?.nombre || (eg.motivo === "traslado" ? "—" : ""),
+    negocio_destino:
+      destino?.branch?.business?.nombre_comercial ||
+      (eg.motivo === "traslado" ? "—" : ""),
+fechaISO: eg.created_at,
+fecha: formatDate(eg.created_at),
+  };
+});
 
         setEgresses(mappedEgresses);
         setWarehouses(warehousesRes);
@@ -137,7 +137,8 @@ export default function EgressPage() {
       !selectedMotivo ||
       eg.motivo?.toLowerCase() === selectedMotivo.toLowerCase();
 
-    const egTime = new Date(eg.fecha).getTime();
+  const egTime = new Date(eg.fechaISO).getTime();
+
     const start = startDate
       ? new Date(`${startDate}T00:00:00`).getTime()
       : null;
