@@ -430,7 +430,7 @@ export default function CashRegisterPage() {
     const timer = setTimeout(() => setCloseModalAlert(null), 5000);
     return () => clearTimeout(timer);
   }, [closeModalAlert]);
-  const [reopenAmount, setReopenAmount] = useState<number>(5000);
+  const [reopenAmount,] = useState<number>(5000);
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
@@ -731,22 +731,26 @@ export default function CashRegisterPage() {
                     actualizado al actual (<b>{user.name}</b>).
                   </p>
 
+                   <label className="font-semibold">
+                    Monto de reapertura:
+                  </label>
+                  <input
+                    type="text"
+                    value={
+                      cashRegisterToClose?.available_amount
+                        ? Number(
+                            cashRegisterToClose.available_amount
+                          ).toLocaleString("es-CR", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })
+                        : "-"
+                    }
+                    readOnly
+                    className="w-full border rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed"
+                  />
+
                   <div className="flex flex-col gap-2">
-                    <label
-                      htmlFor="montoReapertura"
-                      className="text-sm text-gray-600 font-semibold"
-                    >
-                      Monto inicial (₡)
-                    </label>
-                    <input
-                      id="montoReapertura"
-                      type="number"
-                      min="5000"
-                      className="border rounded-lg px-3 py-2 w-full outline-none focus:ring-2 focus:ring-verde-claro"
-                      placeholder="₡5000 mínimo"
-                      value={reopenAmount}
-                      onChange={(e) => setReopenAmount(Number(e.target.value))}
-                    />
                   </div>
 
                   <div className="flex gap-4 justify-end mt-4">

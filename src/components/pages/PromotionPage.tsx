@@ -256,7 +256,7 @@ export default function PromotionPage() {
             )}
 
 
-            <hr className="my-6" />
+           
 
             {/* Tabla principal  */}
             {promotions.length > 0 || loading ? (

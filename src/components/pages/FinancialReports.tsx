@@ -269,7 +269,7 @@ const businessList = Array.from(
           )}
 
           {/* GANANCIA TOTAL */}
-          <p className="mt-4 font-semibold text-lg">
+          <p className="mt-4 font-semibold text-lg ">
             Ganancia bruta total: ₡ {totalGanancia.toLocaleString()}
           </p>
 
@@ -294,7 +294,7 @@ const businessList = Array.from(
 
           {/* TABLA */}
           {invoicesWithProfit.length > 0 && (
-            <div className="max-h-[24rem] overflow-y-auto rounded-lg border border-gray-200 shadow-sm">
+            <div className="overflow-y-auto rounded-lg">
               <TableInformation
                 headers={invoiceHeaders}
                 tableContent={invoicesWithProfit}

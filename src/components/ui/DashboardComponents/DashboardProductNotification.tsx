@@ -20,7 +20,7 @@ interface Producto {
 
 interface DashboardProductNotificationProps {
   lotes: Lote[];
-  productos: Producto[]; 
+  productos: Producto[];
   lowStockThreshold?: number;
 }
 
@@ -29,15 +29,12 @@ export default function DashboardProductNotification({
   productos,
   lowStockThreshold = 15,
 }: DashboardProductNotificationProps) {
-  // Estados de expansión
   const [showExpiring, setShowExpiring] = useState(false);
   const [showLowStock, setShowLowStock] = useState(false);
 
-  // Estados de descartes
   const [dismissedExpiring, setDismissedExpiring] = useState<(string | number)[]>([]);
   const [dismissedLowStock, setDismissedLowStock] = useState<(string | number)[]>([]);
 
-  // Lógica de productos próximos a vencer 
   const expiringNotifications = useMemo(() => {
     const now = new Date();
     return lotes
@@ -45,26 +42,18 @@ export default function DashboardProductNotification({
         if (!lote.fecha_vencimiento) return false;
         const vencimiento = new Date(lote.fecha_vencimiento);
         const diffDays = Math.ceil((vencimiento.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-        return (
-          diffDays > 0 &&
-          diffDays <= 14 &&
-          !dismissedExpiring.includes(lote.lote_id)
-        );
+        return diffDays > 0 && diffDays <= 14 && !dismissedExpiring.includes(lote.lote_id);
       })
       .map((lote) => ({
         id: lote.lote_id,
         producto: lote.nombre_producto,
         fecha: lote.fecha_vencimiento,
-        dias: Math.ceil(
-          (new Date(lote.fecha_vencimiento).getTime() - now.getTime()) /
-            (1000 * 60 * 60 * 24)
-        ),
+        dias: Math.ceil((new Date(lote.fecha_vencimiento).getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
         nombre: lote.nombre,
         numero_lote: lote.numero_lote,
       }));
   }, [lotes, dismissedExpiring]);
 
-  // productos con bajo stock (basada en la tabla product)
   const lowStockNotifications = useMemo(() => {
     return productos
       .filter(
@@ -73,51 +62,52 @@ export default function DashboardProductNotification({
           !dismissedLowStock.includes(producto.id)
       )
       .map((producto) => ({
-        id: producto.id, // ← usa producto_id como identificador único
+        id: producto.id,
         nombre_producto: producto.nombre_producto,
         stock: producto.stock,
       }));
   }, [productos, dismissedLowStock, lowStockThreshold]);
 
   return (
-    <div className="bg-yellow-100 p-4 rounded-xl mb-4">
-      {/*Productos próximos a vencer */}
+    <div className="bg-yellow-100 p-6 rounded-xl mb-6 shadow-md max-w-md mx-auto">
+      {/* Productos próximos a vencer */}
       <button
-        className="w-full flex items-center justify-between font-bold text-yellow-800 mb-2 text-lg px-2 py-2 rounded transition hover:bg-yellow-200"
         onClick={() => setShowExpiring((v) => !v)}
-        style={{ background: "none", border: "none", cursor: "pointer" }}
+        className="w-full flex items-center justify-between font-bold text-yellow-800 mb-4 text-lg px-4 py-3 rounded-lg transition-colors duration-300"
+        style={{ cursor: "pointer" }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#BCB350")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
       >
-        <span className="flex items-center gap-2">
-          <FaExclamationTriangle className="text-yellow-600" />
+        <span className="flex items-center gap-3">
+          <FaExclamationTriangle className="text-yellow-600 w-5 h-5" />
           Productos próximos a vencer
         </span>
-        <span>{showExpiring ? "▼" : "▲"}</span>
+        <span className="select-none">{showExpiring ? "▼" : "▲"}</span>
       </button>
 
       {showExpiring && (
-        <div style={{ maxHeight: "180px", overflowY: "auto", marginBottom: "12px" }}>
+        <div className="max-h-44 overflow-y-auto mb-4 pr-1 space-y-3 scrollbar-thin scrollbar-thumb-yellow-300 scrollbar-track-yellow-50">
           {expiringNotifications.length === 0 ? (
-            <div className="text-gray-500 text-sm px-2">
+            <div className="text-gray-600 text-sm px-2 italic select-none">
               No hay productos próximos a vencerse.
             </div>
           ) : (
             expiringNotifications.map((n) => (
               <div
                 key={n.id}
-                className="relative flex flex-col gap-1 py-3 px-3 mb-2 rounded-lg bg-yellow-50 border border-yellow-200"
-                style={{ paddingTop: "2.2rem" }}
+                className="relative flex flex-col gap-1 py-4 px-4 rounded-lg bg-yellow-50 border border-yellow-300 shadow-sm hover:shadow-md transition-shadow"
               >
                 <button
-                  className="absolute top-2 right-2 text-yellow-700 hover:text-red-600 text-xl font-bold p-2"
                   onClick={() => setDismissedExpiring((d) => [...d, n.id])}
                   aria-label="Descartar notificación"
                   title="Descartar"
+                  className="absolute top-3 right-3 text-yellow-700 hover:text-red-600 text-xl font-bold p-1 rounded-full transition-colors"
                   style={{ background: "none", border: "none", cursor: "pointer" }}
                 >
                   <IoClose />
                 </button>
-                <span className="text-base font-semibold text-yellow-900">{n.producto}</span>
-                <span className="text-sm text-gray-700 flex flex-row items-center gap-2">
+                <span className="text-base font-semibold text-yellow-900 truncate">{n.producto}</span>
+                <span className="text-sm text-gray-700 flex items-center gap-1 flex-wrap">
                   <b>Lote:</b> {n.nombre} <span className="mx-1">|</span>{" "}
                   <b>Número:</b> {n.numero_lote}
                 </span>
@@ -135,42 +125,42 @@ export default function DashboardProductNotification({
         </div>
       )}
 
-      {/*Productos con bajo stock */}
+      {/* Productos con bajo stock */}
       <button
-        className="w-full flex items-center justify-between font-bold text-yellow-800 mb-2 text-lg px-2 py-2 rounded transition hover:bg-yellow-200"
         onClick={() => setShowLowStock((v) => !v)}
-        style={{ background: "none", border: "none", cursor: "pointer" }}
+        className="w-full flex items-center justify-between font-bold text-yellow-800 mb-4 text-lg px-4 py-3 rounded-lg transition-colors duration-300"
+        style={{ cursor: "pointer" }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "#BCB350")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
       >
-        <span className="flex items-center gap-2">
-          <FaExclamationTriangle className="text-yellow-600" />
+        <span className="flex items-center gap-3">
+          <FaExclamationTriangle className="text-yellow-600 w-5 h-5" />
           Productos con bajo stock
         </span>
-        <span>{showLowStock ? "▼" : "▲"}</span>
+        <span className="select-none">{showLowStock ? "▼" : "▲"}</span>
       </button>
 
       {showLowStock && (
-        <div style={{ maxHeight: "180px", overflowY: "auto", marginBottom: "12px" }}>
+        <div className="max-h-44 overflow-y-auto mb-0 pr-1 space-y-3 scrollbar-thin scrollbar-thumb-yellow-300 scrollbar-track-yellow-50">
           {lowStockNotifications.length === 0 ? (
-            <div className="text-gray-500 text-sm px-2">No hay productos sin stock.</div>
+            <div className="text-gray-600 text-sm px-2 italic select-none">No hay productos sin stock.</div>
           ) : (
             lowStockNotifications.map((n) => (
               <div
                 key={n.id}
-                className="relative flex flex-col gap-1 py-3 px-3 mb-2 rounded-lg bg-yellow-50 border border-yellow-200"
-                style={{ paddingTop: "2.2rem" }}
+                className="relative flex flex-col gap-1 py-4 px-4 rounded-lg bg-yellow-50 border border-yellow-300 shadow-sm hover:shadow-md transition-shadow"
               >
                 <button
-                  className="absolute top-2 right-2 text-yellow-700 hover:text-red-600 text-xl font-bold p-2"
                   onClick={() => setDismissedLowStock((d) => [...d, n.id])}
                   aria-label="Descartar notificación"
                   title="Descartar"
+                  className="absolute top-3 right-3 text-yellow-700 hover:text-red-600 text-xl font-bold p-1 rounded-full transition-colors"
                   style={{ background: "none", border: "none", cursor: "pointer" }}
                 >
                   <IoClose />
                 </button>
-                <span className="">
-                  <b className="text-sm text-gray-700">Producto: </b>
-                  {n.nombre_producto}
+                <span className="text-sm text-gray-700 truncate">
+                  <b>Producto: </b> {n.nombre_producto}
                 </span>
                 <span className="text-sm text-gray-700">
                   <b>Stock total:</b>{" "}
