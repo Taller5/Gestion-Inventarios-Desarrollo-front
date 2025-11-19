@@ -733,7 +733,7 @@ export default function SalesPage() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor"]}>
       <Container
         page={
-          <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+          <div className="w-full flex justify-center px-2 md:px-10 overflow-x-hidden">
             <div className="w-full pl-4 pt-10">
               {/* Contenido principal */}
               <div className="flex-1 flex flex-col">

@@ -51,7 +51,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
    const sectionMap: { [key: string]: string } = {
     "/inventary": "Administración de Productos",
     "/provider": "Administración de Productos",
-    "/salespage": "Administración de Productos",
+    
     "/promotionpage": "Administración de Productos", // promociones dentro de Productos
 
     "/businesses": "Gestión",
@@ -60,6 +60,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
 
     "/finance": "Finanzas",
     "/cashregisterpage": "Finanzas",
+    "/salespage": "Finanzas",
 
     "/customer": "Administración de Usuarios",
     "/employees": "Administración de Usuarios",
