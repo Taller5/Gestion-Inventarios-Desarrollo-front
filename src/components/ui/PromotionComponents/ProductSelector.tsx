@@ -154,7 +154,7 @@ export default function ProductSelector({
       <button
         type="button"
         onClick={handleAdd}
-        className="bg-azul-medio text-white px-3 py-1 rounded hover:bg-azul-hover"
+        className="bg-azul-medio text-white px-3 py-1 rounded hover:bg-azul-hover font-bold"
       >
         Agregar producto
       </button>
@@ -202,7 +202,7 @@ export default function ProductSelector({
                   <button
                     type="button"
                     onClick={() => handleRemove(p.product_id)}
-                    className="text-white bg-rojo-claro hover:bg-rojo-oscuro px-3 py-1 rounded"
+                    className="text-white bg-rojo-claro hover:bg-rojo-oscuro px-3 py-1 rounded font-bold"
                   >
                     Eliminar
                   </button>

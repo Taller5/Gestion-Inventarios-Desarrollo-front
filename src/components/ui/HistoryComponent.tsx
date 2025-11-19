@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
+import { FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { SearchBar } from "./SearchBar";
+
 const API_URL = import.meta.env.VITE_API_URL;
 
 interface IAHistoryDiario {
   id: number;
   type: "diario";
-  product_name: string;
+  product_id: string;
   future_price: number;
   promotion_active: number;
   history: {
@@ -17,7 +20,7 @@ interface IAHistoryDiario {
 interface IAHistoryAnual {
   id: number;
   type: "anual";
-  product_name: string;
+  product_id: string | number; // <-- usa product_id
   future_price: number;
   promotion_active: number;
   history: Array<{
@@ -34,6 +37,14 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
   const [histories, setHistories] = useState<(IAHistoryDiario | IAHistoryAnual)[]>([]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [openDropdowns, setOpenDropdowns] = useState<{ [key: number]: boolean }>({});
+  const [productos, setProductos] = useState<{ id: string | number; nombre_producto: string }[]>([]);
+  const [filterProduct, setFilterProduct] = useState<{ id: string | number; nombre_producto: string } | null>(null);
+  const [filterDate, setFilterDate] = useState<string>("");
+  const [filterPromotion, setFilterPromotion] = useState<"" | "0" | "1">("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchBarKey, setSearchBarKey] = useState(0);
+  
 
   useEffect(() => {
     setPage(1);
@@ -49,6 +60,16 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
     setSelectedType(initialType ?? "diario");
   }, [initialType]);
 
+  useEffect(() => {
+    fetch(`${API_URL}/api/v1/products`)
+      .then((res) => res.json())
+      .then((data) => setProductos(data))
+      .catch(() => setProductos([]));
+  }, []);
+  useEffect(() => {
+  setPage(1);
+}, [filterProduct, filterDate, filterPromotion, searchQuery]);
+
   // Bloquea el scroll del body cuando el modal está abierto
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -57,25 +78,112 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
     };
   }, []);
 
-  const paginated = histories.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const toggleDropdown = (id: number) => {
+    setOpenDropdowns((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const filteredHistories = histories.filter((h) => {
+    // Filtra por producto
+    const matchProduct = !filterProduct || String(h.product_id) === String(filterProduct.id);
+    // Filtra por fecha (solo para diario)
+    const matchDate =
+      !filterDate ||
+      (h.type === "diario" &&
+        (
+          Array.isArray(h.history)
+            ? h.history.some((item) => item.prediction_date === filterDate)
+            : h.history && "prediction_date" in h.history && h.history.prediction_date === filterDate
+        )
+      );
+    // Filtra por promoción
+    const matchPromotion =
+      !filterPromotion || String(h.promotion_active) === filterPromotion;
+    return matchProduct && matchDate && matchPromotion;
+  });
+  const paginated = filteredHistories.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function getProductName(product_id: string | number) {
+    const prod = productos.find(p => String(p.id) === String(product_id));
+    return prod ? prod.nombre_producto : product_id;
+  }
 
   return (
     <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-60 backdrop-blur-md">
       <div
-        className="bg-white rounded-xl shadow-2xl max-w-3xl w-full p-6 relative border border-azul-medio"
-        style={{ maxHeight: "80vh", overflow: "hidden" }} // Limita la altura del modal
+        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 relative border border-azul-medio flex flex-col"
+        style={{ maxHeight: "90vh", minHeight: "70vh", overflow: "hidden" }} 
       >
         <button
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl"
+          className="absolute top-2 right-2 text-rojo-claro hover:text-rojo-oscuro text-xl font-bold"
           onClick={onClose}
         >
           &times;
         </button>
         <h2 className="text-2xl font-bold mb-4 text-azul-medio">Historial de Predicciones</h2>
 
+        <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
+          {/* Filtro por producto */}
+          <div className="w-full md:w-1/3">
+            <SearchBar
+              key={searchBarKey}
+              data={productos}
+              displayField="nombre_producto"
+              searchFields={["nombre_producto", "id"]}
+              placeholder="Buscar producto..."
+              onSelect={setFilterProduct}
+              value={searchQuery}
+              onInputChange={setSearchQuery}
+              resultFormatter={(item) =>
+                `${item.nombre_producto ?? "N/A"} (ID: ${item.id})`
+              }
+            />
+          </div>
+          {/* Filtro por fecha SOLO para diario */}
+          <div>
+            {selectedType === "diario" && (
+              <input
+                type="date"
+                value={filterDate}
+                onChange={(e) => setFilterDate(e.target.value)}
+                className="border rounded px-3 py-2 text-sm"
+                placeholder="Filtrar por fecha"
+              />
+            )}
+          </div>
+          {/* Filtro por promoción */}
+          <div>
+            <select
+              value={filterPromotion}
+              onChange={(e) => setFilterPromotion(e.target.value as "" | "0" | "1")}
+              className="border rounded px-3 py-2 text-sm"
+            >
+              <option value="">Promoción</option>
+              <option value="1">Sí</option>
+              <option value="0">No</option>
+            </select>
+          </div>
+          {/* Limpiar filtros */}
+          <button
+            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold"
+            onClick={() => {
+              setFilterProduct(null);
+              setSearchQuery("");
+              setFilterDate("");
+              setFilterPromotion("");
+              setPage(1);
+              setSearchBarKey(prev => prev + 1); // fuerza el reset del SearchBar
+            }}
+          >
+            Limpiar filtros
+          </button>
+        </div>
+
         <div
-          className="overflow-y-auto"
-          style={{ maxHeight: "65vh", paddingRight: "8px" }} // Área scrollable interna
+          className="flex-1 overflow-y-auto"
+          style={{ maxHeight: "calc(90vh - 120px)", paddingRight: "8px" }} // Área scrollable interna
         >
           {loading && (
             <div className="text-center text-gray-400 py-8">Cargando historial...</div>
@@ -91,7 +199,7 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
                   return (
                     <div key={h.id} className="p-4 bg-white rounded-lg shadow border border-gray-200">
                       <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-azul-medio">{h.product_name}</span>
+                        <span className="font-bold text-azul-medio">{getProductName(h.product_id)}</span>
                         <span className="text-xs text-gray-400">{new Date(h.created_at).toLocaleString()}</span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-sm mb-2">
@@ -122,59 +230,61 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
             <div className="mb-6">
               {paginated
                 .filter((h): h is IAHistoryAnual => h.type === "anual")
-                .map((h) => (
-                  <div key={h.id} className="mb-8 bg-white rounded-lg shadow border border-gray-200 p-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-azul-medio">{h.product_name}</span>
-                      <span className="text-xs text-gray-400">{new Date(h.created_at).toLocaleString()}</span>
+                .map((h) => {
+                  const isOpen = openDropdowns[h.id] || false;
+                  return (
+                    <div key={h.id} className="mb-4 bg-white rounded-lg shadow border border-gray-200 p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="font-bold text-azul-medio">{getProductName(h.product_id)}</span>
+                        <span className="text-xs text-gray-400">{new Date(h.created_at).toLocaleString()}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-sm mb-2">
+                        <span>Precio Propuesto:</span>
+                        <span>₡{h.future_price.toFixed(2)}</span>
+                        <span>Promoción activa:</span>
+                        <span>{h.promotion_active === 1 ? "Sí" : "No"}</span>
+                      </div>
+                      <button
+                        className="flex items-center gap-2 text-azul-medio font-semibold py-2 px-3 rounded hover:bg-azul-ultra-claro transition"
+                        onClick={() => toggleDropdown(h.id)}
+                        aria-expanded={isOpen}
+                      >
+                        <span>Ver detalle de meses</span>
+                        <span className="transition-transform duration-300">
+                          {isOpen ? <FaChevronUp /> : <FaChevronDown />}
+                        </span>
+                      </button>
+                      <div
+                        style={{
+                          maxHeight: isOpen ? "500px" : "0px",
+                          overflow: "hidden",
+                          transition: "max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                        }}
+                      >
+                        {isOpen && (
+                          <div className="overflow-x-auto mt-2">
+                            <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden shadow">
+                              <thead>
+                                <tr className="bg-azul-medio text-white">
+                                  <th className="py-2 px-3 border-b border-gray-200 text-left">Mes</th>
+                                  <th className="py-2 px-3 border-b border-gray-200 text-left">Cantidad Estimada</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {h.history.map((m, i) => (
+                                  <tr key={m.month} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
+                                    <td className="py-2 px-3 border-b border-gray-100 font-semibold">{m.month}</td>
+                                    <td className="py-2 px-3 border-b border-gray-100 font-semibold text-azul-medio">{m.quantity}</td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm mb-2">
-                      <span>Precio Propuesto:</span>
-                      <span>₡{h.future_price.toFixed(2)}</span>
-                      <span>Promoción activa:</span>
-                      <span>{h.promotion_active === 1 ? "Sí" : "No"}</span>
-                    </div>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm border border-gray-200 rounded-lg overflow-hidden shadow">
-                        <thead>
-                          <tr className="bg-azul-medio text-white">
-                            <th className="py-2 px-3 border-b border-gray-200 text-left">Mes</th>
-                            <th className="py-2 px-3 border-b border-gray-200 text-left">Cantidad Estimada</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {h.history.map((m, i) => (
-                            <tr key={m.month} className={i % 2 === 0 ? "bg-gray-50" : "bg-white"}>
-                              <td className="py-2 px-3 border-b border-gray-100 font-semibold">{m.month}</td>
-                              <td className="py-2 px-3 border-b border-gray-100 font-semibold text-azul-medio">{m.quantity}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          )}
-
-          {/* Paginación */}
-          {!loading && histories.length > PAGE_SIZE && (
-            <div className="flex justify-center gap-2 mt-4">
-              <button
-                className="px-3 py-1 rounded border bg-gray-100"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
-                Anterior
-              </button>
-              <span className="px-2 py-1">{page}</span>
-              <button
-                className="px-3 py-1 rounded border bg-gray-100"
-                disabled={page * PAGE_SIZE >= histories.length}
-                onClick={() => setPage(page + 1)}
-              >
-                Siguiente
-              </button>
+                  );
+                })}
             </div>
           )}
 
@@ -185,6 +295,36 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
             </div>
           )}
         </div>
+        {/* Paginación siempre dentro del modal */}
+        {!loading && filteredHistories.length > PAGE_SIZE && (
+          <div className="flex justify-center gap-4 mt-6">
+            <button
+              className={`px-4 py-2 rounded-lg font-semibold shadow transition 
+                ${page === 1
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-azul-medio text-white hover:bg-azul-oscuro hover:scale-105"}
+              `}
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              ← Anterior
+            </button>
+            <span className="px-4 py-2 rounded-lg bg-azul-ultra-claro text-azul-medio font-bold shadow">
+              Página {page}
+            </span>
+            <button
+              className={`px-4 py-2 rounded-lg font-semibold shadow transition 
+                ${page * PAGE_SIZE >= filteredHistories.length
+                  ? "bg-gray-200 text-gray-400 cursor-not-allowed"
+                  : "bg-azul-medio text-white hover:bg-azul-oscuro hover:scale-105"}
+              `}
+              disabled={page * PAGE_SIZE >= filteredHistories.length}
+              onClick={() => setPage(page + 1)}
+            >
+              Siguiente →
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -371,7 +371,7 @@ const handleProductsChange = (newProducts: any[], valorNum?: number) => {
           </div>
           <div>
             <label className="block font-medium mb-1">
-              {form.tipo === "porcentaje" ? "Valor (%)" : "Valor (%)"}
+              {form.tipo === "porcentaje" ? "Descuento (%)" : "Descuento (%)"}
             </label>
         <input
   name="valor"
@@ -548,14 +548,14 @@ const handleProductsChange = (newProducts: any[], valorNum?: number) => {
           <button
             type="button"
             onClick={onClose}
-            className="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg"
+            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg font-bold"
           >
             Cancelar
           </button>
           <button
             type="submit"
             disabled={loading}
-            className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg"
+            className="bg-verde-claro hover:bg-verde-oscuro text-white px-4 py-2 rounded-lg font-bold"
           >
             {loading ? "Guardando..." : editing ? "Actualizar" : "Crear"}
           </button>
