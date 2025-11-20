@@ -1,12 +1,12 @@
 import ProtectedRoute from "../services/ProtectedRoute";
 import Container from "../ui/Container";
-import DashboardInformation from "../ui/DashboardComponents/DashboardInformation";
 import DashboardGraphics from "../ui/DashboardComponents/DashboardGraphics";
 import { useEffect, useState } from "react";
 import type { Branch } from "../ui/DashboardComponents/DashboardInformation";
-import DashboardButtons from "../ui/DashboardComponents/DashboardButtons";
 import InfoIcon from "../ui/InfoIcon";
 import DashboardProductNotification from "../ui/DashboardComponents/DashboardProductNotification";
+import DashboardInformation from "../ui/DashboardComponents/DashboardInformation";
+import { ColaboradoresButton, NegociosButton, ProductosButton } from "../ui/DashboardComponents/DashboardButtons";
 
 export default function Dashboard() {
   localStorage.getItem("user");
@@ -14,8 +14,10 @@ export default function Dashboard() {
   const [userBranch, setUserBranch] = useState<Branch | null>(null);
   const [lotes, setLotes] = useState([]);
   const [productos, setProductos] = useState([]); // ← Nuevo estado para productos
+  const [promotions, setPromotions] = useState([]);
+  const [branches, setBranches] = useState([]);
 
-  // Fetch para lotes (ya existente)
+  // Fetch para lotes 
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/batch`)
       .then((res) => res.json())
@@ -23,12 +25,25 @@ export default function Dashboard() {
       .catch(() => setLotes([]));
   }, []);
 
-  // 🔹 Nuevo fetch para productos
+  //fetch para productos
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/v1/products`)
       .then((res) => res.json())
       .then((data) => setProductos(data))
       .catch(() => setProductos([]));
+  }, []);
+
+  // Fetch para promociones y sucursales (nuevo)
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/promotions`)
+      .then((res) => res.json())
+      .then((data) => setPromotions(data))
+      .catch(() => setPromotions([]));
+
+    fetch(`${import.meta.env.VITE_API_URL}/api/v1/branches`)
+      .then((res) => res.json())
+      .then((data) => setBranches(data))
+      .catch(() => setBranches([]));
   }, []);
 
   return (
@@ -47,10 +62,56 @@ export default function Dashboard() {
                 />
               </h1>
 
-              {/* Botones principales */}
-              <DashboardButtons role={user.role} />
+              {/* Grid principal: 4 columnas */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
+                {/* Columna 1 */}
+                <div className="flex flex-col gap-4">
+                  <ColaboradoresButton />
+                  {/* Notificación bajo stock */}
+                  <DashboardProductNotification
+                    lotes={lotes}
+                    productos={productos}
+                    promotions={promotions}
+                    branches={branches}
+                    lowStockThreshold={15}
+                    type="lowStock"
+                  />
+                </div>
+                {/* Columna 2 */}
+                <div className="flex flex-col gap-4">
+                  <NegociosButton />
+                  {/* Notificación productos próximos a vencer */}
+                  <DashboardProductNotification
+                    lotes={lotes}
+                    productos={productos}
+                    promotions={promotions}
+                    branches={branches}
+                    lowStockThreshold={15}
+                    type="expiring"
+                  />
+                </div>
+                {/* Columna 3 */}
+                <div className="flex flex-col gap-4">
+                  <ProductosButton />
+                  {/* Notificación promociones */}
+                  <DashboardProductNotification
+                    promotions={promotions}
+                    branches={branches}
+                    lotes={lotes}
+                    productos={productos}
+                    lowStockThreshold={15}
+                    type="promo"
+                  />
+                </div>
+                {/* Columna 4: Info usuario */}
+                <div className="flex flex-col gap-4">
+                   {user.role !== "bodeguero" ? (
+                <DashboardInformation onSucursalLoaded={setUserBranch} />
+              ) : null}
+                </div>
+              </div>
 
-              {/* Gráfico */}
+              {/* Gráfico debajo del grid principal */}
               <div className="mt-8 w-full h-auto lg:h-[400px]">
                 {user.role !== "bodeguero" && user.role !== "vendedor" ? (
                   <DashboardGraphics branch={userBranch} />
@@ -62,19 +123,6 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-            </div>
-
-            {/* Side Info */}
-            <div className="mt-8 pt-14 md:mt-0 md:ml-6 w-full md:w-[320px] flex-shrink-0 min-w-0">
-              {/* Notificaciones */}
-              <DashboardProductNotification
-                lotes={lotes}
-                productos={productos} 
-                lowStockThreshold={15}
-              />
-              {user.role !== "bodeguero" ? (
-                <DashboardInformation onSucursalLoaded={setUserBranch} />
-              ) : null}
             </div>
           </div>
         }

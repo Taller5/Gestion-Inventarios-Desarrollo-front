@@ -3,7 +3,6 @@ import Button from "./Button";
 import { TbReportSearch, TbReportMoney } from "react-icons/tb";
 import { HiOutlineChartBar } from "react-icons/hi";
 import { ArrowUpRight  } from "lucide-react";
-import { FaTruck } from "react-icons/fa";
 import {
   MdInventory,
   MdPeople,
@@ -21,6 +20,8 @@ import {
   MdOutlineApartment,
   MdSavings,
   MdMonetizationOn,
+  MdOutlineReceiptLong,
+  MdTrendingUp,
   
 
 } from "react-icons/md";
@@ -50,7 +51,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
    const sectionMap: { [key: string]: string } = {
     "/inventary": "Administración de Productos",
     "/provider": "Administración de Productos",
-    "/salespage": "Administración de Productos",
+    
     "/promotionpage": "Administración de Productos", // promociones dentro de Productos
 
     "/businesses": "Gestión",
@@ -59,6 +60,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
 
     "/finance": "Finanzas",
     "/cashregisterpage": "Finanzas",
+    "/salespage": "Finanzas",
 
     "/customer": "Administración de Usuarios",
     "/employees": "Administración de Usuarios",
@@ -69,7 +71,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     "/financialreports": "Reportes",
     "/egresspage": "Reportes",
     "/ingresspage": "Reportes",
-    "/haciendareport": "Reportes", // ejemplo adicional si lo usas
+    "/haciendareport": "Reportes", 
   };
 
   const currentSection = Object.keys(sectionMap).find((path) =>
@@ -166,12 +168,12 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
   );
   const btnIngresos = (
     <Button style={btnStyle} to="/ingresspage">
-      <FaTruck size={20} color="white" /> Reportes de Ingresos
+      <MdTrendingUp size={20} color="white" /> Reportes de Ingresos
     </Button>
   );
   const btnHaciendaReports = (
     <Button style={btnStyle} to="/haciendareport">
-      <TbReportSearch size={20} color="white" /> Reportes Hacienda
+      <MdOutlineReceiptLong size={20} color="white" /> Reportes Hacienda
     </Button>
   );
 
