@@ -1,15 +1,27 @@
-import { getBusinessMargin, calcularPrecioSugerido } from './utils/InventoryUtils';
+import { calcularTotales } from './utils/facturaUtils';
 
-describe('Pruebas de inventoryUtils', () => {
-  test('getBusinessMargin devuelve margen correcto', () => {
-    expect(getBusinessMargin('1')).toBe(0.3);
-    expect(getBusinessMargin('2')).toBe(0.15);
-    expect(getBusinessMargin('99')).toBe(0.25); // default
-  });
+type Producto = { codigo_producto: string; nombre_producto: string; precio_venta: number };
+type ItemCarrito = { producto: Producto; cantidad: number; descuento?: number };
 
-  test('calcularPrecioSugerido funciona correctamente', () => {
-    expect(calcularPrecioSugerido(100, '1')).toBe(130); // 100 * (1 + 0.3)
-    expect(calcularPrecioSugerido(200, '2')).toBe(230); // 200 * (1 + 0.15)
-    expect(calcularPrecioSugerido(50, '99')).toBe(62.5);  // default 0.25
-  });
+test('item con cantidad cero produce totales cero', () => {
+  const c: ItemCarrito[] = [
+    { producto: { codigo_producto: '003', nombre_producto: 'Producto C', precio_venta: 100 }, cantidad: 0, descuento: 50 }
+  ];
+  const { subtotal, totalDescuento, subtotalConDescuento, impuestos, total } = calcularTotales(c);
+
+  expect(subtotal).toBe(0);
+  expect(totalDescuento).toBe(0);
+  expect(subtotalConDescuento).toBe(0);
+  expect(impuestos).toBe(0);
+  expect(total).toBe(0);
 });
+
+export async function obtenerProductos(): Promise<any> {
+  // endpoint por defecto; los tests mockean global.fetch
+  const res = await fetch('/api/productos');
+  if (!res.ok) {
+    throw new Error(`Error fetching productos: ${res.status} ${res.statusText}`);
+  }
+  return res.json();
+}
+

@@ -1,5 +1,5 @@
 // tests/facturaUtils.test.ts
-import { calcularSubtotal, calcularTotales } from './utils/facturaUtils'; // lógica separada
+import { calcularSubtotal, calcularTotales } from './utils/facturaUtils';
 
 type Producto = { codigo_producto: string; nombre_producto: string; precio_venta: number };
 type ItemCarrito = { producto: Producto; cantidad: number; descuento?: number };
@@ -11,7 +11,7 @@ const carrito: ItemCarrito[] = [
 
 test('calcular subtotal', () => {
   const subtotal = calcularSubtotal(carrito);
-  expect(subtotal).toBe(2300); // 1800 + 500
+  expect(subtotal).toBe(2300); // 1000*2 + 500*1 - 10% de 2000 = 2300
 });
 
 test('calcular totales con descuento e impuestos', () => {
