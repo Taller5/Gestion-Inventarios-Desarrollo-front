@@ -254,7 +254,8 @@ const Section = ({
   if (buttons.length === 0) return null;
 
   return (
-    <div className="w-11/12">
+<div className="w-full px-3">
+
       <div
         role="button"
         tabIndex={0}
@@ -422,7 +423,8 @@ useEffect(() => {
 
   return (
     <>
-<section className="bg-azul-oscuro hidden lg:flex lg:w-[300px] min-h-screen flex-col pt-4">
+<section className="bg-azul-oscuro hidden lg:flex w-[300px] min-h-screen flex-col pt-4 shrink-0">
+
   {sidebarContent}
 </section>
 
