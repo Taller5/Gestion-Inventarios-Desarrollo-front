@@ -27,6 +27,7 @@ interface FacturaModalProps {
   errorSucursal?: string | null;
   procesandoVenta: boolean;
   documentType: 'auto' | '01' | '04';
+  mostrarAlerta: (type: 'success' | 'error', message: string) => void;
 }
 
 export default function FacturaModal({
@@ -50,6 +51,7 @@ export default function FacturaModal({
   errorSucursal,
   procesandoVenta,
   documentType,
+  mostrarAlerta,
 }: FacturaModalProps) {
   if (!facturaModal) return null;
 
@@ -62,7 +64,7 @@ export default function FacturaModal({
   const pollingRef = useRef<number | null>(null);
    const askedToSendRef = useRef(false);
    const [awaitingHaciendaPrompt, setAwaitingHaciendaPrompt] = useState(false);
-  const autoSendRef = useRef(false);
+  // Ya no se auto-envía: 'auto' (Solo generar) solo crea el comprobante local
   const [voucherError, setVoucherError] = useState<string | null>(null);
   
 
@@ -122,11 +124,11 @@ export default function FacturaModal({
     try {
       await finalizarVenta(e);
       // HACIENDA
-      // Solo preguntar si el select está en tiquete o factura (no en auto)
+      // Si es tiquete o factura, preguntar envío a Hacienda
       if (documentType === '04' || documentType === '01') {
         setAwaitingHaciendaPrompt(true);
       } else {
-        autoSendRef.current = true;
+        // Solo generar: cerrar modal sin enviar
         setFacturaModal(false);
       }
     } finally {
@@ -153,20 +155,9 @@ export default function FacturaModal({
   }, [facturaModal]);
 
   
-  // En cuanto exista la factura:
-  // - si es auto y hay pendiente autoSend, enviamos sin preguntar
-  // - si no es auto y aún no preguntamos, abrimos confirmación
+  // Cuando exista la factura y se solicitó enviar (tiquete/factura), abrir confirmación una sola vez
   useEffect(() => {
     if (!facturaModal || !facturaCreada?.id) return;
-
-    if (autoSendRef.current) {
-      autoSendRef.current = false;
-      void (async () => {
-        await handleEnviarAHacienda();
-      })();
-      return;
-    }
-
     if (awaitingHaciendaPrompt && !askedToSendRef.current) {
       setConfirmSendOpen(true);
       askedToSendRef.current = true;
@@ -183,6 +174,11 @@ export default function FacturaModal({
 
       if (s === "ACCEPTED" || s === "REJECTED") {
         setSending(false);
+        if (s === "ACCEPTED") {
+          mostrarAlerta("success", "Comprobante aceptado por Hacienda");
+        } else {
+          mostrarAlerta("error", "Comprobante rechazado por Hacienda");
+        }
         return;
       }
 
@@ -212,6 +208,11 @@ export default function FacturaModal({
       const s = normalizeStatus(String(raw));
 
       if (s === "ACCEPTED" || s === "REJECTED") {
+        if (s === "ACCEPTED") {
+          mostrarAlerta("success", "Comprobante aceptado por Hacienda");
+        } else {
+          mostrarAlerta("error", "Comprobante rechazado por Hacienda");
+        }
         return;
       }
 
@@ -243,17 +244,33 @@ export default function FacturaModal({
       const tipo = (facturaCreada?.document_type as '01' | '04' | undefined) || (documentType !== 'auto' ? documentType as '01' | '04' : undefined);
       await generateInvoiceXml(facturaCreada.id, tipo);
       setXmlGenerating(false);
+      mostrarAlerta("success", "XML generado correctamente");
 
       // Enviar a Hacienda y luego consultar estado
       setSending(true);
-      await submitInvoice(facturaCreada.id, tipo);
+      try {
+        const resp = await submitInvoice(facturaCreada.id, tipo);
+        const msg = resp?.message || "Enviado a Hacienda";
+        mostrarAlerta("success", msg);
+      } catch (err: any) {
+        mostrarAlerta(
+          "error",
+          `Error al enviar a Hacienda${err?.message ? ": " + err.message : ""}`
+        );
+        setSending(false);
+        return;
+      }
       // Iniciar polling en segundo plano para que el backend reciba los cambios de estado
       void pollStatusInBackground(facturaCreada.id, 1);
-      // Como cerraremos el modal, liberamos el estado de envío
+      
       setSending(false);
     } catch (err: any) {
       setXmlGenerating(false);
       setSending(false);
+      mostrarAlerta(
+        "error",
+        `Error al generar el XML${err?.message ? ": " + err.message : ""}`
+      );
     }
   };
 

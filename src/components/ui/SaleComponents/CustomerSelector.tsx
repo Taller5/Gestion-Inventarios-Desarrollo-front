@@ -3,6 +3,7 @@ import Button from "../Button";
 import { MdStore } from "react-icons/md";
 import { FaRegCircleUser } from 'react-icons/fa6';
 import type { Customer } from "../../../types/salePage";
+import InfoIcon from "../InfoIcon";
 
 interface Props {
   queryCliente: string;
@@ -33,16 +34,28 @@ export default function CustomerSelector({
   <div className="mb-6 w-full  mx-auto">
       {/* Selectores compactos */}
       <div className="mb-3 flex flex-wrap items-center gap-3">
-        <span className="text-sm font-semibold text-gray-700">Comprobante:</span>
+        <span className="text-lg font-semibold  flex items-center gap-2">
+          Comprobante
+          
+        </span>
         <select
-          className="border rounded px-2 py-1 text-sm w-auto"
+          className="cursor-pointer min-h-[34px] text-lg  text-black rounded px-3 py-1 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
           value={documentType}
           onChange={(e) => setDocumentType(e.target.value as 'auto' | '04' | '01')}
         >
-          <option value="auto">Auto</option>
-          <option value="04">Tiquete (04)</option>
-          <option value="01">Factura (01)</option>
+          <option value="auto">Generar factura (sin envio)</option>
+          <option value="04">Tiquete electrónico</option>
+          <option value="01">Factura electrónica</option>
         </select>
+        <InfoIcon
+            title="Tipo de documento"
+            description={
+              "Generar factura: Crea el comprobante internamente sin intentar enviarlo a Hacienda. Útil para pruebas o registros internos.\n" +
+              "Tiquete Electrónico: Documento simplificado para ventas rápidas y clientes genéricos; no requiere todos los datos del receptor y se puede enviar a Hacienda.\n" +
+              "Factura Electrónica: Comprobante fiscal completo obligatorio para clientes con identificación válida; se envía a Hacienda y genera XML fiscal."
+            }
+            containerClassName="whitespace-pre-line w-96 sm:w-[40rem]"
+          />
       </div>
       {/* Buscador */}
       <div className="relative mb-2 w-full">
@@ -125,7 +138,7 @@ export default function CustomerSelector({
           <FaRegCircleUser className="mr-1" size={20} /> Cliente genérico
         </Button>
         {documentType === '01' && clienteSeleccionado?.identity_number === 'N/A' && (
-          <p className="text-red-600 text-xs font-semibold">Seleccione un cliente real para Factura (01).</p>
+          <p className="text-red-600 text-normal font-semibold">Seleccione un cliente real para Factura electrónica.</p>
         )}
       </div>
 
