@@ -239,8 +239,8 @@ export default function HaciendaReports() {
   return (
     <ProtectedRoute allowedRoles={['administrador','supervisor']}>
       <Container page={
-        <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
-          <div className="w-full pl-4">
+      <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+            <div className="w-full px-2 md:px-10 mx-auto">
             <div className="flex items-center gap-3 mb-6 mt-6">
               <h1 className="text-3xl font-bold">Reporte Hacienda</h1>
               {/* Se puede agregar un InfoIcon si se desea */}

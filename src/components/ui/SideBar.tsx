@@ -422,10 +422,10 @@ useEffect(() => {
 
   return (
     <>
-      {/* Sidebar desktop */}
-      <section className="bg-azul-oscuro w-1/6 min-w-[200px] min-h-screen flex-col pt-4 hidden lg:flex">
-        {sidebarContent}
-      </section>
+<section className="bg-azul-oscuro hidden lg:flex lg:w-[300px] min-h-screen flex-col pt-4">
+  {sidebarContent}
+</section>
+
 
 {/* Sidebar mobile */}
 {isOpen && (
@@ -434,7 +434,8 @@ useEffect(() => {
     <div className="absolute inset-0 bg-black/30" onClick={onClose} />
 
     {/* Contenedor del sidebar */}
-    <div className="relative w-64 min-h-screen bg-azul-oscuro flex flex-col pt-16 overflow-y-auto">
+   <div className="relative w-[220px] min-h-screen bg-azul-oscuro flex flex-col pt-16 overflow-y-auto">
+
       {/* Botón de cerrar */}
       <button
         className="absolute top-4 right-4 text-white text-2xl z-20"
