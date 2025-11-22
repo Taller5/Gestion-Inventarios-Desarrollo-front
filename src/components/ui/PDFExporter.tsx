@@ -27,14 +27,27 @@ const PDFExporter: FC<PDFExporterProps> = ({
     // Mapear filas
     const rows = data.map((row) => headers.map((key) => row[key] ?? ""));
 
-    // Tabla
-    autoTable(doc, {
-      head: [headers],
-      body: rows,
-      startY: 25, // un poco debajo del título
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [22, 160, 133] }, // verde bonito
-    });
+   autoTable(doc, {
+  head: [headers],
+  body: rows,
+  startY: 25,
+  styles: {
+    fontSize: 8,            // reduce texto
+    cellPadding: 1.2,
+    overflow: "linebreak",  // permite texto multi-línea
+  },
+  headStyles: { fillColor: [22, 160, 133] },
+  columnStyles: {
+    // autoTable calculará automáticamente los widths
+    0: { cellWidth: "auto" },
+    1: { cellWidth: "auto" },
+    // podrías poner más si quieres columnas más estrechas
+  },
+  tableWidth: "wrap",       // ajusta ancho de la tabla
+  pageBreak: "auto",        // divide en varias páginas si es muy grande
+  horizontalPageBreak: true // divide horizontalmente si hay demasiadas columnas
+});
+
 
     // Guardar archivo
     doc.save(fileName);

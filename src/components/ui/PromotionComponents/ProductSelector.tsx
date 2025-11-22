@@ -35,37 +35,37 @@ export default function ProductSelector({
     label: p.nombre_producto,
   }));
 
-  const handleAdd = () => {
-    if (!selectedOption) return;
+const handleAdd = () => {
+  if (!selectedOption) return;
 
-    // Validación combo
-    if (selected.length >= 1 && tipo !== "combo") {
-      setModalMessage("Si deseas agregar un producto, debes seleccionar  combo.");
-      return;
-    }
+  //  Solo 1 producto permitido en porcentaje
+  if (tipo === "porcentaje" && selected.length >= 1) {
+    setModalMessage("Para promociones individuales solo puedes agregar un producto.");
+    return;
+  }
 
-    // Validación producto duplicado
-    const exists = selected.find((p) => p.product_id === selectedOption.value);
-    if (exists) {
-      setModalMessage("Este producto ya fue agregado."); // <-- mensaje en modal
-      return;
-    }
+  // Validar duplicado
+  const exists = selected.find((p) => p.product_id === selectedOption.value);
+  if (exists) {
+    setModalMessage("Este producto ya fue agregado.");
+    return;
+  }
 
-    // Bloquear porcentaje > 100
-    let appliedDescuento = descuento;
-    if (tipo === "porcentaje" && appliedDescuento > 100) appliedDescuento = 100;
+  let appliedDescuento = descuento;
+  if (tipo === "porcentaje" && appliedDescuento > 100) appliedDescuento = 100;
 
-    const nuevo = {
-      product_id: selectedOption.value,
-      cantidad,
-      descuento: appliedDescuento,
-    };
-
-    onChange([...selected, nuevo]);
-    setSelectedOption(null);
-    setCantidad(1);
-    setDescuento(0);
+  const nuevo = {
+    product_id: selectedOption.value,
+    cantidad,
+    descuento: appliedDescuento,
   };
+
+  onChange([...selected, nuevo]);
+  setSelectedOption(null);
+  setCantidad(1);
+  setDescuento(0);
+};
+
 
   const handleRemove = (id: number) => {
     onChange(selected.filter((p) => p.product_id !== id));
@@ -84,6 +84,21 @@ export default function ProductSelector({
       )
     );
   };
+useEffect(() => {
+  const validIds = productos.map(p => p.id);
+
+  const filtered = selected.filter(s => validIds.includes(s.product_id));
+
+  if (filtered.length !== selected.length) {
+    onChange(filtered); // elimina productos que ya no existen
+  }
+}, [productos]);
+useEffect(() => {
+  if (tipo === "porcentaje" && selected.length > 1) {
+    onChange([]); // limpiar carrito
+    setModalMessage("Las promociones individuales solo permiten un producto. Carrito limpiado.");
+  }
+}, [tipo]);
 
   // Cerrar modal automáticamente después de 2 seg
   useEffect(() => {
@@ -136,7 +151,7 @@ export default function ProductSelector({
 
         <div className="col-span-1">
           <label htmlFor="descuento" className="block font-medium mb-1">
-            Descuento aplicado
+            Descuento individual (Opcional)
           </label>
           <input
             id="descuento"
