@@ -50,6 +50,7 @@ import AddProductModal from "../ui/SaleComponents/AddProductModal";
 import SucursalModal from "../ui/SaleComponents/SucursalModal";
 import FacturaModal from "../ui/SaleComponents/FacturaModal";
 import CashRegisterModal from "../ui/SaleComponents/CashRegisterModal";
+import { generateInvoiceXml } from "../../services/invoice.service";
 
 export default function SalesPage() {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
@@ -617,6 +618,18 @@ export default function SalesPage() {
         setFacturaCreada(responseData);
         setLoadingFactura(true); //  dispara useEffect para generar PDF solo cuando tengamos ID
 
+        // Intenta generar el XML y mostrar confirmación
+        try {
+          await generateInvoiceXml(responseData.id, resolvedDocumentType);
+          mostrarAlerta("success", "XML generado correctamente");
+        } catch (err: any) {
+          console.error("Error al generar XML:", err);
+          mostrarAlerta(
+            "error",
+            `Error al generar el XML${err?.message ? ": " + err.message : ""}`
+          );
+        }
+
         // --- Actualizar caja según método de pago ---
         if (!cajaSeleccionada?.id) {
           mostrarAlerta(
@@ -859,6 +872,7 @@ export default function SalesPage() {
                 errorSucursal={errorSucursal}
                 procesandoVenta={procesandoVenta} // 
                 documentType={documentType}
+                mostrarAlerta={mostrarAlerta}
               />
 
               {/* Alert */}
