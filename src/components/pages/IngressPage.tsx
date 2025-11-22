@@ -142,7 +142,7 @@ export default function IngressPage() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-       <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+<div className="w-full max-w-[1200px] px-2 sm:px-4 md:px-6 lg:px-10 flex flex-col pb-10">
             <div className="w-full px-2 md:px-10 mx-auto">
               <h1 className="text-3xl font-bold mb-6 mt-6">
                 Reporte de Ingresos
