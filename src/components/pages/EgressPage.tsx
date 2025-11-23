@@ -30,19 +30,21 @@ export default function EgressPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const egressHeaders = [
-    "id",
-    "codigo_producto",
-    "nombre_producto",
-    "cantidad",
-    "motivo",
-    "descripcion",
-    "sucursal_origen",
-    "negocio_origen",
-    "sucursal_destino",
-    "negocio_destino",
-    "fecha",
-  ];
+ const egressHeaders = [
+  "ID",
+  "Código producto",
+  "Nombre producto",
+  "Cantidad",
+  "Motivo",
+  "Descripción",
+  "Sucursal origen",
+  "Negocio origen",
+  "Sucursal destino",
+  "Negocio destino",
+  "Fecha",
+];
+
+
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr); // dateStr es ISO UTC, p.ej. "2025-11-17T22:45:00Z"
@@ -155,6 +157,19 @@ fecha: formatDate(eg.created_at),
     setStartDate("");
     setEndDate("");
   };
+const tableContent = filteredEgresses.map((e) => ({
+  ID: e.id,
+  "Código producto": e.codigo_producto,
+  "Nombre producto": e.nombre_producto,
+  Cantidad: e.cantidad,
+  Motivo: e.motivo,
+  Descripción: e.descripcion || "-",
+  "Sucursal origen": e.sucursal_origen,
+  "Negocio origen": e.negocio_origen,
+  "Sucursal destino": e.sucursal_destino,
+  "Negocio destino": e.negocio_destino,
+  Fecha: e.fecha, // ya formateada
+}));
 
   return (
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
@@ -255,12 +270,12 @@ fecha: formatDate(eg.created_at),
               {filteredEgresses.length > 0 && (
                 <div className="mb-4 flex gap-4">
                   <ExcelExporter
-                    data={filteredEgresses}
+                    data={tableContent}
                     headers={egressHeaders}
                     fileName={`Egresos.xlsx`}
                   />
                   <PDFExporter
-                    data={filteredEgresses}
+                    data={tableContent}
                     headers={egressHeaders}
                     fileName={`Egresos.pdf`}
                     reportTitle={`Reporte de Egresos`}
@@ -271,7 +286,7 @@ fecha: formatDate(eg.created_at),
          
                 <TableInformation
                   headers={egressHeaders}
-                  tableContent={filteredEgresses}
+                  tableContent={tableContent}
                     loading={loading}
                 skeletonRows={8}
                 />
