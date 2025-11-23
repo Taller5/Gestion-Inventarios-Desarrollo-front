@@ -298,10 +298,9 @@ export default function Businesses() {
     <ProtectedRoute allowedRoles={["administrador", "supervisor"]}>
       <Container
         page={
-        <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+<div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
+  <div className="w-full max-w-full md:max-w-4xl flex flex-col pt-10 m-2">
 
-           
-            <div className="w-full pl-10 pt-10">
               <h1 className="text-2xl font-bold mb-6 text-left">
                 Gestionar Negocios
                 <InfoIcon
@@ -313,7 +312,7 @@ export default function Businesses() {
                 <div className="w-full h-10">
                   <SearchBar<Business>
                     data={businesses}
-                    displayField="negocio_id" // ⚠️ se deja cualquier campo para tipado, no afecta el formatter
+                    displayField="negocio_id" //  se deja cualquier campo para tipado, no afecta el formatter
                     searchFields={["negocio_id", "nombre_legal"]}
                     placeholder="Buscar por ID o nombre legal..."
                     onResultsChange={(results) => {

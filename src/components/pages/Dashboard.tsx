@@ -52,9 +52,12 @@ export default function Dashboard() {
     >
       <Container
         page={
-          <div className="flex flex-col md:flex-row w-full max-w-full px-4 md:px-10 pt-6 overflow-x-hidden">
-            <div className="overflow-x-hidden w-full max-w-full
-">
+   <div className="flex flex-col md:flex-row w-full max-w-full px-4 md:px-10 pt-6 
+                overflow-x-hidden overscroll-x-none whitespace-normal">
+
+    <div className="w-full max-w-full overflow-x-hidden overflow-y-auto">
+
+
               <h1 className="text-2xl font-bold mb-6">
                 Bienvenido a Gestior, {user.name}
                 <InfoIcon
