@@ -62,3 +62,9 @@
   transform: scale(0.98);
   transition: opacity 450ms cubic-bezier(0.22, 1, 0.36, 1), transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
 }
+html, body {
+  overflow-x: hidden !important;
+}
+* {
+  max-width: 100% !important;
+}
