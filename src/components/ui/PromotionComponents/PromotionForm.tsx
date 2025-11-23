@@ -332,8 +332,15 @@ export default function PromotionFormModal({
   };
 
   return (
-<div className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-4 md:px-6 lg:px-8 xl:px-150">
+<div className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-4 md:px-6 lg:px-8 xl:px-96 overflow-hidden">
+  {/* Fondo translúcido con blur */}
   <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+
+  {/* Modal */}
+  <div
+
+    style={{ width: "40rem", maxHeight: "90vh" }}
+  >
 
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
@@ -598,5 +605,6 @@ export default function PromotionFormModal({
         )}
       </form>
     </div>
+     </div>
   );
 }
