@@ -296,47 +296,57 @@ export default function PromotionPage() {
               </div>
             )}
 
-            {/* Modal de productos (Ver más) */}
-            {productsModal.open && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-                <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl p-6 mx-4 overflow-y-auto max-h-[90vh]">
-                  <h3 className="text-xl font-semibold mb-4">
-                    {productsModal.promoName} — Productos
-                  </h3>
-                  <table className="w-full table-auto border-collapse text-sm">
-                    <thead>
-                      <tr className="bg-gray-100 text-left">
-                        <th className="border px-2 py-1">ID</th>
-                        <th className="border px-2 py-1">Nombre</th>
-                        <th className="border px-2 py-1">Cantidad</th>
-                        <th className="border px-2 py-1">Descuento (%)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {productsModal.products.map((p, i) => {
-                        const prod = productos.find((pr) => pr.id === p.product_id);
-                        return (
-                          <tr key={i} className="even:bg-gray-50">
-                            <td className="border px-2 py-1">{p.product_id}</td>
-                            <td className="border px-2 py-1">
-                              {prod?.nombre_producto || "Sin nombre"}
-                            </td>
-                            <td className="border px-2 py-1">{p.cantidad}</td>
-                            <td className="border px-2 py-1">{p.descuento}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                  <div className="flex justify-end mt-4">
-                    <button
-                      onClick={() =>
-                        setProductsModal({ open: false, products: [], promoName: "" })
-                      }
-                      className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
-                    >
-                      Cerrar
-                    </button>
+       {/* Modal de productos (Ver más) */}
+{productsModal.open && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center">
+    {/* Fondo */}
+    <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+
+    {/* Contenido */}
+    <div
+      className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto animate-modalShow transition-all duration-300 p-8"
+      style={{ width: "40rem", maxHeight: "90vh" }}
+    >
+      <h3 className="text-xl font-semibold mb-4">
+        {productsModal.promoName} — Productos
+      </h3>
+
+      <table className="w-full table-auto border-collapse text-sm">
+        <thead>
+          <tr className="bg-gray-100 text-left">
+            <th className="border px-2 py-1">ID</th>
+            <th className="border px-2 py-1">Nombre</th>
+            <th className="border px-2 py-1">Cantidad</th>
+            <th className="border px-2 py-1">Descuento (%)</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {productsModal.products.map((p, i) => {
+            const prod = productos.find((pr) => pr.id === p.product_id);
+            return (
+              <tr key={i} className="even:bg-gray-50">
+                <td className="border px-2 py-1">{p.product_id}</td>
+                <td className="border px-2 py-1">
+                  {prod?.nombre_producto || "Sin nombre"}
+                </td>
+                <td className="border px-2 py-1">{p.cantidad}</td>
+                <td className="border px-2 py-1">{p.descuento}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <div className="flex justify-end mt-6">
+        <button
+          onClick={() =>
+            setProductsModal({ open: false, products: [], promoName: "" })
+          }
+          className="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded"
+        >
+          Cerrar
+        </button>
                   </div>
                 </div>
               </div>
