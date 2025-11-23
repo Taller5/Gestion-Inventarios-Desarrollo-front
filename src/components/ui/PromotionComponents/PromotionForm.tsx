@@ -332,7 +332,9 @@ export default function PromotionFormModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
+<div className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-4 md:px-6 lg:px-8 xl:px-150">
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -349,10 +351,11 @@ export default function PromotionFormModal({
             <p className="text-azul-medio font-semibold">Cargando...</p>
           </div>
         )}
-        <h2 className="text-2xl font-semibold text-center mb-4">
-          {editing ? "Editar Promoción" : "Nueva Promoción"}
-        </h2>
+       <h2 className="text-2xl font-semibold text-center mb-8 border-b border-gray-300 pb-2">
+  {editing ? "Editar Promoción" : "Nueva Promoción"}
+</h2>
 
+        
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nombre, Tipo, Valor, Descripción, Fechas */}
           <div>

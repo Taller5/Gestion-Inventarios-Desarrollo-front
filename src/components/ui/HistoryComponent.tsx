@@ -111,75 +111,90 @@ const HistoryComponent: React.FC<{ userId: number; onClose: () => void; initialT
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50 bg-opacity-60 backdrop-blur-md">
-      <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-4xl p-6 relative border border-azul-medio flex flex-col"
-        style={{ maxHeight: "90vh", minHeight: "70vh", overflow: "hidden" }} 
-      >
-        <button
-          className="absolute top-2 right-2 text-rojo-claro hover:text-rojo-oscuro text-xl font-bold"
-          onClick={onClose}
-        >
-          &times;
-        </button>
+   <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  {/* Fondo translúcido con blur */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
+
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto p-10"
+    style={{
+      width: "50rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
+       <button
+  className="absolute top-2 right-2 text-rojo-claro hover:text-rojo-oscuro text-4xl font-bold p-2"
+  onClick={onClose}
+>
+  &times;
+</button>
+
         <h2 className="text-2xl font-bold mb-4 text-azul-medio">Historial de Predicciones</h2>
 
-        <div className="mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-          {/* Filtro por producto */}
-          <div className="w-full md:w-1/3">
-            <SearchBar
-              key={searchBarKey}
-              data={productos}
-              displayField="nombre_producto"
-              searchFields={["nombre_producto", "id"]}
-              placeholder="Buscar producto..."
-              onSelect={setFilterProduct}
-              value={searchQuery}
-              onInputChange={setSearchQuery}
-              resultFormatter={(item) =>
-                `${item.nombre_producto ?? "N/A"} (ID: ${item.id})`
-              }
-            />
-          </div>
-          {/* Filtro por fecha SOLO para diario */}
-          <div>
-            {selectedType === "diario" && (
-              <input
-                type="date"
-                value={filterDate}
-                onChange={(e) => setFilterDate(e.target.value)}
-                className="border rounded px-3 py-2 text-sm"
-                placeholder="Filtrar por fecha"
-              />
-            )}
-          </div>
-          {/* Filtro por promoción */}
-          <div>
-            <select
-              value={filterPromotion}
-              onChange={(e) => setFilterPromotion(e.target.value as "" | "0" | "1")}
-              className="border rounded px-3 py-2 text-sm"
-            >
-              <option value="">Promoción</option>
-              <option value="1">Sí</option>
-              <option value="0">No</option>
-            </select>
-          </div>
-          {/* Limpiar filtros */}
-          <button
-            className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold"
-            onClick={() => {
-              setFilterProduct(null);
-              setSearchQuery("");
-              setFilterDate("");
-              setFilterPromotion("");
-              setPage(1);
-              setSearchBarKey(prev => prev + 1); // fuerza el reset del SearchBar
-            }}
-          >
-            Limpiar filtros
-          </button>
-        </div>
+        <div className="mb-6 flex flex-col sm:flex-row flex-wrap gap-4 items-center justify-between">
+  {/* Filtro por producto */}
+  <div className="w-full sm:w-1/3 min-w-[200px]">
+    <SearchBar
+      key={searchBarKey}
+      data={productos}
+      displayField="nombre_producto"
+      searchFields={["nombre_producto", "id"]}
+      placeholder="Buscar producto..."
+      onSelect={setFilterProduct}
+      value={searchQuery}
+      onInputChange={setSearchQuery}
+      resultFormatter={(item) =>
+        `${item.nombre_producto ?? "N/A"} (ID: ${item.id})`
+      }
+    />
+  </div>
+
+  {/* Filtro por fecha SOLO para diario */}
+  <div className="w-full sm:w-auto">
+    {selectedType === "diario" && (
+      <input
+        type="date"
+        value={filterDate}
+        onChange={(e) => setFilterDate(e.target.value)}
+        className="border rounded px-3 py-2 text-sm w-full sm:w-auto"
+        placeholder="Filtrar por fecha"
+      />
+    )}
+  </div>
+
+  {/* Filtro por promoción */}
+  <div className="w-full sm:w-auto">
+    <select
+      value={filterPromotion}
+      onChange={(e) => setFilterPromotion(e.target.value as "" | "0" | "1")}
+      className="border rounded px-3 py-2 text-sm w-full sm:w-auto"
+    >
+      <option value="">Promoción</option>
+      <option value="1">Sí</option>
+      <option value="0">No</option>
+    </select>
+  </div>
+
+  {/* Limpiar filtros */}
+  <div className="w-full sm:w-auto">
+    <button
+      className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold w-full sm:w-auto"
+      onClick={() => {
+        setFilterProduct(null);
+        setSearchQuery("");
+        setFilterDate("");
+        setFilterPromotion("");
+        setPage(1);
+        setSearchBarKey(prev => prev + 1); // fuerza el reset del SearchBar
+      }}
+    >
+      Limpiar filtros
+    </button>
+  </div>
+</div>
+
 
         <div
           className="flex-1 overflow-y-auto"

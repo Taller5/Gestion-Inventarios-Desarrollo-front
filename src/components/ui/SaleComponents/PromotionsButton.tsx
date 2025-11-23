@@ -333,7 +333,8 @@ const restablecerPromociones = async () => {
       </Button>
 
     {show && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center">
+  <div className="fixed inset-0 z-50 flex items-center justify-center px-4 sm:px-8 md:px-16 lg:px-32 xl:px-96">
+
     <div
       className="absolute inset-0 bg-black/40"
       onClick={() => setShow(false)}

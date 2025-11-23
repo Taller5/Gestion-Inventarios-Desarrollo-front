@@ -381,7 +381,8 @@ const handleYearsSubmit = async (e: React.FormEvent) => {
     <ProtectedRoute allowedRoles={["administrador", "supervisor", "vendedor", "bodeguero"]}>
       <Container
         page={
-          <div className="p-6 bg-white shadow-xl rounded-xl max-w-4xl mx-auto my-10">
+<div className="flex justify-center items-start min-h-screen p-6 sm:p-10 m-0 sm:m-5 px-4 sm:px-10 md:px-20">
+  <div className="bg-white shadow-xl rounded-xl max-w-xl w-full p-7 ">
             <h1 className="text-3xl font-bold mb-6 text-azul-medio flex items-center">
               <FaRobot className="mr-3" /> Herramienta de Predicción de Demanda
             </h1>
@@ -458,7 +459,7 @@ const handleYearsSubmit = async (e: React.FormEvent) => {
               </div>
 
               {/* COLUMNA 2: RESULTADO DE PREDICCIÓN DIARIA Y ANUAL */}
-              <div className="p-4 border border-gray-200 rounded-lg bg-gray-50 flex flex-col justify-center">
+              <div className="p-4 mb-50 border border-gray-200 rounded-lg bg-gray-50 flex flex-col justify-center">
                 <h2 className="text-xl font-semibold mb-4 text-gray-700">
                   2. Resultado de la Consulta
                 </h2>
@@ -572,6 +573,7 @@ const handleYearsSubmit = async (e: React.FormEvent) => {
               </div>
             </div>
           </div>
+        </div>
         }
       />
     </ProtectedRoute>

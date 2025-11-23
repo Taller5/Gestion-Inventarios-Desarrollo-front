@@ -544,9 +544,19 @@ export default function CashRegisterPage() {
 
               {/* Modal Abrir Caja */}
               {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
-                  <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  {/* Fondo translúcido con blur */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
+
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto p-10"
+    style={{
+      width: "32rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
                     <button
                       type="button"
                       onClick={() => setModalOpen(false)}
@@ -658,7 +668,7 @@ export default function CashRegisterPage() {
                 onClose={() => setEmptyModalOpen(false)}
                 title="Crear caja nueva"
               >
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 ">
                   <div>
                     <label className="block font-semibold mb-1">Sucursal</label>
                     <select

@@ -404,8 +404,19 @@ export default function CustomersPage() {
 
               {/* Modal */}
               {modalOpen && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center">
-                  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  {/* Fondo translúcido con blur */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
+
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto"
+    style={{
+      width: "50rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
                   <form
                     onSubmit={handleSubmit}
                     className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 overflow-y-auto"
@@ -544,6 +555,7 @@ export default function CustomersPage() {
                     </div>
                   </form>
                 </div>
+                 </div>
               )}
 
               <SimpleModal
