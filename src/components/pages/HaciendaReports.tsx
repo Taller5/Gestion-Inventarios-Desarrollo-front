@@ -2,6 +2,9 @@ import { useEffect, useState, useMemo } from 'react';
 import ProtectedRoute from '../services/ProtectedRoute';
 import Container from '../ui/Container';
 import TableInformation from '../ui/TableInformation';
+import ExcelExporter from '../ui/ExcelExporter';
+import PDFExporter from '../ui/PDFExporter';
+import InfoIcon from '../ui/InfoIcon';
 
 const API_URL = import.meta.env.VITE_API_URL; 
 const HACIENDA_ENDPOINT = '/api/v1/hacienda-report';
@@ -236,14 +239,36 @@ export default function HaciendaReports() {
     'xml_respuesta'
   ];
 
+  // Cabeceras y datos para exportar (solo campos planos, sin botones JSX)
+  const exportHeaders = [
+    'id',
+    'business_nombre',
+    'tipo',
+    'fecha',
+    'clave',
+    'hacienda_estado',
+  ];
+
+  const exportData = filtered.map((row) => ({
+    id: row.id,
+    business_nombre: row.business_nombre,
+    tipo: row.tipo,
+    fecha: row.fecha ? new Date(row.fecha).toLocaleString('es-CR') : '',
+    clave: row.clave || '',
+    hacienda_estado: row.hacienda_estado || '',
+  }));
+
   return (
     <ProtectedRoute allowedRoles={['administrador','supervisor']}>
       <Container page={
       <div className="w-full flex justify-center px-2 md:px-10 pt-10 overflow-x-hidden">
             <div className="w-full px-2 md:px-10 mx-auto">
-            <div className="flex items-center gap-3 mb-6 mt-6">
+            <div className="flex items-center gap-3 mb-4">
               <h1 className="text-3xl font-bold">Reporte Hacienda</h1>
-              {/* Se puede agregar un InfoIcon si se desea */}
+              <InfoIcon
+                title="Reporte de Hacienda"
+                description="En este módulo puedes generar reportes de Hacienda filtrados por negocio, tipo y rango de fechas. Selecciona un negocio y un rango de fechas para ver los estados de las facturas correspondientes. También puedes descargar los XML de los comprobantes y exportar los datos a Excel o PDF."
+              />
             </div>
 
             {error && <p className="text-red-600">{error}</p>}
@@ -313,13 +338,30 @@ export default function HaciendaReports() {
               {/* Botón limpiar */}
               <div className="flex flex-col w-full sm:w-auto">
                 <button
-                  className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-2 sm:mt-0 cursor-pointer w-full sm:w-auto"
+                  className="bg-gray-200 hover:bg-gray-300 text-black font-semibold py-2 px-4 rounded mt-7  cursor-pointer"
                   onClick={clearFilters}
                 >
                   Limpiar filtros
                 </button>
               </div>
             </div>
+
+            {filtered.length > 0 && (
+              <div className="mb-4 flex gap-4">
+                <ExcelExporter
+                  data={exportData}
+                  headers={exportHeaders}
+                  fileName={`Hacienda_${businessFilter || 'Todos'}.xlsx`}
+                />
+
+                <PDFExporter
+                  data={exportData}
+                  headers={exportHeaders}
+                  fileName={`Hacienda_${businessFilter || 'Todos'}.pdf`}
+                  reportTitle={`Reporte Hacienda - ${businessFilter || 'Todos'}`}
+                />
+              </div>
+            )}
 
             <TableInformation
               headers={headers}
