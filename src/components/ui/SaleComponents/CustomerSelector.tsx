@@ -35,18 +35,40 @@ export default function CustomerSelector({
       {/* Selectores compactos */}
       <div className="mb-3 flex flex-wrap items-center gap-3">
         <span className="text-lg font-semibold  flex items-center gap-2">
-          Comprobante
+          Tipo de comprobante
           
         </span>
-        <select
-          className="cursor-pointer min-h-[34px] text-lg  text-black rounded px-3 py-1 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          value={documentType}
-          onChange={(e) => setDocumentType(e.target.value as 'auto' | '04' | '01')}
-        >
-          <option value="auto">Generar factura (sin envio)</option>
-          <option value="04">Tiquete electrónico</option>
-          <option value="01">Factura electrónica</option>
-        </select>
+  <div className="relative w-fit border border-gray-300 ">
+  <select
+    className="
+      w-full cursor-pointer appearance-none 
+      border-gray-300 bg-white
+      py-2 pl-4 pr-12 text-base text-gray-500 
+      hover:border-blue-400
+    focus:border-blue-500
+    focus:ring-2 focus:ring-blue-200 focus:ring-offset-0"
+    value={documentType}
+    onChange={(e) => setDocumentType(e.target.value as 'auto' | '04' | '01')}
+  >
+    <option value="auto">Generar factura (sin envío)</option>
+    <option value="04">Tiquete electrónico</option>
+    <option value="01">Factura electrónica</option>
+  </select>
+
+  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3">
+    <div className="mr-3 h-5 w-px bg-gray-300"></div>
+
+    <svg
+      className="h-4 w-4 text-gray-400 transition-transform group-hover:rotate-180"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+    </svg>
+  </div>
+</div>
+
         <InfoIcon
             title="Tipo de documento"
             description={
