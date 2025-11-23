@@ -157,22 +157,26 @@ export default function Container(props: ContainerProps) {
         <main className="flex flex-col flex-grow ">{pageContent}</main>
       </div>
 
-      {/* Modal de inactividad */}
-      {showInactivityModal && (
-        <SimpleModal
-          open={showInactivityModal}
-          onClose={handleCloseModal}
-          title="Sesión finalizada"
-        >
-          <p>Tu sesión ha sido cerrada por inactividad.</p>
-          <button
-            className="mt-4 px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700"
-            onClick={handleCloseModal}
-          >
-            Ir a login
-          </button>
-        </SimpleModal>
-      )}
+     {/* Modal de inactividad */}
+{showInactivityModal && (
+  <SimpleModal
+    open={showInactivityModal}
+    onClose={handleCloseModal}
+    title="Sesión finalizada"
+  >
+    <div className="space-y-4 text-center">
+      <p>Tu sesión ha sido cerrada por inactividad.</p>
+
+      <button
+        className="px-4 py-2 bg-sky-600 text-white rounded hover:bg-sky-700 w-full sm:w-auto"
+        onClick={handleCloseModal}
+      >
+        Ir a login
+      </button>
+    </div>
+  </SimpleModal>
+)}
+
 
       {/* Footer */}
       <footer className="w-full bg-sky-950 text-white py-3 px-6">
