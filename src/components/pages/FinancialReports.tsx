@@ -159,16 +159,29 @@ const businessList = Array.from(
     dateMap[inv.dateFormatted] += parseFloat(inv.ganancia_bruta);
   });
   for (const date in dateMap) profitByDate.push({ date, profit: dateMap[date] });
+// Headers con nombres bonitos
+const invoiceHeaders = [
+  "ID",
+  "Sucursal",
+  "Fecha",
+  "Cliente",
+  "Total",
+  "Ganancia bruta",
+  "Metodo de pago",
+];
 
-  const invoiceHeaders = [
-    "id",
-    "branch_name",
-    "dateFormatted",
-    "customer_name",
-    "total",
-    "ganancia_bruta",
-    "payment_method",
-  ];
+
+// Transformación estilo businesses (sin signos)
+const tableContent = invoicesWithProfit.map((f) => ({
+  ID: f.id,
+  Sucursal: f.branch_name,
+  Fecha: f.dateFormatted,
+  Cliente: f.customer_name || "-",
+  Total: Number(f.total).toLocaleString(),
+  "Ganancia bruta": Number(f.ganancia_bruta).toLocaleString(),
+  "Metodo de pago": f.payment_method,
+}));
+
 
   const clearFilters = () => {
     setSelectedBusiness(null);
@@ -272,35 +285,34 @@ const businessList = Array.from(
           <p className="mt-4 font-semibold text-lg ">
             Ganancia bruta total: ₡ {totalGanancia.toLocaleString()}
           </p>
+ {/* EXPORTADORES */}
+        {invoicesWithProfit.length > 0 && (
+          <div className="mb-4 flex flex-wrap gap-4">
+            <ExcelExporter
+              data={tableContent}
+              headers={invoiceHeaders}
+              fileName={`GananciaBruta_${selectedBusiness || "Todos"}.xlsx`}
+            />
+            <PDFExporter
+              data={tableContent}
+              headers={invoiceHeaders}
+              fileName={`GananciaBruta_${selectedBusiness || "Todos"}.pdf`}
+              reportTitle={`Reporte de Ganancia Bruta - ${
+                selectedBusiness || "Todos"
+              }`}
+            />
+          </div>
+        )}
 
-          {/* EXPORTADORES */}
-          {invoicesWithProfit.length > 0 && (
-            <div className="mb-4 flex flex-wrap gap-4">
-              <ExcelExporter
-                data={invoicesWithProfit}
-                headers={invoiceHeaders}
-                fileName={`GananciaBruta_${selectedBusiness || "Todos"}.xlsx`}
-              />
-              <PDFExporter
-                data={invoicesWithProfit}
-                headers={invoiceHeaders}
-                fileName={`GananciaBruta_${selectedBusiness || "Todos"}.pdf`}
-                reportTitle={`Reporte de Ganancia Bruta - ${
-                  selectedBusiness || "Todos"
-                }`}
-              />
-            </div>
-          )}
-
-          {/* TABLA */}
-          {invoicesWithProfit.length > 0 && (
-            <div className="overflow-y-auto rounded-lg">
-              <TableInformation
-                headers={invoiceHeaders}
-                tableContent={invoicesWithProfit}
-              />
-            </div>
-          )}
+             {/* TABLA */}
+        {invoicesWithProfit.length > 0 && (
+          <div className="overflow-y-auto rounded-lg">
+            <TableInformation
+              headers={invoiceHeaders}
+              tableContent={tableContent}
+            />
+          </div>
+        )}
 
         {/* GRÁFICO DE LÍNEA */}
 {!loading && !error && profitByDate.length > 0 && (
