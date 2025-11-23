@@ -7,7 +7,7 @@ interface SimpleModalProps {
   title?: string;
   className?: string;
   isWide?: boolean;
-  onReset?: () => void; // <-- callback para resetear estados al cerrar
+  onReset?: () => void; // callback para resetear estados al cerrar
 }
 
 export default function SimpleModal({ 
@@ -20,7 +20,6 @@ export default function SimpleModal({
   onReset
 }: SimpleModalProps) {
   useEffect(() => {
-    // Cuando el modal se cierre (open pasa a false), ejecuta onReset
     if (!open && onReset) {
       onReset();
     }
@@ -28,17 +27,29 @@ export default function SimpleModal({
 
   if (!open) return null;
 
+  // Define el ancho del modal aquí, sin variables externas
   const modalWidth = isWide ? 'w-full max-w-4xl' : 'w-full max-w-md';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+ 
+
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto"
+    style={{
+      width: "32rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
       {/* Fondo translúcido */}
       <div 
         className="absolute inset-0 bg-black/40 backdrop-blur-xs"
         onClick={onClose}
       />
       <div className={`relative bg-white rounded-lg shadow-xl ${modalWidth} ${className}`}>
-        {/* Botón de cierre (SVG X personalizado) */}
+        {/* Botón de cierre */}
         <button
           type="button"
           onClick={onClose}
@@ -57,13 +68,16 @@ export default function SimpleModal({
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
+
         {title && (
           <div className="px-6 py-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
           </div>
         )}
+
         <div className="p-6">{children}</div>
       </div>
     </div>
+  </div>
   );
 }

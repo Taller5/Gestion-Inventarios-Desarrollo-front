@@ -16,7 +16,7 @@ export default function SucursalModal({
   setModalSucursal,
   API_URL,
 }: SucursalModalProps) {
-  const [alerta, setAlerta] = useState<{ mensaje: string; tipo: "error" | "info" } | null>(null);
+  const [, setAlerta] = useState<{ mensaje: string; tipo: "error" | "info" } | null>(null);
   const [verificandoCaja, setVerificandoCaja] = useState(false);
   const [cajaAbierta, setCajaAbierta] = useState<boolean | null>(null);
   const [sucursalSeleccionada, setSucursalInterna] = useState<Sucursal | null>(null);
@@ -149,10 +149,22 @@ useEffect(() => {
   if (!modalSucursal) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+    
+<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  {/* Fondo translúcido con blur */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto p-2"
+    style={{
+      width: "32rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
+
+      <div className="relative bg-white rounded-2xl  w-full max-w-md p-8">
         <h2 className="text-xl font-bold mb-4 text-center">
           Seleccione la sucursal en la cual está trabajando
         </h2>
@@ -202,14 +214,7 @@ useEffect(() => {
 
 
 
-        {/* ALERTA CENTRAL MEGA */}
-        {alerta && alerta.tipo === "error" && (
-          <div className="fixed inset-0 flex items-center justify-center z-50">
-            <div className="bg-rojo-ultra-claro text-rojo-oscuro border-4 border-rojo-claro rounded-3xl px-16 py-12 text-center text-4xl md:text-5xl font-extrabold shadow-[0_0_30px_rgba(220,38,38,0.7)] animate-pulse">
-              {alerta.mensaje}
-            </div>
-          </div>
-        )}
+    
 
         <div className="flex justify-between mt-6">
           <button
@@ -227,5 +232,6 @@ useEffect(() => {
         </div>
       </div>
     </div>
+  </div>
   );
 }

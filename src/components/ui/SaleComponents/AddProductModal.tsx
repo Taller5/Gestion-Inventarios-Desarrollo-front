@@ -29,9 +29,19 @@ const AddProductModal: React.FC<AddProductModalProps> = ({
   })}`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  {/* Fondo translúcido con blur */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
+
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto p-10"
+    style={{
+      width: "32rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
         
         <h2 className="text-xl font-bold mb-4">Añadir producto</h2>
         <p><strong>Código:</strong> {productoSeleccionado.codigo_producto}</p>

@@ -372,9 +372,12 @@ export default function Providers() {
     };
 
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center">
-        <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
-        <div className="relative bg-white p-6 rounded-2xl shadow-2xl w-full max-w-lg">
+<div className="fixed inset-0 z-50 flex items-center justify-center">
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto animate-modalShow transition-all duration-300 p-8"
+    style={{ width: "40rem", maxHeight: "90vh" }}
+  >
             <button
                       type="button"
                       onClick={() => setShowEditModal(false)}

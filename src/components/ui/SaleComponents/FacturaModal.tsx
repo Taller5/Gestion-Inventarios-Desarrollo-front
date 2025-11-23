@@ -300,9 +300,19 @@ export default function FacturaModal({
     metodoPago === "Efectivo" ? Math.max(0, montoEntregado - total) : 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-2 sm:px-6">
-      {/* Fondo semitransparente */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-xs"></div>
+   <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  {/* Fondo translúcido con blur */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
+
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto"
+    style={{
+      width: "50rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
 
       <form
         onSubmit={handleFinalizar}
@@ -629,5 +639,6 @@ export default function FacturaModal({
       </SimpleModal>
       </form>
     </div>
+        </div>
   );
 }

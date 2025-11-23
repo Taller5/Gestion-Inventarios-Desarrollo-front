@@ -423,7 +423,7 @@ useEffect(() => {
 
   return (
     <>
-<section className="bg-azul-oscuro hidden lg:flex w-[240px] min-h-screen flex-col pt-4 shrink-0">
+<section className="bg-azul-oscuro hidden lg:flex w-[300px] min-h-screen flex-col pt-4 shrink-0">
   {sidebarContent}
 </section>
 

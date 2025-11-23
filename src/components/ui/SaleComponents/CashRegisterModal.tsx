@@ -59,7 +59,7 @@ useEffect(() => {
 
 
 
-  // 🔥 Siempre recargar caja cada vez que el modal se abre
+  //  Siempre recargar caja cada vez que el modal se abre
   useEffect(() => {
     if (!modalCaja || !sucursalSeleccionada) return;
 
@@ -92,13 +92,21 @@ useEffect(() => {
   if (!modalCaja) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div
-        className="absolute inset-0 bg-black/40 backdrop-blur-xs"
-        onClick={() => setModalCaja(false)}
-      ></div>
+ <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+  {/* Fondo translúcido con blur */}
+  <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" />
 
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-8">
+  {/* Modal */}
+  <div
+    className="relative bg-white rounded-lg shadow-lg pointer-events-auto overflow-y-auto p-10"
+    style={{
+      width: "32rem",
+      maxHeight: "90vh",
+      boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+    }}
+  >
+
+
         {/* Botón cerrar con ícono */}
         <button
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition text-2xl cursor-pointer"
@@ -150,5 +158,6 @@ useEffect(() => {
         )}
       </div>
     </div>
+
   );
 }
