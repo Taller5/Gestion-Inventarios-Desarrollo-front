@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { IoClose } from "react-icons/io5"; // Ícono de cerrar
+
 import type { Caja } from "../../../types/salePage";
 
 interface CashRegisterModalProps {
@@ -108,13 +108,23 @@ useEffect(() => {
 
 
         {/* Botón cerrar con ícono */}
-        <button
-          className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 transition text-2xl cursor-pointer"
-          onClick={() => setModalCaja(false)}
-          aria-label="Cerrar modal"
-        >
-          <IoClose />
-        </button>
+    <button
+  className="absolute top-4 right-4 cursor-pointer p-1 rounded-full bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition"
+  onClick={() => setModalCaja(false)}
+  aria-label="Cerrar modal"
+>
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="h-6 w-6 text-[var(--color-rojo-oscuro)]"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={3}
+  >
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+</button>
+
 
         <h2 className="text-2xl font-extrabold mb-6 text-center text-gray-800">
           Caja del usuario

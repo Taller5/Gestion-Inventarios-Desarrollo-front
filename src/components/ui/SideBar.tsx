@@ -215,7 +215,7 @@ export default function SideBar({ role, isOpen, onClose }: SideBarProps) {
     };
   }
 
-  const btnActiveClasses = "bg-azul-medio border border-white/40 shadow-md";
+  const btnActiveClasses = "bg-azul-claro  ";
 const btnHoverClasses = "hover:bg-azul-hover transition-colors duration-200 ease-in-out";
 
 const renderButtons = (buttons: JSX.Element[]) =>

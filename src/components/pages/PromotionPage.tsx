@@ -5,6 +5,8 @@ import PromotionForm from "../ui/PromotionComponents/PromotionForm";
 import TableInformation from "../ui/TableInformation";
 import { AiOutlineCheck, AiOutlineClose } from "react-icons/ai";
 import InfoIcon from "../ui/InfoIcon";
+import { FaTrash } from "react-icons/fa";
+import { RiEdit2Fill } from "react-icons/ri";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -195,23 +197,26 @@ export default function PromotionPage() {
         <span className="text-gray-400">—</span>
       ),
     Acciones: (
-      <div className="flex gap-2">
-        <button
-          className="bg-azul-medio hover:bg-azul-hover text-white px-2 py-1 rounded font-bold"
-          onClick={() => {
-            setEditing(promo);
-            setModalOpen(true);
-          }}
-        >
-          Editar
-        </button>
-        <button
-          className="bg-rojo-claro hover:bg-rojo-oscuro text-white px-2 py-1 rounded font-bold"
-          onClick={() => setConfirmDelete({ open: true, id: promo.id! })}
-        >
-          Eliminar
-        </button>
-      </div>
+     <div className="flex gap-2">
+  <button
+    className="bg-azul-medio hover:bg-azul-hover text-white px-2 py-1 rounded font-bold flex items-center gap-2"
+    onClick={() => {
+      setEditing(promo);
+      setModalOpen(true);
+    }}
+  >
+    <RiEdit2Fill />
+    Editar
+  </button>
+  <button
+    className="bg-rojo-claro hover:bg-rojo-oscuro text-white px-2 py-1 rounded font-bold flex items-center gap-2"
+    onClick={() => setConfirmDelete({ open: true, id: promo.id! })}
+  >
+    <FaTrash />
+    Eliminar
+  </button>
+</div>
+
     ),
   }));
 
@@ -287,8 +292,10 @@ export default function PromotionPage() {
                     </button>
                     <button
                       onClick={handleDelete}
+                      
                       className="bg-rojo-claro hover:bg-rojo-oscuro text-white px-4 py-2 rounded font-bold" 
                     >
+                      
                       Eliminar
                     </button>
                   </div>

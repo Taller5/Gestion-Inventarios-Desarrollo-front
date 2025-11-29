@@ -342,6 +342,7 @@ export default function PromotionFormModal({
     style={{ width: "40rem", maxHeight: "90vh" }}
   >
 
+
       <div
         className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
@@ -361,7 +362,25 @@ export default function PromotionFormModal({
        <h2 className="text-2xl font-semibold text-center mb-8 border-b border-gray-300 pb-2">
   {editing ? "Editar Promoción" : "Nueva Promoción"}
 </h2>
-
+  {/* Botón de cierre */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          className="absolute top-3 right-4 rounded-full p-1 bg-[var(--color-rojo-ultra-claro)] hover:bg-[var(--color-rojo-claro)] transition cursor-pointer"
+          style={{ zIndex: 10 }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6 text-[var(--color-rojo-oscuro)]"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            strokeWidth={3}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Nombre, Tipo, Valor, Descripción, Fechas */}
