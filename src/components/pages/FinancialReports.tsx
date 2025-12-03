@@ -4,15 +4,7 @@ import Container from "../ui/Container";
 import TableInformation from "../ui/TableInformation";
 import ExcelExporter from "../ui/ExcelExporter";
 import PDFExporter from "../ui/PDFExporter";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
+
 import InfoIcon from "../ui/InfoIcon";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -314,32 +306,7 @@ const tableContent = invoicesWithProfit.map((f) => ({
           </div>
         )}
 
-        {/* GRÁFICO DE LÍNEA */}
-{!loading && !error && profitByDate.length > 0 && (
-  <div className="mt-10 w-full h-72 sm:h-80 md:h-[24rem]">
-    <h2 className="text-lg sm:text-xl font-semibold mb-4">
-      Ganancia por Fecha
-    </h2>
-    <ResponsiveContainer width="100%" height="100%">
-      <LineChart
-        data={profitByDate}
-        margin={{ top: 10, right: 20, left: 0, bottom: 0 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-        <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Line
-          type="monotone"
-          dataKey="profit"
-          stroke="#10b981"
-          strokeWidth={3}
-        />
-      </LineChart>
-    </ResponsiveContainer>
-  </div>
-)}
-
+        
 
           {!loading && !error && profitByDate.length === 0 && (
             <p>No hay facturas para los filtros seleccionados.</p>
